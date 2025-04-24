@@ -3,6 +3,7 @@ __email__ = 'compund555@gmail.com'
 __version__ = '0.1.0'
 
 import numpy as np
+import networkx as nx
 
 from .town import create_town, draw_town
 from .folk import Folk

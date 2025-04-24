@@ -44,7 +44,7 @@ class Folk:
     def sleep(self, counter_t, params):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
-            if params.mem_span < self.spreader_streak or random.random() > params.forget_param:
+            if params.mem_span < self.spreader_streak or random.random() > params.forget:
                 self.convert('S', 'R', counter_t)
             else:
                 self.spreader_streak += 1
