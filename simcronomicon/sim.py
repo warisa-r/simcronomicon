@@ -28,8 +28,8 @@ class DayEvent():
                         chosen_person = people_at_address[0]
                     if chosen_person.social_energy > 0:
                         # Interaction is a two-way street!
-                        person.interact(chosen_person, sim.counter_t, sim.params)
-                        chosen_person.interact(person, sim.counter_t, sim.params)
+                        person.interact(chosen_person, sim.counter_t, sim.params, rd.random())
+                        chosen_person.interact(person, sim.counter_t, sim.params, rd.random())
 
 
 
@@ -61,7 +61,7 @@ class SimulationParameters():
         self.E2R = phi
         self.S2R = eta1
         self.forget = eta2
-        
+
 class Simulation:
     def __init__(self, town, params):
         if not isinstance(town, nx.classes.graph.Graph):

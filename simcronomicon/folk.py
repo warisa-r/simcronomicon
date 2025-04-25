@@ -1,5 +1,3 @@
-from . import rd
-
 class Folk:
     def __init__(self, address, status):
         self.address = address
@@ -16,10 +14,8 @@ class Folk:
         if old_stat == 'S':
             self.spreader_streak = 0 # Reset spreader streak
 
-    def interact(self, other_person, counter_t, params):
+    def interact(self, other_person, counter_t, params, dice):
         self.social_energy -= 1
-        dice = rd.random()
-
         # Rule 4.1
         if self.status == 'S' and other_person.status not in ['Ir', 'Is'] and dice > params.S2R:
             self.convert('S', 'R', counter_t)
@@ -41,10 +37,10 @@ class Folk:
         elif other_person.status == 'R' and self.status == 'E' and dice > params.E2R:
             self.status = 'R'
     
-    def sleep(self, counter_t, params):
+    def sleep(self, counter_t, params, dice):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
-            if params.mem_span < self.spreader_streak or rd.random() > params.forget:
+            if params.mem_span < self.spreader_streak or dice > params.forget:
                 self.convert('S', 'R', counter_t)
             else:
                 self.spreader_streak += 1

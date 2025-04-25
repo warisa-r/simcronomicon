@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 
 import simcronomicon as scon
 
-
-class TestSimcronomicon(object):
+class TestTown(object):
 
     @classmethod
     def setup_class(cls):
@@ -26,6 +25,17 @@ class TestSimcronomicon(object):
 
         plt.close(fig)
 
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+class TestFolk(object):
+    @classmethod
+    def setup_class(cls):
+        #cls.folk = scon.Folk(G, 10, 0.5)
+        pass
+    def test_town(self):
+        pass
     @classmethod
     def teardown_class(cls):
         pass
