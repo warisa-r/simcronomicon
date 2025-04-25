@@ -6,7 +6,7 @@ import numpy as np
 import networkx as nx
 import random as rd
 
-from .town import create_town, draw_town
+from .town import Town, create_town_graph
 from .folk import Folk
 
-__all__ = ["create_town", "draw_town", "Folk"]
+__all__ = ["Town", "create_town_graph", "Folk"]
