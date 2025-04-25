@@ -1,11 +1,11 @@
 from . import nx
 
-def create_town(n_house, town_density):
-    if town_density > 1:
-        ValueError("Please input a value of town density that is between 0 and 1!")
-    else: return nx.erdos_renyi_graph(n_house, town_density)
-
-def draw_town(town):
-    if type(town) is not nx.classes.graph.Graph and town.is_directed() == False:
-        raise TypeError("The input of the town must be an undirected graph!")
-    nx.draw(town)
+class Town():
+    def __init__(self, town_graph, literacy, num_init_spreader):
+        self.literacy = literacy
+        self.num_init_spreader = num_init_spreader
+        if not isinstance(town_graph, nx.classes.graph.Graph) or town_graph.is_directed == True:
+                raise TypeError(f"town_graph must be an undirected graph of type networkx.classes.graph.Graph!")
+        
+    def draw_town(self):
+        nx.draw(self.town_graph)
