@@ -1,4 +1,37 @@
 from . import nx
+from . import rd
+
+class DayEvent():
+    def __init__(self, day_freq, max_distance=float('inf')):
+        self.day_freq = day_freq
+        self.max_distance = max_distance
+    def happen(self, person, sim):
+        town = sim.town
+        people = sim.people
+        address = person.address
+        if self.max_distance == float('inf'):
+            # All other nodes in the graph
+            neighbors = [node for node in town.nodes if node != address]
+        else:
+            # BFS: only nodes within `max_distance` hops
+            lengths = nx.single_source_shortest_path_length(town, source=address, cutoff=self.max_distance)
+            neighbors = [node for node in lengths if node != address]
+
+        for _ in range(self.day_freq):
+            if person.social_energy > 0:
+                if neighbors:
+                    chosen_address = rd.choice(neighbors)
+                    people_at_address = [p for p in people if p.address == chosen_address]
+                    if len(people_at_address) > 1:
+                        chosen_person = rd.choice(people_at_address)
+                    else:
+                        chosen_person = people_at_address[0]
+                    if chosen_person.social_energy > 0:
+                        # Interaction is a two-way street!
+                        person.interact(chosen_person, sim.counter_t, sim.params)
+                        chosen_person.interact(person, sim.counter_t, sim.params)
+
+
 
 class SimulationParameters():
     def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):

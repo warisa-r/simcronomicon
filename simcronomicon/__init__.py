@@ -4,6 +4,7 @@ __version__ = '0.1.0'
 
 import numpy as np
 import networkx as nx
+import random as rd
 
 from .town import create_town, draw_town
 from .folk import Folk
