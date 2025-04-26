@@ -1,3 +1,5 @@
+from . import rd
+
 class Folk:
     def __init__(self, address, status):
         self.address = address
@@ -5,45 +7,46 @@ class Folk:
         self.status = status
         self.spreader_streak = 0
     
-    def convert(self, old_stat, new_stat, counter_t):
+    def convert(self, old_stat, new_stat, status_dict_t):
         """Convert the rumor spreading status of a person and update the counter of population with each status
         of the current time step"""
         self.status = new_stat
-        counter_t[old_stat] -= 1
-        counter_t[new_stat] += 1
+        status_dict_t[old_stat] -= 1
+        status_dict_t[new_stat] += 1
         if old_stat == 'S':
             self.spreader_streak = 0 # Reset spreader streak
 
-    def interact(self, other_person, counter_t, params, dice):
+    def interact(self, other_person, status_dict_t, params, dice):
         self.social_energy -= 1
         # Rule 4.1
         if self.status == 'S' and other_person.status not in ['Ir', 'Is'] and dice > params.S2R:
-            self.convert('S', 'R', counter_t)
+            self.convert('S', 'R', status_dict_t)
         elif other_person.status == 'S':
             # Rule 1
             if self.status == 'Ir' and dice > params.Ir2S:
-                self.convert('Ir', 'S', counter_t)
+                self.convert('Ir', 'S', status_dict_t)
             # Rule 2
             elif self.status == 'Is':
-                if dice > params.Is2S:
-                    self.convert('Is', 'S', counter_t)
+                if dice > params.Is2E:
+                    self.convert('Is', 'E', status_dict_t)
                 else:
-                    if dice > params.Is2E:
-                        self.convert('Is', 'E', counter_t)
+                    if dice > params.Is2S:
+                        self.convert('Is', 'S', status_dict_t)
             # Rule 3.1
             elif self.status == 'E' and dice > params.E2S:
-                self.convert('E', 'S', counter_t)
+                self.convert('E', 'S', status_dict_t)
         # Rule 3.2
         elif other_person.status == 'R' and self.status == 'E' and dice > params.E2R:
             self.status = 'R'
     
-    def sleep(self, counter_t, params, dice):
+    def sleep(self, status_dict_t, params, dice):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
             if params.mem_span < self.spreader_streak or dice > params.forget:
-                self.convert('S', 'R', counter_t)
+                self.convert('S', 'R', status_dict_t)
             else:
                 self.spreader_streak += 1
+        self.social_energy = rd.randint(4, 10) # Reset social energy
 
     def __repr__(self):
         return f"Person live at ({self.address}, Social Energy={self.social_energy}, Status={self.status})"

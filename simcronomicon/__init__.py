@@ -8,5 +8,6 @@ import random as rd
 
 from .town import Town, create_town_graph
 from .folk import Folk
+from .sim import Simulation, SimulationParameters
 
-__all__ = ["Town", "create_town_graph", "Folk"]
+__all__ = ["Town", "create_town_graph", "Folk", "Simulation", "SimulationParameters"]
