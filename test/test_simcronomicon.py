@@ -38,7 +38,7 @@ class TestFolk(object):
         cls.folk3 = scon.Folk(3, 'E')
         cls.folk4 = scon.Folk(4, 'S')
         cls.folk5 = scon.Folk(5, 'R')
-    def test_folk_interaction(self):
+    def test_folk_actions(self):
         scale_tipper = 1e-4
         status_dict_t = {'S': 1, 'Is': 1, 'Ir': 1, 'R': 1, 'E': 1}
         params = scon.SimulationParameters(0.4, 0.5, 0.5, 0.4, 0.7, 0.5, 0.8, 0.3)
@@ -64,12 +64,27 @@ class TestFolk(object):
         assert self.folk3.status == 'R'
         self.folk3.status = 'E'
 
-        # Test Rule 4 and social energy diminishing mechanism
+        # Test Rule 4.1 and social energy diminishing mechanism
         initial_energy = self.folk4.social_energy
         selected_folk = random.choice([self.folk3, self.folk5])
         self.folk4.interact(selected_folk, status_dict_t, params, params.S2R + scale_tipper)
         assert initial_energy == self.folk4.social_energy + 1
         assert self.folk4.status == 'R'
+        self.folk4.status = 'S' # Reset
+
+        # Test Rule 4.2 and sleeping
+        self.folk4.spreader_streak = params.mem_span
+        self.folk4.sleep(status_dict_t, params, params.forget - scale_tipper)
+        assert self.folk4.status == 'R' and self.folk4.spreader_streak == 0
+        self.folk4.status = 'S' # Reset
+        self.folk4.sleep(status_dict_t, params, params.forget + scale_tipper)
+        assert self.folk4.status == 'R' and self.folk4.spreader_streak == 0
+        self.folk4.status = 'S' # Reset
+        # Check if the spreader streak is updated otherwise and if the social energy has been resetted
+        self.folk4.social_energy = 0
+        self.folk4.sleep(status_dict_t, params, params.forget - scale_tipper)
+        assert self.folk4.status == 'S' and self.folk4.spreader_streak == 1 and self.folk4.social_energy >= 4
+
 
     @classmethod
     def teardown_class(cls):

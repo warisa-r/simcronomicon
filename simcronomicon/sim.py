@@ -64,6 +64,7 @@ class SimulationParameters():
         self.E2R = phi
         self.S2R = eta1
         self.forget = eta2
+        self.mem_span = mem_span
 
 class Simulation:
     def __init__(self, town, params, timesteps):
