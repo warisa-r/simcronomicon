@@ -6,34 +6,6 @@ class DayEvent():
     def __init__(self, day_freq, max_distance=float('inf')):
         self.day_freq = day_freq
         self.max_distance = max_distance
-    def happen(self, person, sim):
-        town = sim.town
-        people = sim.people
-        address = person.address
-        if self.max_distance == float('inf'):
-            # All other nodes in the graph
-            neighbors = [node for node in town.nodes if node != address]
-        else:
-            # BFS: only nodes within `max_distance` hops
-            lengths = nx.single_source_shortest_path_length(town, source=address, cutoff=self.max_distance)
-            neighbors = [node for node in lengths if node != address]
-
-        for _ in range(self.day_freq):
-            if person.social_energy > 0:
-                if neighbors:
-                    chosen_address = rd.choice(neighbors)
-                    people_at_address = [p for p in people if p.address == chosen_address]
-                    if len(people_at_address) > 1:
-                        chosen_person = rd.choice(people_at_address)
-                    else:
-                        chosen_person = people_at_address[0]
-                    if chosen_person.social_energy > 0:
-                        status_dict_t = sim.status_dicts[-1]
-                        # Interaction is a two-way street!
-                        person.interact(chosen_person, status_dict_t, sim.params, rd.random())
-                        chosen_person.interact(person, status_dict_t, sim.params, rd.random())
-
-
 
 class SimulationParameters():
     def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
@@ -74,6 +46,7 @@ class Simulation:
         self.folks = []
         self.status_dicts = []
         self.num_pop = len(town.town_graph.nodes())
+        self.town = town
         self.params = params
         self.current_timestep = 0
         self.timesteps = timesteps
@@ -100,10 +73,30 @@ class Simulation:
             else:
                 folk = Folk(i, 'Ir')
             self.folks.append(folk)
+            self.town.town_graph.nodes[i]['folk'].append(folk) # Account for which folks live where in the graph as well
         
         # Keep track of the number of folks in each status
         status_dict_t = {'S': num_init_spread, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0}
         self.status_dicts.append(status_dict_t)
+
+    def move_people(self, day_event):
+        possible_travel_distance = rd.randint(0, day_event.max_distance)
+        for person in self.folks:
+            current_node = person.address
+            lengths = nx.single_source_shortest_path_length(self.town.town_graph, current_node, cutoff=possible_travel_distance)
+            candidates = [node for node, dist in lengths.items() if dist == possible_travel_distance]
+            if candidates:
+                new_node = rd.choice(candidates)
+                # Remove the person from their old address
+                self.town.town_graph.nodes[current_node]['folk'].remove(person)
+                # Add person to new node
+                self.town.town_graph.nodes[new_node]['folk'].append(person)
+                # Update person's address
+                person.address = new_node
+
+    def day_event_happen(self, day_event):        
+        # Move people through the town first
+        self.move_people(day_event)
     
     def step(self):
         # Set up the new step

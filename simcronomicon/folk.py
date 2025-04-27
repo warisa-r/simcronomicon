@@ -1,8 +1,9 @@
 from . import rd
 
 class Folk:
-    def __init__(self, address, status):
-        self.address = address
+    def __init__(self, home_address, status):
+        self.home_address = home_address
+        self.address = self.home_address
         self.social_energy = rd.randint(4, 10)
         self.status = status
         self.spreader_streak = 0
@@ -40,6 +41,8 @@ class Folk:
             self.status = 'R'
     
     def sleep(self, status_dict_t, params, dice):
+        # Go home
+        self.address = self.home_address
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
             if params.mem_span <= self.spreader_streak or dice > params.forget:
@@ -49,4 +52,4 @@ class Folk:
         self.social_energy = rd.randint(4, 10) # Reset social energy
 
     def __repr__(self):
-        return f"Person live at ({self.address}, Social Energy={self.social_energy}, Status={self.status})"
+        return f"Person live at ({self.home_address}, Social Energy={self.social_energy}, Status={self.status})"

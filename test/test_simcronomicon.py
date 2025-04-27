@@ -15,9 +15,10 @@ class TestTown(object):
     @classmethod
     def setup_class(cls):
         G = scon.create_town_graph(20, 0.3)
-        cls.town = scon.Town(G, 10, 0.5)
+        cls.town = scon.Town(G, 0.5, 10)
 
     def test_town(self):
+        assert len(self.town.town_graph.nodes()) == 20 and self.town.town_graph.nodes[random.randint(0, 19)]['folk'] == []
         self.town.draw_town()
 
         # Check if something was drawn on the figure
@@ -80,10 +81,11 @@ class TestFolk(object):
         self.folk4.sleep(status_dict_t, params, params.forget + scale_tipper)
         assert self.folk4.status == 'R' and self.folk4.spreader_streak == 0
         self.folk4.status = 'S' # Reset
-        # Check if the spreader streak is updated otherwise and if the social energy has been resetted
+        # Check if the spreader streak is updated otherwise and if the social energy has been resetted and if their address has been resetted
+        self.folk4.address = 3
         self.folk4.social_energy = 0
         self.folk4.sleep(status_dict_t, params, params.forget - scale_tipper)
-        assert self.folk4.status == 'S' and self.folk4.spreader_streak == 1 and self.folk4.social_energy >= 4
+        assert self.folk4.social_energy >= 4 and self.folk4.status == 'S' and self.folk4.spreader_streak == 1 and self.folk4.address == self.folk4.home_address
 
 
     @classmethod
