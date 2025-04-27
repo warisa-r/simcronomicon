@@ -29,7 +29,7 @@ class SimulationParameters():
         # We use number 2 to signify transition that happens because of interaction
         gamma_alpha_lam = gamma * alpha * lam
         self.Is2E = (1-gamma) * gamma_alpha_lam
-        assert 1-gamma > mu # Ensure that the conversion rate for Is to E is lower than Is to S
+        assert mu < 1-gamma # Ensure that the conversion rate for Is to E is higher than Is to S
         self.Is2S = gamma_alpha_lam * mu
         self.Ir2S = gamma_alpha_lam
         self.E2S = theta
@@ -52,33 +52,40 @@ class Simulation:
         self.timesteps = timesteps
 
         hi_neighbour = DayEvent(1, 2)
-        chore = DayEvent(3, 10)
+        chore = DayEvent(1, 5)
         self.day_events = [hi_neighbour, chore]
         
         num_init_spreader = town.num_init_spreader
         
-        num_Ir = round(town.literacy * self.num_pop)
-        num_Is = self.num_pop - num_Ir
+        num_Is = round(town.literacy * self.num_pop)
+        num_Ir = self.num_pop - num_Is
 
         # Spreaders often originated from Ir type of folks first
         num_Ir -= num_init_spreader
         if num_Ir < 0: # Then some Is folks can become spreader too
             num_Is += num_Ir
             num_Ir = 0
+
         for i in range(self.num_pop):
             # A location is occupied only by one person
+            node = self.select_random_node()
             if i < num_init_spreader:
-                folk = Folk(i, 'S')
+                folk = Folk(node, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = Folk(i, 'Is')
+                folk = Folk(node, 'Is')
             else:
-                folk = Folk(i, 'Ir')
+                folk = Folk(node, 'Ir')
             self.folks.append(folk)
-            self.town.town_graph.nodes[i]['folk'].append(folk) # Account for which folks live where in the graph as well
+            self.town.town_graph.nodes[node]['folk'].append(folk) # Account for which folks live where in the graph as well
         
         # Keep track of the number of folks in each status
         status_dict_t = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0}
         self.status_dicts.append(status_dict_t)
+
+    def select_random_node(self):
+            """Select a random node that is unoccupied."""
+            available_nodes = [node for node, data in self.town.town_graph.nodes(data=True) if len(data['folk']) == 0]
+            return rd.choice(available_nodes)
     
     def everyone_go_home(self):
         # Reset every person's current address to their home address
@@ -118,7 +125,7 @@ class Simulation:
     
     def step(self):
         # Set up the new step
-        self.status_dicts.append(self.status_dicts[-1])
+        self.status_dicts.append(self.status_dicts[-1].copy())
         
         # Event happens during the day
         for day_event in self.day_events:
@@ -146,7 +153,11 @@ class Simulation:
     def run(self):
         for i in range(self.timesteps):
             print("Step has been run", i)
+            print("Status: ", self.status_dicts[-1])
             self.step()
+            # Termination condition
+            if self.status_dicts[-1]['S'] == 0:
+                break
         #TODO: Print summary
 
     def show_step(self, i):

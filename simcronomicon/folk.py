@@ -4,7 +4,7 @@ class Folk:
     def __init__(self, home_address, status):
         self.home_address = home_address
         self.address = self.home_address
-        self.social_energy = rd.randint(4, 10)
+        self.social_energy = rd.randint(0,2)
         self.status = status
         self.spreader_streak = 0
     
@@ -20,30 +20,29 @@ class Folk:
     def interact(self, other_person, status_dict_t, params, dice):
         self.social_energy -= 1
         # Rule 4.1
-        if self.status == 'S' and other_person.status not in ['Ir', 'Is'] and dice > params.S2R:
+        if self.status == 'S' and other_person.status not in ['Ir', 'Is'] and dice < params.S2R:
             self.convert('S', 'R', status_dict_t)
         elif other_person.status == 'S':
             # Rule 1
-            if self.status == 'Ir' and dice > params.Ir2S:
+            if self.status == 'Ir' and dice < params.Ir2S:
                 self.convert('Ir', 'S', status_dict_t)
             # Rule 2
             elif self.status == 'Is':
-                if dice > params.Is2E:
+                if dice < params.Is2S:
+                    self.convert('Is', 'S', status_dict_t)
+                elif dice < params.Is2E:
                     self.convert('Is', 'E', status_dict_t)
-                else:
-                    if dice > params.Is2S:
-                        self.convert('Is', 'S', status_dict_t)
             # Rule 3.1
-            elif self.status == 'E' and dice > params.E2S:
+            elif self.status == 'E' and dice < params.E2S:
                 self.convert('E', 'S', status_dict_t)
         # Rule 3.2
-        elif other_person.status == 'R' and self.status == 'E' and dice > params.E2R:
+        elif other_person.status == 'R' and self.status == 'E' and dice < params.E2R:
             self.status = 'R'
     
     def sleep(self, status_dict_t, params, dice):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
-            if params.mem_span <= self.spreader_streak or dice > params.forget:
+            if params.mem_span <= self.spreader_streak or dice < params.forget:
                 self.convert('S', 'R', status_dict_t)
             else:
                 self.spreader_streak += 1

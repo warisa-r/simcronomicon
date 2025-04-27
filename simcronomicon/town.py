@@ -1,11 +1,13 @@
+import matplotlib.pyplot as plt
+import scipy
 from . import nx
 
 def create_town_graph(num_pop, town_density):
     if not isinstance(town_density, float) or not (0 <= town_density <= 1):
-        raise TypeError("literacy must be a float between 0 and 1 (inclusive)!")
+        raise TypeError("town_density must be a float between 0 and 1 (inclusive)!")
 
     if not isinstance(num_pop, int) or num_pop < 2:
-        raise TypeError("num_init_spreader must be an integer greater than or equal to 2!")
+        raise TypeError("num_pop must be an integer greater than or equal to 2!")
     return nx.erdos_renyi_graph(num_pop, town_density)
 
 class Town():
@@ -29,3 +31,4 @@ class Town():
             self.town_graph.nodes[node]['folk'] = []
     def draw_town(self):
         nx.draw(self.town_graph)
+        plt.show()
