@@ -2,6 +2,9 @@ from . import nx
 from . import rd
 from .folk import Folk
 
+import csv
+import json
+
 class DayEvent():
     def __init__(self, day_freq, max_distance):
         self.day_freq = day_freq
@@ -25,11 +28,19 @@ class SimulationParameters():
 
         if not isinstance(mem_span, int) or mem_span <= 1:
             raise ValueError(f"mem_span must be an integer greater than 1, got {mem_span}")
+        
+        if mu >= 1-gamma: # Ensure that the conversion rate for Is to E is higher than Is to S
+            raise ValueError(f"Sensible Ignorant is less susceptible to becoming a spreader than just being exposed! \
+                             Therefore, (1-gamma) < mu.")
+
+        # Store some parameters so that they can be recalled as simulation metadata later on 
+        self.alpha = alpha
+        self.gamma = gamma
+        self.mu = mu
+        gamma_alpha_lam = gamma * alpha * lam
 
         # We use number 2 to signify transition that happens because of interaction
-        gamma_alpha_lam = gamma * alpha * lam
         self.Is2E = (1-gamma) * gamma_alpha_lam
-        assert mu < 1-gamma # Ensure that the conversion rate for Is to E is higher than Is to S
         self.Is2S = gamma_alpha_lam * mu
         self.Ir2S = gamma_alpha_lam
         self.E2S = theta
@@ -158,9 +169,32 @@ class Simulation:
             # Termination condition
             if self.status_dicts[-1]['S'] == 0:
                 break
-        #TODO: Print summary
+    def save_results(self, result_filename = "simulation_results.csv", metadata_filename = "metadata.json"):
+        """Save simulation results to CSV and metadata to JSON."""
+        # Save metadata
+        metadata = {
+            'parameters': {
+                'alpha': self.params.alpha,
+                'gamma': self.params.gamma,
+                'phi': self.params.E2R,
+                'theta': self.params.E2S,
+                'mu': self.params.mu,
+                'eta1': self.params.S2R,
+                'eta2': self.params.forget,
+                'mem_span': self.params.mem_span,
+            },
+            'max_timesteps': self.timesteps,
+            'population': self.num_pop,
+        }
+        with open(metadata_filename, 'w') as f:
+            json.dump(metadata, f, indent=4)
 
-    def show_step(self, i):
-        # TODO: Show the status of folks and status_dict of that certain step
-        if i > self.timesteps - 1:
-            print("Your specified time step exceeds the maximum time step of the simulation run.")
+        # Save results
+        fieldnames = ['timestep', 'S', 'Is', 'Ir', 'R', 'E']
+        with open(result_filename, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            for timestep, status in enumerate(self.status_dicts):
+                row = {'timestep': timestep}
+                row.update(status)
+                writer.writerow(row)
