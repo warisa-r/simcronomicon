@@ -81,11 +81,10 @@ class TestFolk(object):
         self.folk4.sleep(status_dict_t, params, params.forget + scale_tipper)
         assert self.folk4.status == 'R' and self.folk4.spreader_streak == 0
         self.folk4.status = 'S' # Reset
-        # Check if the spreader streak is updated otherwise and if the social energy has been resetted and if their address has been resetted
-        self.folk4.address = 3
+        # Check if the spreader streak is updated otherwise and if the social energy has been resetted
         self.folk4.social_energy = 0
         self.folk4.sleep(status_dict_t, params, params.forget - scale_tipper)
-        assert self.folk4.social_energy >= 4 and self.folk4.status == 'S' and self.folk4.spreader_streak == 1 and self.folk4.address == self.folk4.home_address
+        assert self.folk4.social_energy >= 4 and self.folk4.status == 'S' and self.folk4.spreader_streak == 1
 
 
     @classmethod

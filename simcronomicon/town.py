@@ -1,7 +1,11 @@
 from . import nx
 
 def create_town_graph(num_pop, town_density):
-    #TODO: This is an input function -> must write check for all inputs
+    if not isinstance(town_density, float) or not (0 <= town_density <= 1):
+        raise TypeError("literacy must be a float between 0 and 1 (inclusive)!")
+
+    if not isinstance(num_pop, int) or num_pop < 2:
+        raise TypeError("num_init_spreader must be an integer greater than or equal to 2!")
     return nx.erdos_renyi_graph(num_pop, town_density)
 
 class Town():

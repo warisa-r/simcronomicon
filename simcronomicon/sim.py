@@ -55,21 +55,21 @@ class Simulation:
         chore = DayEvent(3, 10)
         self.day_events = [hi_neighbour, chore]
         
-        num_init_spread = town.num_init_spread
+        num_init_spreader = town.num_init_spreader
         
         num_Ir = round(town.literacy * self.num_pop)
         num_Is = self.num_pop - num_Ir
 
         # Spreaders often originated from Ir type of folks first
-        num_Ir -= num_init_spread
+        num_Ir -= num_init_spreader
         if num_Ir < 0: # Then some Is folks can become spreader too
             num_Is += num_Ir
             num_Ir = 0
         for i in range(self.num_pop):
             # A location is occupied only by one person
-            if i < num_init_spread:
+            if i < num_init_spreader:
                 folk = Folk(i, 'S')
-            elif i >= num_init_spread and i < num_init_spread + num_Is:
+            elif i >= num_init_spreader and i < num_init_spreader + num_Is:
                 folk = Folk(i, 'Is')
             else:
                 folk = Folk(i, 'Ir')
@@ -77,12 +77,20 @@ class Simulation:
             self.town.town_graph.nodes[i]['folk'].append(folk) # Account for which folks live where in the graph as well
         
         # Keep track of the number of folks in each status
-        status_dict_t = {'S': num_init_spread, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0}
+        status_dict_t = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0}
         self.status_dicts.append(status_dict_t)
+    
+    def everyone_go_home(self):
+        # Reset every person's current address to their home address
+        # And reset the town graph
+        for i in range(self.num_pop):
+            self.folks[i].address = self.folks[i].home_address
+            self.town.town_graph.nodes[self.folks[i].home_address]['folk'] = [self.folks[i]]
 
     def move_people(self, day_event):
         for person in self.folks:
             possible_travel_distance = rd.randint(0, day_event.max_distance)
+            
             current_node = person.address
             lengths = nx.single_source_shortest_path_length(self.town.town_graph, current_node, cutoff=possible_travel_distance)
             candidates = [node for node, dist in lengths.items() if dist == possible_travel_distance]
@@ -126,17 +134,22 @@ class Simulation:
                 person2 = self.folks[i+1]
                 person1.interact(person2, self.status_dicts[-1], self.params, rd.random())
                 person2.interact(person1, self.status_dicts[-1], self.params, rd.random())
+        
+        # Everybody in the town go home after a long day
+        self.everyone_go_home()
 
-        # End day with everybody in the town sleeping
+        # Everybody in the town sleeping
         for folk in self.folks:
             folk.sleep(self.status_dicts[-1], self.params, rd.random())
         self.current_timestep += 1
 
     def run(self):
         for i in range(self.timesteps):
+            print("Step has been run", i)
             self.step()
         #TODO: Print summary
 
     def show_step(self, i):
+        # TODO: Show the status of folks and status_dict of that certain step
         if i > self.timesteps - 1:
             print("Your specified time step exceeds the maximum time step of the simulation run.")
