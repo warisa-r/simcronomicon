@@ -3,7 +3,7 @@ from . import rd
 from .folk import Folk
 
 class DayEvent():
-    def __init__(self, day_freq, max_distance=float('inf')):
+    def __init__(self, day_freq, max_distance):
         self.day_freq = day_freq
         self.max_distance = max_distance
 
@@ -66,6 +66,7 @@ class Simulation:
             num_Is += num_Ir
             num_Ir = 0
         for i in range(self.num_pop):
+            # A location is occupied only by one person
             if i < num_init_spread:
                 folk = Folk(i, 'S')
             elif i >= num_init_spread and i < num_init_spread + num_Is:
@@ -80,8 +81,8 @@ class Simulation:
         self.status_dicts.append(status_dict_t)
 
     def move_people(self, day_event):
-        possible_travel_distance = rd.randint(0, day_event.max_distance)
         for person in self.folks:
+            possible_travel_distance = rd.randint(0, day_event.max_distance)
             current_node = person.address
             lengths = nx.single_source_shortest_path_length(self.town.town_graph, current_node, cutoff=possible_travel_distance)
             candidates = [node for node, dist in lengths.items() if dist == possible_travel_distance]
@@ -94,30 +95,47 @@ class Simulation:
                 # Update person's address
                 person.address = new_node
 
-    def day_event_happen(self, day_event):        
-        # Move people through the town first
-        self.move_people(day_event)
+    def day_event_happen(self, day_event):
+        for i in range(day_event.day_freq):   
+            # Move people through the town first
+            self.move_people(day_event)
+            for node in self.town.town_graph.nodes():
+                folks_here = self.town.town_graph.nodes[node]['folk']
+                if len(folks_here) >= 2:
+                    # Randomly sample 2 different people that are currently in the node
+                    person1, person2 = rd.sample(folks_here, 2)
+                    # Interaction is a two-way street
+                    person1.interact(person2, self.status_dicts[-1], self.params, rd.random())
+                    person2.interact(person1, self.status_dicts[-1], self.params, rd.random())
     
     def step(self):
         # Set up the new step
         self.status_dicts.append(self.status_dicts[-1])
-        if self.current_timestep % 14 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
-            town_meeting = DayEvent(1)
-            self.day_events.append(town_meeting)
-
-        for folk in self.folks:
-            for day_event in self.day_events:
-                day_event.happen(folk, self)
-            folk.sleep(self.status_dicts[-1], self.params, rd.random())
         
-        if len(self.day_events) == 3: # Reset day events
-            self.day_events.pop()
+        # Event happens during the day
+        for day_event in self.day_events:
+            self.day_event_happen(day_event)
+
+        if self.current_timestep % 14 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
+            # Shuffle the list of people
+            rd.shuffle(self.folks)
+
+            # Pair people for interaction
+            for i in range(0, len(self.folks) - 1, 2):
+                person1 = self.folks[i]
+                person2 = self.folks[i+1]
+                person1.interact(person2, self.status_dicts[-1], self.params, rd.random())
+                person2.interact(person1, self.status_dicts[-1], self.params, rd.random())
+
+        # End day with everybody in the town sleeping
+        for folk in self.folks:
+            folk.sleep(self.status_dicts[-1], self.params, rd.random())
         self.current_timestep += 1
 
     def run(self):
         for i in range(self.timesteps):
             self.step()
-        # Print summerary
+        #TODO: Print summary
 
     def show_step(self, i):
         if i > self.timesteps - 1:
