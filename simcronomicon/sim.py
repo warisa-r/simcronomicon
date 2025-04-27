@@ -1,9 +1,11 @@
 from . import nx
 from . import rd
-from .folk import Folk
+from . import plt
 
 import csv
 import json
+
+from .folk import Folk
 
 class DayEvent():
     def __init__(self, day_freq, max_distance):
@@ -30,7 +32,7 @@ class SimulationParameters():
             raise ValueError(f"mem_span must be an integer greater than 1, got {mem_span}")
         
         if mu >= 1-gamma: # Ensure that the conversion rate for Is to E is higher than Is to S
-            raise ValueError(f"Sensible Ignorant is less susceptible to becoming a spreader than just being exposed! \
+            raise ValueError(f"Steady Ignorant is less susceptible to becoming a spreader than just being exposed! \
                              Therefore, (1-gamma) < mu.")
 
         # Store some parameters so that they can be recalled as simulation metadata later on 
@@ -169,8 +171,54 @@ class Simulation:
             # Termination condition
             if self.status_dicts[-1]['S'] == 0:
                 break
+
+    def plot_status(self, status_type=None):
+        """
+        Plot the evolution of statuses over time.
+        
+        Parameters:
+        - status_type: str or list of str or None
+            If None, plot all statuses.
+            If str, plot the given status.
+            If list, plot the specified statuses.
+        """
+        timesteps = range(len(self.status_dicts))
+        
+        # Prepare data
+        all_keys = ['S', 'Is', 'Ir', 'R', 'E']
+        data = {key: [status[key] for status in self.status_dicts] for key in all_keys}
+
+        # Figure out what to plot
+        if status_type is None:
+            keys_to_plot = all_keys
+        elif isinstance(status_type, str):
+            if status_type not in all_keys:
+                raise ValueError(f"Invalid status_type '{status_type}'. Must be one of {all_keys}.")
+            keys_to_plot = [status_type]
+        elif isinstance(status_type, list):
+            invalid = [k for k in status_type if k not in all_keys]
+            if invalid:
+                raise ValueError(f"Invalid status types {invalid}. Must be from {all_keys}.")
+            keys_to_plot = status_type
+        else:
+            raise TypeError(f"status_type must be None, str, or list of str, got {type(status_type).__name__}.")
+
+        # Plotting
+        plt.figure(figsize=(10, 6))
+        for key in keys_to_plot:
+            plt.plot(timesteps, data[key], label=key)
+
+        plt.xlabel('Timestep')
+        plt.ylabel('Number of People')
+        plt.title('Simulation Status Over Time')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
     def save_results(self, result_filename = "simulation_results.csv", metadata_filename = "metadata.json"):
         """Save simulation results to CSV and metadata to JSON."""
+        assert self.current_timestep > 0
         # Save metadata
         metadata = {
             'parameters': {
@@ -183,6 +231,7 @@ class Simulation:
                 'eta2': self.params.forget,
                 'mem_span': self.params.mem_span,
             },
+            'network_type': self.town.network_type,
             'max_timesteps': self.timesteps,
             'population': self.num_pop,
         }
