@@ -8,42 +8,70 @@ class Folk:
         self.status = status
         self.spreader_streak = 0
     
-    def convert(self, old_stat, new_stat, status_dict_t):
+    #TODO: The rule of converting isnt that easy -> Bernoulli Go read ABNM method in the downloaded paper
+    # Instead of 1 to 1 action do p^c_j
+    def convert(self, new_stat, status_dict_t):
         """Convert the rumor spreading status of a person and update the counter of population with each status
         of the current time step"""
-        self.status = new_stat
-        status_dict_t[old_stat] -= 1
+        
+        status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
-        if old_stat == 'S':
+        if self.status == 'S':
             self.spreader_streak = 0 # Reset spreader streak
+        self.status = new_stat
 
-    def interact(self, other_person, status_dict_t, params, dice):
+    def inverse_bernoulli(self, folks_here, conversion_prob, stats):
+        num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
+        return 1-(1-conversion_prob)**num_contact
+
+    def interact(self, folks_here, status_dict_t, params, dice):
         self.social_energy -= 1
+        
+        # Rule 1
+        if self.status == 'Ir' and self.inverse_bernoulli(folks_here, params.Ir2S, ['S']) > dice:
+            self.convert('S', status_dict_t)
+        # Rule 2
+        elif self.status == 'Is':
+            conversion_rate_S = self.inverse_bernoulli(folks_here, params.Is2S, ['S'])
+            conversion_rate_E = self.inverse_bernoulli(folks_here, params.Is2E, ['S'])
+
+            if conversion_rate_S > conversion_rate_E:
+                if conversion_rate_E > dice:
+                    self.convert('E', status_dict_t)
+                elif conversion_rate_S > dice:
+                    self.convert('S', status_dict_t)
+            else:
+                if conversion_rate_S > dice:
+                    self.convert('S', status_dict_t)
+                elif conversion_rate_E > dice:
+                    self.convert('E', status_dict_t)
+            
+        # Rule 3
+        elif self.status == 'E':
+            conversion_rate_S = self.inverse_bernoulli(folks_here, params.E2S, ['S'])
+            conversion_rate_R = self.inverse_bernoulli(folks_here, params.E2R, ['R'])
+
+            if conversion_rate_S > conversion_rate_R:
+                if conversion_rate_R > dice:
+                    self.convert('R', status_dict_t)
+                elif conversion_rate_S > dice:
+                    self.convert('S', status_dict_t)
+            else:
+                if conversion_rate_R > dice:
+                    self.convert('R', status_dict_t)
+                elif conversion_rate_S > dice:
+                    self.convert('S', status_dict_t)
+
         # Rule 4.1
-        if self.status == 'S' and other_person.status not in ['Ir', 'Is'] and dice < params.S2R:
-            self.convert('S', 'R', status_dict_t)
-        elif other_person.status == 'S':
-            # Rule 1
-            if self.status == 'Ir' and dice < params.Ir2S:
-                self.convert('Ir', 'S', status_dict_t)
-            # Rule 2
-            elif self.status == 'Is':
-                if dice < params.Is2S:
-                    self.convert('Is', 'S', status_dict_t)
-                elif dice < params.Is2E:
-                    self.convert('Is', 'E', status_dict_t)
-            # Rule 3.1
-            elif self.status == 'E' and dice < params.E2S:
-                self.convert('E', 'S', status_dict_t)
-        # Rule 3.2
-        elif other_person.status == 'R' and self.status == 'E' and dice < params.E2R:
-            self.status = 'R'
+        elif self.status == 'S' and self.inverse_bernoulli(folks_here, params.S2R, ['S', 'E', 'R']) > dice:
+            self.convert('R', status_dict_t)
     
     def sleep(self, status_dict_t, params, dice):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
+            #TODO: Consider this
             if params.mem_span <= self.spreader_streak or dice < params.forget:
-                self.convert('S', 'R', status_dict_t)
+                self.convert('R', status_dict_t)
             else:
                 self.spreader_streak += 1
         self.social_energy = rd.randint(0, 2) # Reset social energy

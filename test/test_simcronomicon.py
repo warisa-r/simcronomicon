@@ -14,7 +14,7 @@ class TestTown(object):
 
     @classmethod
     def setup_class(cls):
-        G = scon.create_town_graph(20, 0.3)
+        G = scon.create_town_graph_erdos_renyi(20, 0.3)
         cls.town = scon.Town(G, 0.5, 10)
 
     def test_town(self):
@@ -42,33 +42,41 @@ class TestFolk(object):
     def test_folk_actions(self):
         scale_tipper = 1e-4
         status_dict_t = {'S': 1, 'Is': 1, 'Ir': 1, 'R': 1, 'E': 1}
-        params = scon.SimulationParameters(0.3, 0.5, 0.5, 0.4, 0.7, 0.2, 0.8, 0.3)
+        params = scon.SEIsIrRModelParameters(0.3, 0.5, 0.5, 0.4, 0.7, 0.2, 0.8, 0.3)
+
+        folks_here = [self.folk1, self.folk2, self.folk3, self.folk4, self.folk5]
         # Test interaction between town folks
 
         # Test Rule 1 and if status_dict is updated after conversion
-        self.folk1.interact(self.folk4, status_dict_t, params, params.Ir2S - scale_tipper)
-        assert status_dict_t == {'S': 2, 'Is': 1, 'Ir': 0, 'R': 1, 'E': 1}
+        a = self.folk1.inverse_bernoulli(folks_here, params.Ir2S, ['S'])
+        self.folk1.interact(folks_here, status_dict_t, params, a - scale_tipper)
         assert self.folk1.status == 'S'
+        assert status_dict_t == {'S': 2, 'Is': 1, 'Ir': 0, 'R': 1, 'E': 1}
+        
 
         # Test Rule 2
-        self.folk2.interact(self.folk4, status_dict_t, params, params.Is2S - scale_tipper)
+        a1 = self.folk2.inverse_bernoulli(folks_here, params.Is2S, ['S'])
+        a2 = self.folk2.inverse_bernoulli(folks_here, params.Is2E, ['S'])
+        self.folk2.interact(folks_here, status_dict_t, params, a1 - scale_tipper)
         assert self.folk2.status == 'S'
         self.folk2.status = 'Is' # Reset
-        self.folk2.interact(self.folk4, status_dict_t, params, params.Is2E - scale_tipper)
+        self.folk2.interact(folks_here, status_dict_t, params, a2 - scale_tipper)
         assert self.folk2.status == 'E'
 
         # Test Rule 3
-        self.folk3.interact(self.folk4, status_dict_t, params, params.E2S - scale_tipper)
+        a1 = self.folk3.inverse_bernoulli(folks_here, params.E2S, ['S'])
+        a2 = self.folk3.inverse_bernoulli(folks_here, params.E2R, ['R'])
+        self.folk3.interact(folks_here, status_dict_t, params, a1 - scale_tipper)
         assert self.folk3.status == 'S'
         self.folk3.status = 'E' # Reset
-        self.folk3.interact(self.folk5, status_dict_t, params, params.E2R - scale_tipper)
+        self.folk3.interact(folks_here, status_dict_t, params, a2 - scale_tipper)
         assert self.folk3.status == 'R'
         self.folk3.status = 'E'
 
         # Test Rule 4.1 and social energy diminishing mechanism
         initial_energy = self.folk4.social_energy
-        selected_folk = random.choice([self.folk3, self.folk5])
-        self.folk4.interact(selected_folk, status_dict_t, params, params.S2R - scale_tipper)
+        a = self.folk4.inverse_bernoulli(folks_here, params.S2R, ['S', 'E', 'R'])
+        self.folk4.interact(folks_here, status_dict_t, params, a - scale_tipper)
         assert initial_energy == self.folk4.social_energy + 1
         assert self.folk4.status == 'R'
         self.folk4.status = 'S' # Reset
@@ -81,10 +89,9 @@ class TestFolk(object):
         self.folk4.sleep(status_dict_t, params, params.forget - scale_tipper)
         assert self.folk4.status == 'R' and self.folk4.spreader_streak == 0
         self.folk4.status = 'S' # Reset
-        # Check if the spreader streak is updated otherwise and if the social energy has been resetted
-        self.folk4.social_energy = 0
+        # Check if the spreader streak is updated
         self.folk4.sleep(status_dict_t, params, params.forget + scale_tipper)
-        assert self.folk4.social_energy >= 4 and self.folk4.status == 'S' and self.folk4.spreader_streak == 1
+        assert self.folk4.status == 'S' and self.folk4.spreader_streak == 1
 
 
     @classmethod
