@@ -11,8 +11,10 @@ class DayEvent():
     def __init__(self, day_freq, max_distance):
         self.day_freq = day_freq
         self.max_distance = max_distance
+    #TODO: Write __repr__()
 
-class SimulationParameters():
+
+class SEIsIrRModelParameters():
     def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
         # Use the same parameter sets as the model notation but precalculate the conversion rate
         # since these are the same through out the simulation
@@ -52,21 +54,35 @@ class SimulationParameters():
         self.mem_span = mem_span
 
 class Simulation:
-    def __init__(self, town, params, timesteps):
-        if not isinstance(params, SimulationParameters):
-            raise TypeError("Please defined parameters using SimulationParameters!")
+    def __init__(self, num_pop, town, params, timesteps, day_events = None):
+        if not isinstance(params, SEIsIrRModelParameters):
+            raise TypeError("Please defined parameters using SEIsIrRModelParameters!")
 
         self.folks = []
         self.status_dicts = []
-        self.num_pop = len(town.town_graph.nodes())
+        self.num_pop = num_pop
         self.town = town
         self.params = params
         self.current_timestep = 0
         self.timesteps = timesteps
+        self.household_node_indices = set()
+        self.active_node_indices = set()
+        self.nodes_list = list(self.town.town_graph.nodes)
 
-        hi_neighbour = DayEvent(1, 2)
-        chore = DayEvent(1, 5)
-        self.day_events = [hi_neighbour, chore]
+        # Validate day_events
+        if day_events is None: # Use default day events
+            hi_neighbour = DayEvent(1, 2)
+            chore = DayEvent(1, 10)
+            self.day_events = [hi_neighbour, chore]
+        elif isinstance(day_events, DayEvent):
+            self.day_events = [day_events]
+        elif isinstance(day_events, list):
+            if not all(isinstance(event, DayEvent) for event in day_events):
+                raise TypeError("All elements in day_events must be DayEvent instances!")
+            self.day_events = day_events
+        else:
+            raise TypeError("day_events must be a DayEvent or a list of DayEvent objects!")
+        
         
         num_init_spreader = town.num_init_spreader
         
@@ -91,21 +107,29 @@ class Simulation:
             self.folks.append(folk)
             self.town.town_graph.nodes[node]['folk'].append(folk) # Account for which folks live where in the graph as well
         
+            if len(self.town.town_graph.nodes[node]['folk']) == 2: # Track which node has a 'family' living in it
+                self.household_node_indices.add(node)
+        self.active_node_indices = self.household_node_indices.copy()
+
         # Keep track of the number of folks in each status
         status_dict_t = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0}
         self.status_dicts.append(status_dict_t)
 
     def select_random_node(self):
-            """Select a random node that is unoccupied."""
-            available_nodes = [node for node, data in self.town.town_graph.nodes(data=True) if len(data['folk']) == 0]
-            return rd.choice(available_nodes)
+            """Select a random node"""
+            return rd.choice(self.nodes_list)
     
     def everyone_go_home(self):
+        self.active_node_indices = self.household_node_indices.copy() # Simple list -> Shallow copy
+        
+        for i in range(len(self.town.town_graph.nodes)): # Reset every house to empty first
+            self.town.town_graph.nodes[i]['folk'] = []
+
         # Reset every person's current address to their home address
         # And reset the town graph
         for i in range(self.num_pop):
             self.folks[i].address = self.folks[i].home_address
-            self.town.town_graph.nodes[self.folks[i].home_address]['folk'] = [self.folks[i]]
+            self.town.town_graph.nodes[self.folks[i].home_address]['folk'].append(self.folks[i])
 
     def move_people(self, day_event):
         for person in self.folks:
@@ -116,23 +140,35 @@ class Simulation:
             candidates = [node for node, dist in lengths.items() if dist == possible_travel_distance]
             if candidates:
                 new_node = rd.choice(candidates)
+
+                # Track the number of folks at current node to see if this node becomes inactive later on
+                num_folks_current_node = len(self.town.town_graph.nodes[current_node]['folk'])
                 # Remove the person from their old address
                 self.town.town_graph.nodes[current_node]['folk'].remove(person)
+
+                num_folks_new_node = len(self.town.town_graph.nodes[new_node]['folk'])
                 # Add person to new node
                 self.town.town_graph.nodes[new_node]['folk'].append(person)
                 # Update person's address
                 person.address = new_node
 
+                # Update active_node_indices
+                if len(self.town.town_graph.nodes[current_node]['folk']) == 1 and num_folks_current_node == 2: 
+                    # Node has become inactive after one person moves away
+                    self.active_node_indices.remove(current_node)
+                if len(self.town.town_graph.nodes[new_node]['folk']) == 2 and num_folks_new_node == 1:
+                    # One person just move in and make this node 'active' -> interaction here is possible
+                    self.active_node_indices.add(new_node)
+
+
     def day_event_happen(self, day_event):
         for i in range(day_event.day_freq):   
             # Move people through the town first
             self.move_people(day_event)
-            for node in self.town.town_graph.nodes():
+            for node in self.active_node_indices:  # Only iterate through active nodes
                 folks_here = self.town.town_graph.nodes[node]['folk']
                 if len(folks_here) >= 2:
-                    # Randomly sample 2 different people that are currently in the node
                     person1, person2 = rd.sample(folks_here, 2)
-                    # Interaction is a two-way street
                     person1.interact(person2, self.status_dicts[-1], self.params, rd.random())
                     person2.interact(person1, self.status_dicts[-1], self.params, rd.random())
     
@@ -144,7 +180,8 @@ class Simulation:
         for day_event in self.day_events:
             self.day_event_happen(day_event)
 
-        if self.current_timestep % 14 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
+        # Town meeting
+        if self.current_timestep % 14 == 0 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
             # Shuffle the list of people
             rd.shuffle(self.folks)
 
@@ -218,6 +255,7 @@ class Simulation:
 
     def save_results(self, result_filename = "simulation_results.csv", metadata_filename = "metadata.json"):
         """Save simulation results to CSV and metadata to JSON."""
+        #TODO: Write day_events as metadata too
         assert self.current_timestep > 0
         # Save metadata
         metadata = {
@@ -231,6 +269,7 @@ class Simulation:
                 'eta2': self.params.forget,
                 'mem_span': self.params.mem_span,
             },
+            'num_locations':len(self.town.town_graph.nodes),
             'network_type': self.town.network_type,
             'max_timesteps': self.timesteps,
             'population': self.num_pop,

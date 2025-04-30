@@ -2,24 +2,24 @@ from . import plt
 import scipy
 from . import nx
 
-def create_town_graph_erdos_renyi(num_pop, town_density):
+def create_town_graph_erdos_renyi(num_locations, town_density):
     if not isinstance(town_density, float) or not (0 <= town_density <= 1):
         raise TypeError("town_density must be a float between 0 and 1 (inclusive)!")
 
-    if not isinstance(num_pop, int) or num_pop < 2:
-        raise TypeError("num_pop must be an integer greater than or equal to 2!")
+    if not isinstance(num_locations, int) or num_locations < 2:
+        raise TypeError("num_locations must be an integer greater than or equal to 2!")
     
-    return nx.erdos_renyi_graph(num_pop, town_density)
+    return nx.erdos_renyi_graph(num_locations, town_density)
 
-def create_town_graph_barabasi_albert(num_pop, m):
-    if not isinstance(num_pop, int) or num_pop < 2:
-        raise TypeError("num_pop must be an integer greater than or equal to 2!")
-    return nx.barabasi_albert_graph(num_pop, m)
+def create_town_graph_barabasi_albert(num_locations, m):
+    if not isinstance(num_locations, int) or num_locations < 2:
+        raise TypeError("num_locations must be an integer greater than or equal to 2!")
+    return nx.barabasi_albert_graph(num_locations, m)
 
-def create_town_graph_watts_strogatz(num_pop, k, p):
-    if not isinstance(num_pop, int) or num_pop < 2:
-        raise TypeError("num_pop must be an integer greater than or equal to 2!")
-    return nx.watts_strogatz_graph(num_pop, k, p)
+def create_town_graph_watts_strogatz(num_locations, k, p):
+    if not isinstance(num_locations, int) or num_locations < 2:
+        raise TypeError("num_locations must be an integer greater than or equal to 2!")
+    return nx.watts_strogatz_graph(num_locations, k, p)
 
 class Town():
     def __init__(self, town_graph, literacy, num_init_spreader, network_type = None):
