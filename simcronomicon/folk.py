@@ -34,8 +34,6 @@ class Folk:
 
 
     def interact(self, folks_here, status_dict_t, params, dice):
-        self.social_energy -= 1
-        
         # Rule 1
         if self.status == 'Ir' and self.inverse_bernoulli(folks_here, params.Ir2S, ['S']) > dice:
             self.convert('S', status_dict_t)
@@ -74,6 +72,8 @@ class Folk:
         # Rule 4.1
         elif self.status == 'S' and self.inverse_bernoulli(folks_here, params.S2R, ['S', 'E', 'R']) > dice:
             self.convert('R', status_dict_t)
+
+        self.social_energy -= 1
     
     def sleep(self, status_dict_t, params, dice):
         if self.status == 'S':
