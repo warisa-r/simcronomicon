@@ -22,7 +22,7 @@ def create_town_graph_watts_strogatz(num_locations, k, p):
     return nx.watts_strogatz_graph(num_locations, k, p)
 
 class Town():
-    def __init__(self, town_graph, literacy, num_init_spreader, network_type = None):
+    def __init__(self, town_graph, literacy, max_social_energy, num_pop, num_init_spreader, network_type = None):
         if not isinstance(town_graph, nx.classes.graph.Graph) or town_graph.is_directed():
             raise TypeError("town_graph must be an undirected graph of type networkx.classes.graph.Graph!")
 
@@ -33,7 +33,11 @@ class Town():
             raise TypeError("num_init_spreader must be an integer greater than or equal to 1!")
 
         self.literacy = literacy
+        self.max_social_energy = max_social_energy
+
         self.num_init_spreader = num_init_spreader
+        self.num_pop = num_pop
+        
         
         self.town_graph = town_graph
         self.network_type = network_type

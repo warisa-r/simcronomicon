@@ -33,10 +33,6 @@ class SEIsIrRModelParameters():
 
         if not isinstance(mem_span, int) or mem_span <= 1:
             raise ValueError(f"mem_span must be an integer greater than 1, got {mem_span}")
-        
-        if mu >= 1-gamma: # Ensure that the conversion rate for Is to E is higher than Is to S
-            raise ValueError(f"Steady Ignorant is less susceptible to becoming a spreader than just being exposed! \
-                             Therefore, (1-gamma) < mu.")
 
         # Store some parameters so that they can be recalled as simulation metadata later on 
         self.alpha = alpha
@@ -55,13 +51,14 @@ class SEIsIrRModelParameters():
         self.mem_span = mem_span
 
 class Simulation:
-    def __init__(self, num_pop, town, params, timesteps, day_events = None):
+    def __init__(self, town, params, timesteps, day_events = None):
         if not isinstance(params, SEIsIrRModelParameters):
             raise TypeError("Please defined parameters using SEIsIrRModelParameters!")
 
         self.folks = []
+        self.folk_max_social_energy = town.max_social_energy
         self.status_dicts = []
-        self.num_pop = num_pop
+        self.num_pop = town.num_pop
         self.town = town
         self.params = params
         self.current_timestep = 0
@@ -73,8 +70,8 @@ class Simulation:
         # Validate day_events
         if day_events is None: # Use default day events
             hi_neighbour = DayEvent(2, 2)
-            #chore = DayEvent(1, 5)
-            self.day_events = [hi_neighbour]
+            chore = DayEvent(1, 5)
+            self.day_events = [hi_neighbour, chore]
         elif isinstance(day_events, DayEvent):
             self.day_events = [day_events]
         elif isinstance(day_events, list):
@@ -100,11 +97,11 @@ class Simulation:
             # A location is occupied only by one person
             node = self.select_random_node()
             if i < num_init_spreader:
-                folk = Folk(node, 'S')
+                folk = Folk(node, self.folk_max_social_energy, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = Folk(node, 'Is')
+                folk = Folk(node, self.folk_max_social_energy, 'Is')
             else:
-                folk = Folk(node, 'Ir')
+                folk = Folk(node, self.folk_max_social_energy,'Ir')
             self.folks.append(folk)
             self.town.town_graph.nodes[node]['folk'].append(folk) # Account for which folks live where in the graph as well
         
