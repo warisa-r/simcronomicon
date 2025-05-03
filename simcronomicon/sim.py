@@ -11,7 +11,8 @@ class DayEvent():
     def __init__(self, day_freq, max_distance):
         self.day_freq = day_freq
         self.max_distance = max_distance
-    #TODO: Write __repr__()
+    def __repr__(self):
+        return f"This even happens {self.day_freq} time(s) a day and each folk can travel up to {self.max_distance} to complete it."
 
 
 class SEIsIrRModelParameters():
@@ -32,10 +33,6 @@ class SEIsIrRModelParameters():
 
         if not isinstance(mem_span, int) or mem_span <= 1:
             raise ValueError(f"mem_span must be an integer greater than 1, got {mem_span}")
-        
-        if mu >= 1-gamma: # Ensure that the conversion rate for Is to E is higher than Is to S
-            raise ValueError(f"Steady Ignorant is less susceptible to becoming a spreader than just being exposed! \
-                             Therefore, (1-gamma) < mu.")
 
         # Store some parameters so that they can be recalled as simulation metadata later on 
         self.alpha = alpha
@@ -54,13 +51,14 @@ class SEIsIrRModelParameters():
         self.mem_span = mem_span
 
 class Simulation:
-    def __init__(self, num_pop, town, params, timesteps, day_events = None):
+    def __init__(self, town, params, timesteps, day_events = None):
         if not isinstance(params, SEIsIrRModelParameters):
             raise TypeError("Please defined parameters using SEIsIrRModelParameters!")
 
         self.folks = []
+        self.folk_max_social_energy = town.max_social_energy
         self.status_dicts = []
-        self.num_pop = num_pop
+        self.num_pop = town.num_pop
         self.town = town
         self.params = params
         self.current_timestep = 0
@@ -71,8 +69,8 @@ class Simulation:
 
         # Validate day_events
         if day_events is None: # Use default day events
-            hi_neighbour = DayEvent(1, 2)
-            chore = DayEvent(1, 10)
+            hi_neighbour = DayEvent(2, 2)
+            chore = DayEvent(1, 5)
             self.day_events = [hi_neighbour, chore]
         elif isinstance(day_events, DayEvent):
             self.day_events = [day_events]
@@ -99,11 +97,11 @@ class Simulation:
             # A location is occupied only by one person
             node = self.select_random_node()
             if i < num_init_spreader:
-                folk = Folk(node, 'S')
+                folk = Folk(node, self.folk_max_social_energy, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = Folk(node, 'Is')
+                folk = Folk(node, self.folk_max_social_energy, 'Is')
             else:
-                folk = Folk(node, 'Ir')
+                folk = Folk(node, self.folk_max_social_energy,'Ir')
             self.folks.append(folk)
             self.town.town_graph.nodes[node]['folk'].append(folk) # Account for which folks live where in the graph as well
         
@@ -167,10 +165,9 @@ class Simulation:
             self.move_people(day_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
                 folks_here = self.town.town_graph.nodes[node]['folk']
-                if len(folks_here) >= 2:
-                    person1, person2 = rd.sample(folks_here, 2)
-                    person1.interact(person2, self.status_dicts[-1], self.params, rd.random())
-                    person2.interact(person1, self.status_dicts[-1], self.params, rd.random())
+                for folk in folks_here:
+                    if folk.social_energy > 0:
+                        folk.interact(folks_here, self.status_dicts[-1], self.params, rd.random())
     
     def step(self):
         # Set up the new step
@@ -182,15 +179,9 @@ class Simulation:
 
         # Town meeting
         if self.current_timestep % 14 == 0 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
-            # Shuffle the list of people
-            rd.shuffle(self.folks)
-
-            # Pair people for interaction
-            for i in range(0, len(self.folks) - 1, 2):
-                person1 = self.folks[i]
-                person2 = self.folks[i+1]
-                person1.interact(person2, self.status_dicts[-1], self.params, rd.random())
-                person2.interact(person1, self.status_dicts[-1], self.params, rd.random())
+            for folk in self.folks:
+                if folk.social_energy > 0:
+                    folk.interact(self.folks, self.status_dicts[-1], self.params, rd.random())
         
         # Everybody in the town go home after a long day
         self.everyone_go_home()
@@ -286,3 +277,6 @@ class Simulation:
                 row = {'timestep': timestep}
                 row.update(status)
                 writer.writerow(row)
+
+    def plot_results(file_path):
+        pass
