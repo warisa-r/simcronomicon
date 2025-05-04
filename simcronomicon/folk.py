@@ -6,12 +6,10 @@ class Folk:
         self.home_address = home_address
         self.address = self.home_address
         self.max_social_energy = max_social_energy
-        self.social_energy = rd.randint(0, max_social_energy) #TODO: I think max_rand_int corresponds with the maximum event occurrence in a day??
+        self.social_energy = rd.randint(0, max_social_energy)
         self.status = status
         self.spreader_streak = 0
     
-    #TODO: The rule of converting isnt that easy -> Bernoulli Go read ABNM method in the downloaded paper
-    # Instead of 1 to 1 action do p^c_j
     def convert(self, new_stat, status_dict_t):
         """Convert the rumor spreading status of a person and update the counter of population with each status
         of the current time step"""

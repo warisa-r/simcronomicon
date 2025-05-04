@@ -1,6 +1,5 @@
 from . import nx
 from . import rd
-from . import plt
 from . import csv
 
 import json
@@ -8,12 +7,12 @@ import json
 from .folk import Folk
 from .visualize import _plot_status_data
 
-class DayEvent():
-    def __init__(self, day_freq, max_distance):
-        self.day_freq = day_freq
+class StepEvent():
+    def __init__(self, step_freq, max_distance):
+        self.step_freq = step_freq
         self.max_distance = max_distance
     def __repr__(self):
-        return f"This even happens {self.day_freq} time(s) a day and each folk can travel up to {self.max_distance} to complete it."
+        return f"This even happens {self.step_freq} time(s) a step and each folk can travel up to {self.max_distance} to complete it."
 
 class SEIsIrRModelParameters():
     def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
@@ -51,7 +50,7 @@ class SEIsIrRModelParameters():
         self.mem_span = mem_span
 
 class Simulation:
-    def __init__(self, town, params, timesteps, day_events = None):
+    def __init__(self, town, params, timesteps, step_events = None):
         if not isinstance(params, SEIsIrRModelParameters):
             raise TypeError("Please defined parameters using SEIsIrRModelParameters!")
 
@@ -67,19 +66,19 @@ class Simulation:
         self.active_node_indices = set()
         self.nodes_list = list(self.town.town_graph.nodes)
 
-        # Validate day_events
-        if day_events is None: # Use default day events
-            hi_neighbour = DayEvent(2, 2)
-            chore = DayEvent(1, 5)
-            self.day_events = [hi_neighbour, chore]
-        elif isinstance(day_events, DayEvent):
-            self.day_events = [day_events]
-        elif isinstance(day_events, list):
-            if not all(isinstance(event, DayEvent) for event in day_events):
-                raise TypeError("All elements in day_events must be DayEvent instances!")
-            self.day_events = day_events
+        # Validate step_events
+        if step_events is None: # Use default step events
+            hi_neighbour = StepEvent(2, 2)
+            chore = StepEvent(1, 5)
+            self.step_events = [hi_neighbour, chore]
+        elif isinstance(step_events, StepEvent):
+            self.step_events = [step_events]
+        elif isinstance(step_events, list):
+            if not all(isinstance(event, StepEvent) for event in step_events):
+                raise TypeError("All elements in step_events must be StepEvent instances!")
+            self.step_events = step_events
         else:
-            raise TypeError("day_events must be a DayEvent or a list of DayEvent objects!")
+            raise TypeError("step_events must be a StepEvent or a list of StepEvent objects!")
         
         
         num_init_spreader = town.num_init_spreader
@@ -117,7 +116,7 @@ class Simulation:
             """Select a random node"""
             return rd.choice(self.nodes_list)
     
-    def everyone_go_home(self):
+    def reset_population_home(self):
         self.active_node_indices = self.household_node_indices.copy() # Simple list -> Shallow copy
         
         for i in range(len(self.town.town_graph.nodes)): # Reset every house to empty first
@@ -125,13 +124,15 @@ class Simulation:
 
         # Reset every person's current address to their home address
         # And reset the town graph
+        # In addition, send everyone to sleep as well
         for i in range(self.num_pop):
             self.folks[i].address = self.folks[i].home_address
             self.town.town_graph.nodes[self.folks[i].home_address]['folk'].append(self.folks[i])
+            self.folks[i].sleep(self.status_dicts[-1], self.params, rd.random())
 
-    def move_people(self, day_event):
+    def disperse_for_event(self, step_event):
         for person in self.folks:
-            possible_travel_distance = rd.randint(0, day_event.max_distance)
+            possible_travel_distance = rd.randint(0, step_event.max_distance)
             
             current_node = person.address
             lengths = nx.single_source_shortest_path_length(self.town.town_graph, current_node, cutoff=possible_travel_distance)
@@ -159,10 +160,10 @@ class Simulation:
                     self.active_node_indices.add(new_node)
 
 
-    def day_event_happen(self, day_event):
-        for i in range(day_event.day_freq):   
+    def execute_social_event(self, step_event):
+        for i in range(step_event.step_freq):   
             # Move people through the town first
-            self.move_people(day_event)
+            self.disperse_for_event(step_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
                 folks_here = self.town.town_graph.nodes[node]['folk']
                 for folk in folks_here:
@@ -173,9 +174,9 @@ class Simulation:
         # Set up the new step
         self.status_dicts.append(self.status_dicts[-1].copy())
         
-        # Event happens during the day
-        for day_event in self.day_events:
-            self.day_event_happen(day_event)
+        # Events happen during the step
+        for step_event in self.step_events:
+            self.execute_social_event(step_event)
 
         # Town meeting
         if self.current_timestep % 14 == 0 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
@@ -183,12 +184,9 @@ class Simulation:
                 if folk.social_energy > 0:
                     folk.interact(self.folks, self.status_dicts[-1], self.params, rd.random())
         
-        # Everybody in the town go home after a long day
-        self.everyone_go_home()
-
-        # Everybody in the town sleeping
-        for folk in self.folks:
-            folk.sleep(self.status_dicts[-1], self.params, rd.random())
+        # Everybody in the town goes home
+        self.reset_population_home()
+            
         self.current_timestep += 1
 
     def run(self, save_result=False, result_filename="simulation_results.csv", metadata_filename="metadata.json"):
