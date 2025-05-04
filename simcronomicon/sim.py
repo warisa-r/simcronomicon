@@ -1,11 +1,12 @@
 from . import nx
 from . import rd
 from . import plt
+from . import csv
 
-import csv
 import json
 
 from .folk import Folk
+from .visualize import _plot_status_data
 
 class DayEvent():
     def __init__(self, day_freq, max_distance):
@@ -13,7 +14,6 @@ class DayEvent():
         self.max_distance = max_distance
     def __repr__(self):
         return f"This even happens {self.day_freq} time(s) a day and each folk can travel up to {self.max_distance} to complete it."
-
 
 class SEIsIrRModelParameters():
     def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
@@ -191,92 +191,62 @@ class Simulation:
             folk.sleep(self.status_dicts[-1], self.params, rd.random())
         self.current_timestep += 1
 
-    def run(self):
-        for i in range(self.timesteps):
-            print("Step has been run", i)
-            print("Status: ", self.status_dicts[-1])
-            self.step()
-            # Termination condition
-            if self.status_dicts[-1]['S'] == 0:
-                break
+    def run(self, save_result=False, result_filename="simulation_results.csv", metadata_filename="metadata.json"):
+        if save_result:
+            # Save metadata at the beginning
+            metadata = {
+                'parameters': {
+                    'alpha': self.params.alpha,
+                    'gamma': self.params.gamma,
+                    'phi': self.params.E2R,
+                    'theta': self.params.E2S,
+                    'mu': self.params.mu,
+                    'eta1': self.params.S2R,
+                    'eta2': self.params.forget,
+                    'mem_span': self.params.mem_span,
+                },
+                'num_locations': len(self.town.town_graph.nodes),
+                'network_type': self.town.network_type,
+                'max_timesteps': self.timesteps,
+                'population': self.num_pop,
+            }
+            with open(metadata_filename, 'w') as f:
+                json.dump(metadata, f, indent=4)
+
+            # Write CSV while simulation runs
+            with open(result_filename, mode='w', newline='') as result_file:
+                fieldnames = ['timestep', 'S', 'Is', 'Ir', 'R', 'E']
+                writer = csv.DictWriter(result_file, fieldnames=fieldnames)
+                writer.writeheader()
+
+                # Save initial state (t=0)
+                initial_row = {'timestep': 0}
+                initial_row.update(self.status_dicts[-1])
+                writer.writerow(initial_row)
+
+                for i in range(1, self.timesteps + 1):
+                    print("Step has been run", i)
+                    print("Status: ", self.status_dicts[-1])
+
+                    self.step()
+                    row = {'timestep': i}
+                    row.update(self.status_dicts[-1])
+                    writer.writerow(row)
+
+                    if self.status_dicts[-1]['S'] == 0:
+                        break
+
+        else:
+            # No saving to CSV
+            for i in range(self.timesteps):
+                print("Step has been run", i)
+                print("Status: ", self.status_dicts[-1])
+                self.step()
+                if self.status_dicts[-1]['S'] == 0:
+                    break
 
     def plot_status(self, status_type=None):
-        """
-        Plot the evolution of statuses over time.
-        
-        Parameters:
-        - status_type: str or list of str or None
-            If None, plot all statuses.
-            If str, plot the given status.
-            If list, plot the specified statuses.
-        """
         timesteps = range(len(self.status_dicts))
-        
-        # Prepare data
         all_keys = ['S', 'Is', 'Ir', 'R', 'E']
-        data = {key: [status[key] for status in self.status_dicts] for key in all_keys}
-
-        # Figure out what to plot
-        if status_type is None:
-            keys_to_plot = all_keys
-        elif isinstance(status_type, str):
-            if status_type not in all_keys:
-                raise ValueError(f"Invalid status_type '{status_type}'. Must be one of {all_keys}.")
-            keys_to_plot = [status_type]
-        elif isinstance(status_type, list):
-            invalid = [k for k in status_type if k not in all_keys]
-            if invalid:
-                raise ValueError(f"Invalid status types {invalid}. Must be from {all_keys}.")
-            keys_to_plot = status_type
-        else:
-            raise TypeError(f"status_type must be None, str, or list of str, got {type(status_type).__name__}.")
-
-        # Plotting
-        plt.figure(figsize=(10, 6))
-        for key in keys_to_plot:
-            plt.plot(timesteps, data[key], label=key)
-
-        plt.xlabel('Timestep')
-        plt.ylabel('Number of People')
-        plt.title('Simulation Status Over Time')
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
-
-    def save_results(self, result_filename = "simulation_results.csv", metadata_filename = "metadata.json"):
-        """Save simulation results to CSV and metadata to JSON."""
-        #TODO: Write day_events as metadata too
-        assert self.current_timestep > 0
-        # Save metadata
-        metadata = {
-            'parameters': {
-                'alpha': self.params.alpha,
-                'gamma': self.params.gamma,
-                'phi': self.params.E2R,
-                'theta': self.params.E2S,
-                'mu': self.params.mu,
-                'eta1': self.params.S2R,
-                'eta2': self.params.forget,
-                'mem_span': self.params.mem_span,
-            },
-            'num_locations':len(self.town.town_graph.nodes),
-            'network_type': self.town.network_type,
-            'max_timesteps': self.timesteps,
-            'population': self.num_pop,
-        }
-        with open(metadata_filename, 'w') as f:
-            json.dump(metadata, f, indent=4)
-
-        # Save results
-        fieldnames = ['timestep', 'S', 'Is', 'Ir', 'R', 'E']
-        with open(result_filename, mode='w', newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writeheader()
-            for timestep, status in enumerate(self.status_dicts):
-                row = {'timestep': timestep}
-                row.update(status)
-                writer.writerow(row)
-
-    def plot_results(file_path):
-        pass
+        data = {key: [status[key] / self.num_pop for status in self.status_dicts] for key in all_keys}
+        _plot_status_data(timesteps, data, status_type, ylabel="Density")
