@@ -15,4 +15,8 @@ Features
 --------
 
 * TODO
-
+- [] Integrate the new graph map in the simulation system. Allocating people only to live in node that has 'accommodation type'
+- [] Folks travel to commercial nodes during the day and randomly visit people in other accommodation areas near them
+- [] Different modules for different kind of spread. Folks inheritance?
+- [] Visualization and output saves
+- [] Seeding
