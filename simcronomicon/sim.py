@@ -8,9 +8,10 @@ from .folk import Folk
 from .visualize import _plot_status_data
 
 class StepEvent():
-    def __init__(self, step_freq, max_distance):
+    def __init__(self, step_freq, max_distance, place_type):
         self.step_freq = step_freq
-        self.max_distance = max_distance
+        self.max_distance = max_distance # Unit here is [m]
+        self.place_type = place_type
     def __repr__(self):
         return f"This even happens {self.step_freq} time(s) a step and each folk can travel up to {self.max_distance} to complete it."
 
@@ -68,8 +69,8 @@ class Simulation:
 
         # Validate step_events
         if step_events is None: # Use default step events
-            hi_neighbour = StepEvent(2, 2)
-            chore = StepEvent(1, 5)
+            hi_neighbour = StepEvent(1, 5000, 'accommodation')
+            chore = StepEvent(1, 19000, 'commercial') # Germany travels average 19km per day
             self.step_events = [hi_neighbour, chore]
         elif isinstance(step_events, StepEvent):
             self.step_events = [step_events]
@@ -126,13 +127,17 @@ class Simulation:
             self.folks[i].sleep(self.status_dicts[-1], self.model_params, rd.random())
 
     def disperse_for_event(self, step_event):
-        for person in self.folks:
-            possible_travel_distance = rd.randint(0, step_event.max_distance)
-            
+        for person in self.folks:            
             current_node = person.address
-            lengths = nx.single_source_shortest_path_length(self.town.town_graph, current_node, cutoff=possible_travel_distance)
-            candidates = [node for node, dist in lengths.items() if dist == possible_travel_distance]
+            #print("Start move")
+            # Get the shortest path lengths from current_node to all other nodes, considering edge weights
+            lengths = nx.single_source_dijkstra_path_length(self.town.town_graph, current_node, cutoff=step_event.max_distance)
+    
+            # Get the nodes where the shortest path length is less than or equal to the possible travel distance
+            candidates = [node for node, dist in lengths.items() if dist <= step_event.max_distance 
+                          and self.town.town_graph.nodes[node]['place_type'] == step_event.place_type]
             if candidates:
+                #print("Candidate found")
                 new_node = rd.choice(candidates)
 
                 # Track the number of folks at current node to see if this node becomes inactive later on
