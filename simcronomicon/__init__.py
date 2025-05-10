@@ -8,9 +8,9 @@ import random as rd
 import matplotlib.pyplot as plt
 import csv
 
-from .town import Town, create_town_graph_erdos_renyi, create_town_graph_barabasi_albert, create_town_graph_watts_strogatz
+from .town import Town, TownParameters
 from .folk import Folk
 from .sim import Simulation, SEIsIrRModelParameters, StepEvent
 from .visualize import plot_results
 
-__all__ = ["Town", "create_town_graph_erdos_renyi","create_town_graph_barabasi_albert" ,"create_town_graph_watts_strogatz", "Folk", "Simulation", "SEIsIrRModelParameters", "StepEvent", "plot_results"]
+__all__ = ["Town", "TownParameters", "Folk", "Simulation", "SEIsIrRModelParameters", "StepEvent", "plot_results"]

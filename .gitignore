@@ -41,4 +41,7 @@ output/*/index.html
 # Sphinx
 docs/_build
 
+# Some graph file saves
+*.graphml
+*.json
 .venv
