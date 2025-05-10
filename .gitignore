@@ -44,4 +44,6 @@ docs/_build
 # Some graph file saves
 *.graphml
 *.json
+*.csv
+
 .venv

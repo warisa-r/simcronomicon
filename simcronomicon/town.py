@@ -64,18 +64,18 @@ class Town():
         town.town_graph = nx.Graph()
         old_nodes = list(G_filtered.nodes)
         town.id_map = {old_id: new_id for new_id, old_id in enumerate(old_nodes)}
-        town.accommodation_node_ids = set()
-        town.healthcare_facility_node_ids = set()
-        town.commercial_node_ids = set()
+        town.accommodation_node_ids = []
+        town.healthcare_facility_node_ids = []
+        town.commercial_node_ids = []
 
         for old_id, new_id in town.id_map.items():
             place_type = G_filtered.nodes[old_id].get('place_type')
             if place_type == 'accommodation':
-                town.accommodation_node_ids.add(new_id)
+                town.accommodation_node_ids.append(new_id)
             elif place_type == 'healthcare_facility':
-                town.healthcare_facility_node_ids.add(new_id)
+                town.healthcare_facility_node_ids.append(new_id)
             elif place_type == 'commercial':
-                town.commercial_node_ids.add(new_id)
+                town.commercial_node_ids.append(new_id)
             town.town_graph.add_node(new_id, place_type=place_type)
 
         for id1, id2 in combinations(old_nodes, 2):
@@ -118,12 +118,15 @@ class Town():
         town.point = metadata["origin_point"]
         town.epsg_code = metadata["epsg_code"]
         town.id_map = {k: v for k, v in metadata["id_map"].items()}
-        town.accommodation_node_ids = set(metadata["accommodation_nodes"])
-        town.commercial_node_ids = set(metadata["commercial_nodes"])
-        town.healthcare_facility_node_ids = set(metadata["healthcare_nodes"])
-        town.accommodation_node_ids = set(map(int, town.accommodation_node_ids))
-        town.commercial_node_ids = set(map(int, town.commercial_node_ids))
-        town.healthcare_facility_node_ids = set(map(int, town.healthcare_facility_node_ids))
+        town.accommodation_node_ids = list(metadata["accommodation_nodes"])
+        town.commercial_node_ids = list(metadata["commercial_nodes"])
+        town.healthcare_facility_node_ids = list(metadata["healthcare_nodes"])
+
+        # Now, to make sure the IDs are integers (if they were originally strings):
+        town.accommodation_node_ids = list(map(int, town.accommodation_node_ids))
+        town.commercial_node_ids = list(map(int, town.commercial_node_ids))
+        town.healthcare_facility_node_ids = list(map(int, town.healthcare_facility_node_ids))
+
         town.id_map = {int(k): v for k, v in town.id_map.items()}
 
         town.town_graph = nx.read_graphml(town_graph_path)

@@ -11,9 +11,6 @@ class Folk:
         self.spreader_streak = 0
     
     def convert(self, new_stat, status_dict_t):
-        """Convert the rumor spreading status of a person and update the counter of population with each status
-        of the current time step"""
-        
         status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
         if self.status == 'S':
@@ -31,14 +28,14 @@ class Folk:
             return 1-(1-conversion_prob)** (self.social_energy * num_contact / self.max_social_energy)
 
 
-    def interact(self, folks_here, status_dict_t, params, dice):
+    def interact(self, folks_here, status_dict_t, model_params, dice):
         # Rule 1
-        if self.status == 'Ir' and self.inverse_bernoulli(folks_here, params.Ir2S, ['S']) > dice:
+        if self.status == 'Ir' and self.inverse_bernoulli(folks_here, model_params.Ir2S, ['S']) > dice:
             self.convert('S', status_dict_t)
         # Rule 2
         elif self.status == 'Is':
-            conversion_rate_S = self.inverse_bernoulli(folks_here, params.Is2S, ['S'])
-            conversion_rate_E = self.inverse_bernoulli(folks_here, params.Is2E, ['S'])
+            conversion_rate_S = self.inverse_bernoulli(folks_here, model_params.Is2S, ['S'])
+            conversion_rate_E = self.inverse_bernoulli(folks_here, model_params.Is2E, ['S'])
 
             if conversion_rate_S > conversion_rate_E:
                 if conversion_rate_E > dice:
@@ -53,8 +50,8 @@ class Folk:
             
         # Rule 3
         elif self.status == 'E':
-            conversion_rate_S = self.inverse_bernoulli(folks_here, params.E2S, ['S'])
-            conversion_rate_R = self.inverse_bernoulli(folks_here, params.E2R, ['R'])
+            conversion_rate_S = self.inverse_bernoulli(folks_here, model_params.E2S, ['S'])
+            conversion_rate_R = self.inverse_bernoulli(folks_here, model_params.E2R, ['R'])
 
             if conversion_rate_S > conversion_rate_R:
                 if conversion_rate_R > dice:
@@ -68,16 +65,16 @@ class Folk:
                     self.convert('S', status_dict_t)
 
         # Rule 4.1
-        elif self.status == 'S' and self.inverse_bernoulli(folks_here, params.S2R, ['S', 'E', 'R']) > dice:
+        elif self.status == 'S' and self.inverse_bernoulli(folks_here, model_params.S2R, ['S', 'E', 'R']) > dice:
             self.convert('R', status_dict_t)
 
         self.social_energy -= 1
     
-    def sleep(self, status_dict_t, params, dice):
+    def sleep(self, status_dict_t, model_params, dice):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
             #TODO: Consider this
-            if params.mem_span <= self.spreader_streak or dice < params.forget:
+            if model_params.mem_span <= self.spreader_streak or dice < model_params.forget:
                 self.convert('R', status_dict_t)
             else:
                 self.spreader_streak += 1
