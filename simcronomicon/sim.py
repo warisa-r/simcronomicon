@@ -176,12 +176,6 @@ class Simulation:
         # Events happen during the step
         for step_event in self.step_events:
             self.execute_social_event(step_event)
-
-        # Town meeting
-        if self.current_timestep % 14 == 0 or self.status_dicts[-1]['S'] / self.num_pop > 0.75:
-            for folk in self.folks:
-                if folk.social_energy > 0:
-                    folk.interact(self.folks, self.status_dicts[-1], self.model_params, rd.random())
         
         # Everybody in the town goes home
         self.reset_population_home()
