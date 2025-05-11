@@ -1,11 +1,22 @@
 import simcronomicon as scon
 
-town_graph = scon.create_town_graph_barabasi_albert(50000, 10)
-town = scon.Town(town_graph, 0.7, 2, 50000, 10, 'BA')
-sim_params = scon.SEIsIrRModelParameters(0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
-sim = scon.Simulation(town, sim_params, 5)
-sim.run(True)
-sim.plot_status('S')
-sim.plot_status()
-sim.plot_status(['S', 'E'])
-#scon.plot_results("simulation_results.csv", 'S')
+point = 50.7753, 6.0839
+town_params = scon.TownParameters(0.7, 2, 2000, 10)
+#town = scon.Town.from_point(point, 2000, town_params)
+#town.draw_town()
+
+#town = scon.Town.from_files(
+#    metadata_path="town_graph_metadata.json",
+#    town_graph_path="town_graph.graphml",
+#    projected_graph_path="raw_projected_graph.graphml",
+#    town_params=town_params
+#)
+
+#town.draw_town()
+#sim_params = scon.SEIsIrRModelParameters(0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
+#sim = scon.Simulation(town, sim_params, 100)
+#sim.run(True)
+#sim.plot_status('S')
+#sim.plot_status()
+#sim.plot_status(['S', 'E'])
+scon.plot_results("simulation_results.csv")
