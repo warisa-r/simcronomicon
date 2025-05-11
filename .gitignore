@@ -42,8 +42,7 @@ output/*/index.html
 docs/_build
 
 # Some graph file saves
-*.graphml
-*.json
 *.csv
 
+cache
 .venv

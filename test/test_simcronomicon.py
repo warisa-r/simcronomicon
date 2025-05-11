@@ -14,8 +14,11 @@ class TestTown(object):
 
     @classmethod
     def setup_class(cls):
-        G = scon.create_town_graph_erdos_renyi(20, 0.3)
-        cls.town = scon.Town(G, 0.5, 10)
+        point = 50.7753, 6.0839
+        # Set up a random town parameter
+        cls.town_params = scon.TownParameters(0.7, 2, 2000, 10)
+        cls.town = scon.Town.from_point(point, 2000, cls.town_params)
+        cls.town = 
 
     def test_town(self):
         assert len(self.town.town_graph.nodes()) == 20 and self.town.town_graph.nodes[random.randint(0, 19)]['folk'] == []
@@ -34,6 +37,7 @@ class TestTown(object):
 class TestFolk(object):
     @classmethod
     def setup_class(cls):
+        #TODO: Test this
         cls.folk1 = scon.Folk(1, 'Ir')
         cls.folk2 = scon.Folk(2, 'Is')
         cls.folk3 = scon.Folk(3, 'E')
