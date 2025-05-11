@@ -17,18 +17,29 @@ class TestTown(object):
         point = 50.7753, 6.0839
         # Set up a random town parameter
         cls.town_params = scon.TownParameters(0.7, 2, 2000, 10)
-        cls.town = scon.Town.from_point(point, 2000, cls.town_params)
-        cls.town = 
+        cls.town_from_point = scon.Town.from_point(point, 2000, cls.town_params)
+        cls.town_from_files = scon.Town.from_files(metadata_path="town_graph_metadata_aachen.json",
+                                        town_graph_path="town_graph_aachen.graphml",
+                                        projected_graph_path="raw_projected_graph_aachen.graphml",
+                                        town_params=cls.town_params
+                                        )
+        
 
     def test_town(self):
-        assert len(self.town.town_graph.nodes()) == 20 and self.town.town_graph.nodes[random.randint(0, 19)]['folk'] == []
-        self.town.draw_town()
+        # Check that the attributes of the projected graph generated from a given point is equal to the
+        # pre-existing town graph
+        node = random.choice(list(self.town_from_files.G_projected.nodes))
+        attrs1 = self.town_from_files.G_projected.nodes[node]
+        attrs2 = self.town_from_point.G_projected.nodes[node]
 
-        # Check if something was drawn on the figure
-        fig = plt.gcf()
-        assert len(fig.get_axes()) > 0 or len(fig.get_children()) > 0
+        for key in attrs1:
+            v1 = attrs1[key]
+            v2 = attrs2.get(key)
 
-        plt.close(fig)
+            if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
+                assert round(v1, 3) == round(v2, 3), f"Mismatch at node {node}, key '{key}': {v1} != {v2}"
+            else:
+                assert v1 == v2, f"Mismatch at node {node}, key '{key}': {v1} != {v2}"
 
     @classmethod
     def teardown_class(cls):

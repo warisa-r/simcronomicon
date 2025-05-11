@@ -1,5 +1,4 @@
 import json
-import pickle
 import osmnx as ox
 from itertools import combinations
 
@@ -94,9 +93,6 @@ class Town():
 
     @classmethod
     def from_files(cls, metadata_path, town_graph_path, projected_graph_path, town_params):
-        import json
-        import networkx as nx
-
         town = cls()
         town.town_params = town_params
 

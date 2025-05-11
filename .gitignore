@@ -42,6 +42,7 @@ output/*/index.html
 docs/_build
 
 # Some graph file saves
+#*.json
 *.csv
 
 cache
