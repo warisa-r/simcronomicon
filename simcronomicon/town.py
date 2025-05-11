@@ -20,12 +20,6 @@ class Town():
 
     @classmethod
     def from_point(cls, point, dist, town_params):
-        import osmnx as ox
-        import networkx as nx
-        from shapely.geometry import Point
-        import json
-        from itertools import combinations
-
         town = cls()
         town.town_params = town_params
         town.point = point
@@ -65,17 +59,12 @@ class Town():
         old_nodes = list(G_filtered.nodes)
         town.id_map = {old_id: new_id for new_id, old_id in enumerate(old_nodes)}
         town.accommodation_node_ids = []
-        town.healthcare_facility_node_ids = []
-        town.commercial_node_ids = []
 
         for old_id, new_id in town.id_map.items():
             place_type = G_filtered.nodes[old_id].get('place_type')
             if place_type == 'accommodation':
                 town.accommodation_node_ids.append(new_id)
-            elif place_type == 'healthcare_facility':
-                town.healthcare_facility_node_ids.append(new_id)
-            elif place_type == 'commercial':
-                town.commercial_node_ids.append(new_id)
+
             town.town_graph.add_node(new_id, place_type=place_type)
 
         for id1, id2 in combinations(old_nodes, 2):
@@ -90,11 +79,10 @@ class Town():
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
         metadata = {
             "origin_point": [float(point[0]), float(point[1])],
+            "dist": dist,
             "epsg_code": int(epsg_code),
             "id_map": {str(k): v for k, v in town.id_map.items()},
             "accommodation_nodes": list(town.accommodation_node_ids),
-            "commercial_nodes": list(town.commercial_node_ids),
-            "healthcare_nodes": list(town.healthcare_facility_node_ids),
         }
         with open("town_graph_metadata.json", "w") as f:
             json.dump(metadata, f, indent=2)
@@ -119,13 +107,9 @@ class Town():
         town.epsg_code = metadata["epsg_code"]
         town.id_map = {k: v for k, v in metadata["id_map"].items()}
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])
-        town.commercial_node_ids = list(metadata["commercial_nodes"])
-        town.healthcare_facility_node_ids = list(metadata["healthcare_nodes"])
 
         # Now, to make sure the IDs are integers (if they were originally strings):
         town.accommodation_node_ids = list(map(int, town.accommodation_node_ids))
-        town.commercial_node_ids = list(map(int, town.commercial_node_ids))
-        town.healthcare_facility_node_ids = list(map(int, town.healthcare_facility_node_ids))
 
         town.id_map = {int(k): v for k, v in town.id_map.items()}
 
@@ -149,19 +133,39 @@ class Town():
         s = str(row.get("shop", "")).lower()
         e = str(row.get("emergency", "")).lower()
 
-        if b in ['residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace', 'allotment_house', 'bungalow']:
+        # Accommodation classification
+        if b in ['residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace', 'allotment_house', 'bungalow', 'semidetached_house', 'hut']:
             return 'accommodation'
         
-        elif h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
-            a in ['hospital', 'clinic', 'doctors', 'pharmacy'] or \
+        # Healthcare classification
+        elif b in ['hospital', 'dentist'] or \
+            h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
+            a in ['hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'] or \
             s in ['medical_supply', 'hearing_aids'] or \
-            e == 'yes' or b == 'hospital':
+            e == 'yes':
             return 'healthcare_facility'
         
-        elif b in ['commercial', 'retail', 'office', 'supermarket', 'shop'] or \
-            a in ['restaurant', 'bar', 'cafe', 'bank'] or \
+        # Commercial classification
+        elif b in ['commercial', 'retail', 'supermarket', 'shop', 'service', 'sports_centre'] or \
+            a in ['restaurant', 'bar', 'cafe', 'bank', 'fast_food'] or \
             l in ['commercial']:
             return 'commercial'
+        
+        # Workplace classification (universities, offices, factories)
+        elif b in ['office', 'factory', 'industrial', 'government'] or \
+            a in ['office', 'factory', 'industry'] or \
+            l in ['industrial', 'office']:
+            return 'workplace'
+        
+        # Education classification
+        elif b in ['school', 'university', 'kindergarten'] or \
+            a in ['university', 'kindergarten']:
+            return 'education'
+        
+        elif b in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
+            a in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
+            l in ['religious']:
+            return 'religious'
         
         else:
             return 'other'
@@ -175,8 +179,14 @@ class Town():
                 node_colors.append("blue")        # Commercial → blue
             elif data.get("place_type") == "accommodation":
                 node_colors.append("green")       # Accommodation → green
+            elif data.get("place_type") == "workplace":
+                node_colors.append("cyan")
+            elif data.get("place_type") == "education":
+                node_colors.append("yellow")
+            elif data.get("place_type") == "religious":
+                node_colors.append("magenta")
             else:
-                node_colors.append("grey")        # Other unlabeled node is plotted with the color grey
+                node_colors.append("grey")
 
         # Plot with custom node colors
         fig, ax = ox.plot_graph(
