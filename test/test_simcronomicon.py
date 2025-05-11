@@ -2,6 +2,8 @@
 Tests for `simcronomicon` module.
 """
 import pytest
+import os
+import shutil
 
 # Import all the necessary packages for testing
 import networkx as nx
@@ -16,6 +18,11 @@ class TestTown(object):
     def setup_class(cls):
         point = 50.7753, 6.0839
         # Set up a random town parameter
+        cls.town_config_file_lists = [
+            "town_graph_metadata.json",
+            "town_graph.graphml",
+            "raw_projected_graph.graphml"
+        ]
         cls.town_params = scon.TownParameters(0.7, 2, 2000, 10)
 
         cls.town_from_files = scon.Town.from_files(metadata_path="test/test_data/town_graph_metadata_aachen.json",
@@ -114,11 +121,19 @@ class TestTown(object):
                 assert round(v1, 3) == round(v2, 3), f"Mismatch at edge {edge}, key '{key}': {v1} != {v2} in the town graphs."
             else:
                 assert v1 == v2, f"Mismatch at edge {edge}, key '{key}': {v1} != {v2} in the town graphs."
-
+    def test_save_files_exist(self):
+        # Check that all the graph and metadata files produce from from_point exist
+        for file in self.town_config_file_lists:
+            assert os.path.exists(file), f"File {file} does not exist."
 
     @classmethod
     def teardown_class(cls):
-        pass
+        for file in cls.town_config_file_lists:
+            if os.path.exists(file):
+                os.remove(file)
+
+        if os.path.exists("cache"):
+            shutil.rmtree("cache")
 
 class TestFolk(object):
     @classmethod
