@@ -17,17 +17,32 @@ class TestTown(object):
         point = 50.7753, 6.0839
         # Set up a random town parameter
         cls.town_params = scon.TownParameters(0.7, 2, 2000, 10)
-        cls.town_from_point = scon.Town.from_point(point, 2000, cls.town_params)
-        cls.town_from_files = scon.Town.from_files(metadata_path="town_graph_metadata_aachen.json",
-                                        town_graph_path="town_graph_aachen.graphml",
-                                        projected_graph_path="raw_projected_graph_aachen.graphml",
+
+        cls.town_from_files = scon.Town.from_files(metadata_path="test/test_data/town_graph_metadata_aachen.json",
+                                        town_graph_path="test/test_data/town_graph_aachen.graphml",
+                                        projected_graph_path="test/test_data/raw_projected_graph_aachen.graphml",
                                         town_params=cls.town_params
                                         )
+        cls.town_from_point = scon.Town.from_point(point, 2000, cls.town_params)
         
-
-    def test_town(self):
-        # Check that the attributes of the projected graph generated from a given point is equal to the
+    def test_node_and_edge_counts_match(self):
+        assert len(self.town_from_files.G_projected.nodes) == len(self.town_from_point.G_projected.nodes), \
+            f"Mismatch in G_projected node count: {len(self.town_from_files.G_projected.nodes)} != {len(self.town_from_point.G_projected.nodes)}"
+        
+        assert len(self.town_from_files.G_projected.edges) == len(self.town_from_point.G_projected.edges), \
+            f"Mismatch in G_projected edge count: {len(self.town_from_files.G_projected.edges)} != {len(self.town_from_point.G_projected.edges)}"
+        
+        assert len(self.town_from_files.town_graph.nodes) == len(self.town_from_point.town_graph.nodes), \
+            f"Mismatch in town_graph node count: {len(self.town_from_files.town_graph.nodes)} != {len(self.town_from_point.town_graph.nodes)}"
+        
+        assert len(self.town_from_files.town_graph.edges) == len(self.town_from_point.town_graph.edges), \
+            f"Mismatch in town_graph edge count: {len(self.town_from_files.town_graph.edges)} != {len(self.town_from_point.town_graph.edges)}"
+    
+    def test_random_node_match(self):
+        # Check that the attributes of the graphs generated from a given point is equal to the
         # pre-existing town graph
+
+        # Start with checking a random node in the projected graphs
         node = random.choice(list(self.town_from_files.G_projected.nodes))
         attrs1 = self.town_from_files.G_projected.nodes[node]
         attrs2 = self.town_from_point.G_projected.nodes[node]
@@ -37,9 +52,69 @@ class TestTown(object):
             v2 = attrs2.get(key)
 
             if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
-                assert round(v1, 3) == round(v2, 3), f"Mismatch at node {node}, key '{key}': {v1} != {v2}"
+                assert round(v1, 3) == round(v2, 3), f"Mismatch at node {node}, key '{key}': {v1} != {v2} in the projected graphs."
             else:
-                assert v1 == v2, f"Mismatch at node {node}, key '{key}': {v1} != {v2}"
+                assert v1 == v2, f"Mismatch at node {node}, key '{key}': {v1} != {v2} in the projected graphs."
+
+        # Check that this node connects to the same neighbors in both graphs
+        neighbors1 = set(self.town_from_files.G_projected.neighbors(node))
+        neighbors2 = set(self.town_from_point.G_projected.neighbors(node))
+
+        assert neighbors1 == neighbors2, \
+            f"Mismatch in neighbors of node {node}: {neighbors1} != {neighbors2} in the projected graphs."
+
+        # Then check a randome node in the simple town graphs
+        node = random.choice(list(self.town_from_files.town_graph.nodes))
+        attrs1 = self.town_from_files.town_graph.nodes[node]
+        attrs2 = self.town_from_point.town_graph.nodes[node]
+
+        for key in attrs1:
+            v1 = attrs1[key]
+            v2 = attrs2.get(key)
+
+            if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
+                assert round(v1, 3) == round(v2, 3), f"Mismatch at node {node}, key '{key}': {v1} != {v2} in the town graphs."
+            else:
+                assert v1 == v2, f"Mismatch at node {node}, key '{key}': {v1} != {v2} in the town graphs."
+
+        # Check that this node connects to the same neighbors in both graphs
+        neighbors1 = set(self.town_from_files.town_graph.neighbors(node))
+        neighbors2 = set(self.town_from_point.town_graph.neighbors(node))
+
+        assert neighbors1 == neighbors2, \
+            f"Mismatch in neighbors of node {node}: {neighbors1} != {neighbors2} in the town graphs."
+
+    def test_random_edge_attributes_match(self):
+        # Like random node test, we start with the projected graphs first
+        edge = random.choice(list(self.town_from_files.G_projected.edges))
+
+        attrs1 = self.town_from_files.G_projected.edges[edge]
+        attrs2 = self.town_from_point.G_projected.edges[edge]
+
+        for key in attrs1:
+            v1 = attrs1[key]
+            v2 = attrs2.get(key)
+
+            if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
+                assert round(v1, 3) == round(v2, 3), f"Mismatch at edge {edge}, key '{key}': {v1} != {v2} in the projected graphs."
+            else:
+                assert v1 == v2, f"Mismatch at edge {edge}, key '{key}': {v1} != {v2} in the projected graphs."
+
+        # Now, check a random edge in the town graphs
+        edge = random.choice(list(self.town_from_files.town_graph.edges))
+
+        attrs1 = self.town_from_files.town_graph.edges[edge]
+        attrs2 = self.town_from_point.town_graph.edges[edge]
+
+        for key in attrs1:
+            v1 = attrs1[key]
+            v2 = attrs2.get(key)
+
+            if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
+                assert round(v1, 3) == round(v2, 3), f"Mismatch at edge {edge}, key '{key}': {v1} != {v2} in the town graphs."
+            else:
+                assert v1 == v2, f"Mismatch at edge {edge}, key '{key}': {v1} != {v2} in the town graphs."
+
 
     @classmethod
     def teardown_class(cls):
