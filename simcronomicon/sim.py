@@ -8,13 +8,14 @@ from .folk import Folk
 from .visualize import _plot_status_data
 
 class StepEvent():
-    def __init__(self, step_freq, max_distance, place_types):
+    def __init__(self, name, step_freq, max_distance, place_types):
         #TODO: Write check that place_types is in the classification in town.py
+        self.name = name
         self.step_freq = step_freq
         self.max_distance = max_distance # Unit here is [m]
         self.place_types = place_types
     def __repr__(self):
-        return f"This even happens {self.step_freq} time(s) a step and each folk can travel up to {self.max_distance} to complete it."
+        return f"{self.name} happens {self.step_freq} time(s) a step and each folk can travel up to {self.max_distance} to complete it."
 
 class SEIsIrRModelParameters():
     def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
@@ -70,9 +71,9 @@ class Simulation:
 
         # Validate step_events
         if step_events is None: # Use default step events
-            hi_neighbour = StepEvent(1, 5000, ['accommodation'])
-            chore = StepEvent(1, 19000, ['commercial', 'workplace', 'education', 'religious']) # Germans travel average 19km per day
-            self.step_events = [hi_neighbour, chore]
+            greet_neighbor_event = StepEvent("greet_neighbors", 1, 5000, ['accommodation'])
+            chore_event = StepEvent("chore", 1, 19000, ['commercial', 'workplace', 'education', 'religious']) # Germans travel average 19km per day
+            self.step_events = [greet_neighbor_event, chore_event]
         elif isinstance(step_events, StepEvent):
             self.step_events = [step_events]
         elif isinstance(step_events, list):
@@ -110,7 +111,7 @@ class Simulation:
         self.active_node_indices = self.household_node_indices.copy()
 
         # Keep track of the number of folks in each status
-        status_dict_t = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0}
+        status_dict_t = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0, 'current_event': None, 'timestep':0}
         self.status_dicts.append(status_dict_t)
     
     def reset_population_home(self):
@@ -169,69 +170,72 @@ class Simulation:
                     if folk.social_energy > 0:
                         folk.interact(folks_here, self.status_dicts[-1], self.model_params, rd.random())
     
-    def step(self):
-        # Set up the new step
-        self.status_dicts.append(self.status_dicts[-1].copy())
-        
-        # Events happen during the step
-        for step_event in self.step_events:
-            self.execute_social_event(step_event)
-        
-        # Everybody in the town goes home
-        self.reset_population_home()
+    def step(self, save_result, writer):
+            current_timestep = self.current_timestep + 1
+            for step_event in self.step_events:
+                self.status_dicts.append(self.status_dicts[-1].copy())
+                self.status_dicts[-1]['timestep'] = current_timestep
+                self.status_dicts[-1]['current_event'] = step_event.name
             
-        self.current_timestep += 1
+                self.execute_social_event(step_event)
+                if save_result and writer:
+                    writer.writerow(self.status_dicts[-1])
+
+            # Everybody goes home (but we don't record that as a new status)
+            self.reset_population_home()
+            self.current_timestep = current_timestep
 
     def run(self, save_result=False, result_filename="simulation_results.csv", metadata_filename="sim_metadata.json"):
+        writer = None
         if save_result:
             # Save metadata at the beginning
             metadata = {
-                'model parameters': {
-                    'alpha': self.model_params.alpha,
-                    'gamma': self.model_params.gamma,
-                    'phi': self.model_params.E2R,
-                    'theta': self.model_params.E2S,
-                    'mu': self.model_params.mu,
-                    'eta1': self.model_params.S2R,
-                    'eta2': self.model_params.forget,
-                    'mem_span': self.model_params.mem_span,
-                },
-                'num_locations': len(self.town.town_graph.nodes),
-                'max_timesteps': self.timesteps,
-                'population': self.num_pop,
-            }
+                        'model parameters': {
+                            'alpha': self.model_params.alpha,
+                            'gamma': self.model_params.gamma,
+                            'phi': self.model_params.E2R,
+                            'theta': self.model_params.E2S,
+                            'mu': self.model_params.mu,
+                            'eta1': self.model_params.S2R,
+                            'eta2': self.model_params.forget,
+                            'mem_span': self.model_params.mem_span,
+                        },
+                        'num_locations': len(self.town.town_graph.nodes),
+                        'max_timesteps': self.timesteps,
+                        'population': self.num_pop,
+                        'step_events': [
+                            {
+                                'name': event.name,
+                                'step_freq': event.step_freq,
+                                'max_distance': event.max_distance,
+                                'place_types': event.place_types,
+                            } for event in self.step_events
+                        ],
+                    }
             with open(metadata_filename, 'w') as f:
                 json.dump(metadata, f, indent=4)
 
             # Write CSV while simulation runs
             with open(result_filename, mode='w', newline='') as result_file:
-                fieldnames = ['timestep', 'S', 'Is', 'Ir', 'R', 'E']
+                fieldnames = ['timestep', 'S', 'Is', 'Ir', 'R', 'E', 'current_event']
                 writer = csv.DictWriter(result_file, fieldnames=fieldnames)
                 writer.writeheader()
 
                 # Save initial state (t=0)
-                initial_row = {'timestep': 0}
-                initial_row.update(self.status_dicts[-1])
-                writer.writerow(initial_row)
-
-                for i in range(1, self.timesteps + 1):
+                writer.writerow(self.status_dicts[-1])
+                # This loop has to be duplicated for the if else block
+                # Since if we run it outside of this block, the .csv will be closed.
+                for i in range(1, self.timesteps+1):
+                    self.step(save_result, writer)
                     print("Step has been run", i)
-                    print("Status: ", self.status_dicts[-1])
-
-                    self.step()
-                    row = {'timestep': i}
-                    row.update(self.status_dicts[-1])
-                    writer.writerow(row)
-
+                    print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
                     if self.status_dicts[-1]['S'] == 0:
                         break
-
         else:
-            # No saving to CSV
-            for i in range(self.timesteps):
+            for i in range(1, self.timesteps+1):
+                self.step(save_result, writer)
                 print("Step has been run", i)
-                print("Status: ", self.status_dicts[-1])
-                self.step()
+                print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
                 if self.status_dicts[-1]['S'] == 0:
                     break
 
