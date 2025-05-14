@@ -1,5 +1,5 @@
 from . import plt
-from . import csv
+import csv
 
 def _plot_status_data(timesteps, data_dict, status_type, ylabel="Density"):
     all_keys = ['S', 'Is', 'Ir', 'R', 'E']

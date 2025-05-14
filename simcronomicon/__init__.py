@@ -6,11 +6,10 @@ import numpy as np
 import networkx as nx
 import random as rd
 import matplotlib.pyplot as plt
-import csv
 
 from .town import Town, TownParameters
-from .folk import Folk
-from .sim import Simulation, SEIsIrRModelParameters, StepEvent
+from .compartmental_models import StepEvent, SEIsIrRModel, SEIsIrRModelParameters
+from .sim import Simulation
 from .visualize import plot_results
 
-__all__ = ["Town", "TownParameters", "Folk", "Simulation", "SEIsIrRModelParameters", "StepEvent", "plot_results"]
+__all__ = ["Town", "TownParameters", "SEIsIrRModel", "Simulation", "SEIsIrRModelParameters", "StepEvent", "plot_results"]

@@ -1,118 +1,33 @@
 from . import nx
-from . import rd
-from . import csv
 
+import random as rd
+import csv
 import json
 
-from .folk import Folk
 from .visualize import _plot_status_data
 
-class StepEvent():
-    def __init__(self, name, step_freq, max_distance, place_types):
-        #TODO: Write check that place_types is in the classification in town.py
-        self.name = name
-        self.step_freq = step_freq
-        self.max_distance = max_distance # Unit here is [m]
-        self.place_types = place_types
-    def __repr__(self):
-        return f"{self.name} happens {self.step_freq} time(s) a step and each folk can travel up to {self.max_distance} to complete it."
-
-class SEIsIrRModelParameters():
-    def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
-        # Use the same parameter sets as the model notation but precalculate the conversion rate
-        # since these are the same through out the simulation
-
-        # Check if we have the right input type
-        for name, value in zip(
-            ['gamma', 'alpha', 'lam', 'phi', 'theta', 'mu', 'eta1', 'eta2'],
-            [gamma, alpha, lam, phi, theta, mu, eta1, eta2]
-        ):
-            if not isinstance(value, (float, int)):
-                raise TypeError(f"{name} must be a float or int, got {type(value).__name__}")
-        
-        # Cast to float
-        gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
-
-        if not isinstance(mem_span, int) or mem_span <= 1:
-            raise ValueError(f"mem_span must be an integer greater than 1, got {mem_span}")
-
-        # Store some parameters so that they can be recalled as simulation metadata later on 
-        self.alpha = alpha
-        self.gamma = gamma
-        self.mu = mu
-        gamma_alpha_lam = gamma * alpha * lam
-
-        # We use number 2 to signify transition that happens because of interaction
-        self.Is2E = (1-gamma) * gamma_alpha_lam
-        self.Is2S = gamma_alpha_lam * mu
-        self.Ir2S = gamma_alpha_lam
-        self.E2S = theta
-        self.E2R = phi
-        self.S2R = eta1
-        self.forget = eta2
-        self.mem_span = mem_span
-
 class Simulation:
-    def __init__(self, town, model_params, timesteps, step_events = None):
-        if not isinstance(model_params, SEIsIrRModelParameters):
-            raise TypeError("Please defined parameters using SEIsIrRModelParameters!")
+    def __init__(self, town, compartmental_model, timesteps, step_events = None):
 
         self.folks = []
         self.folk_max_social_energy = town.town_params.max_social_energy
         self.status_dicts = []
         self.num_pop = town.town_params.num_pop
         self.town = town
-        self.model_params = model_params
+        self.model = compartmental_model
+        self.model_params = compartmental_model.model_params
+        self.step_events = compartmental_model.step_events
         self.current_timestep = 0
         self.timesteps = timesteps
-        self.household_node_indices = set()
         self.active_node_indices = set()
         self.nodes_list = list(self.town.town_graph.nodes)
 
-        # Validate step_events
-        if step_events is None: # Use default step events
-            greet_neighbor_event = StepEvent("greet_neighbors", 1, 5000, ['accommodation'])
-            chore_event = StepEvent("chore", 1, 19000, ['commercial', 'workplace', 'education', 'religious']) # Germans travel average 19km per day
-            self.step_events = [greet_neighbor_event, chore_event]
-        elif isinstance(step_events, StepEvent):
-            self.step_events = [step_events]
-        elif isinstance(step_events, list):
-            if not all(isinstance(event, StepEvent) for event in step_events):
-                raise TypeError("All elements in step_events must be StepEvent instances!")
-            self.step_events = step_events
-        else:
-            raise TypeError("step_events must be a StepEvent or a list of StepEvent objects!")
-        
-        
         num_init_spreader = town.town_params.num_init_spreader
         
-        num_Is = round(town.town_params.literacy * self.num_pop)
-        num_Ir = self.num_pop - num_Is
-
-        # Spreaders often originated from Ir type of folks first
-        num_Ir -= num_init_spreader
-        if num_Ir < 0: # Then some Is folks can become spreader too
-            num_Is += num_Ir
-            num_Ir = 0
-
-        for i in range(self.num_pop):
-            node = rd.choice(self.town.accommodation_node_ids)
-            if i < num_init_spreader:
-                folk = Folk(node, self.folk_max_social_energy, 'S')
-            elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = Folk(node, self.folk_max_social_energy, 'Is')
-            else:
-                folk = Folk(node, self.folk_max_social_energy,'Ir')
-            self.folks.append(folk)
-            self.town.town_graph.nodes[node]['folks'].append(folk) # Account for which folks live where in the graph as well
-        
-            if len(self.town.town_graph.nodes[node]['folks']) == 2: # Track which node has a 'family' living in it
-                self.household_node_indices.add(node)
+        self.folks, self.household_node_indices, status_dict_t0 = self.model.initialize_sim_population(self.num_pop, num_init_spreader, town)
         self.active_node_indices = self.household_node_indices.copy()
 
-        # Keep track of the number of folks in each status
-        status_dict_t = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0, 'current_event': None, 'timestep':0}
-        self.status_dicts.append(status_dict_t)
+        self.status_dicts.append(status_dict_t0)
     
     def reset_population_home(self):
         self.active_node_indices = self.household_node_indices.copy() # Simple list -> Shallow copy
