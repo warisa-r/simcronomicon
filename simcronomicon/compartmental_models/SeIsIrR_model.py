@@ -1,4 +1,4 @@
-from .abstract_agent import Folk
+from .abstract_model import Folk, AbstractCompartmentalModel
 from .step_event import StepEvent
 import random as rd
 
@@ -93,16 +93,13 @@ class FolkSEIsIrR(Folk):
                 self.spreader_streak += 1
         self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
     
-class SEIsIrRModel():
+class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
+        super().__init__(model_params)
         self.step_events = [StepEvent("greet_neighbors", 1, 5000, ['accommodation']),
                             StepEvent("chore", 1, 19000, ['commercial', 'workplace', 'education', 'religious'])]
-        self.model_params = model_params
-        self.all_status = ['S', 'E', 'Ir', 'Is', 'R']
+        self.all_status.extend(['E', 'Ir', 'Is', 'R'])
         self.folk_class = FolkSEIsIrR
-
-    def create_folk(self, *args, **kwargs):
-        return self.folk_class(*args, **kwargs)
     
     def initialize_sim_population(self, num_pop, num_init_spreader, town):
         #TODO: max_social_energy and literacy should be model params
@@ -132,5 +129,5 @@ class SEIsIrRModel():
             if len(town.town_graph.nodes[node]['folks']) == 2: # Track which node has a 'family' living in it
                 household_node_indices.add(node)
 
-        status_dict_t0 = {'S': num_init_spreader, 'Is': num_Is, 'Ir': num_Ir, 'R': 0, 'E': 0, 'current_event': None, 'timestep':0}
+        status_dict_t0 = {'current_event': None, 'timestep':0, 'S': num_init_spreader, 'E': 0, 'Is': num_Is, 'Ir': num_Ir, 'R': 0}
         return folks, household_node_indices, status_dict_t0

@@ -32,3 +32,12 @@ class Folk:
         self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
     def __repr__(self):
         return f"Person live at {self.home_address}, currently at {self.address}, Social Energy={self.social_energy}, Status={self.status}"
+
+class AbstractCompartmentalModel():
+    def __init__(self, model_params):
+        self.model_params = model_params
+        self.all_status = ['S']
+        self.folk_class = Folk
+
+    def create_folk(self, *args, **kwargs):
+        return self.folk_class(*args, **kwargs)

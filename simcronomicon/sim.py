@@ -103,7 +103,7 @@ class Simulation:
     def run(self, save_result=False, result_filename="simulation_results.csv", metadata_filename="sim_metadata.json"):
         writer = None
         if save_result:
-            # Save metadata at the beginning
+            #TODO: Generalize this
             metadata = {
                         'model parameters': {
                             'alpha': self.model_params.alpha,
@@ -132,7 +132,9 @@ class Simulation:
 
             # Write CSV while simulation runs
             with open(result_filename, mode='w', newline='') as result_file:
-                fieldnames = ['timestep', 'S', 'Is', 'Ir', 'R', 'E', 'current_event']
+                fieldnames = ['timestep', 'current_event']
+                for status in self.model.all_status:
+                    fieldnames.append(status)
                 writer = csv.DictWriter(result_file, fieldnames=fieldnames)
                 writer.writeheader()
 
@@ -156,6 +158,6 @@ class Simulation:
 
     def plot_status(self, status_type=None):
         timesteps = range(len(self.status_dicts))
-        all_keys = ['S', 'Is', 'Ir', 'R', 'E']
+        all_keys = self.model.all_status
         data = {key: [status[key] / self.num_pop for status in self.status_dicts] for key in all_keys}
         _plot_status_data(timesteps, data, status_type, ylabel="Density")
