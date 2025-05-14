@@ -146,14 +146,14 @@ class Simulation:
                     self.step(save_result, writer)
                     print("Step has been run", i)
                     print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
-                    if self.status_dicts[-1]['S'] == 0:
+                    if self.status_dicts[-1][self.model.infected_status] == 0:
                         break
         else:
             for i in range(1, self.timesteps+1):
                 self.step(save_result, writer)
                 print("Step has been run", i)
                 print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
-                if self.status_dicts[-1]['S'] == 0:
+                if self.status_dicts[-1][self.model.infected_status] == 0:
                     break
 
     def plot_status(self, status_type=None):

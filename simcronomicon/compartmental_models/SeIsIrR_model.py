@@ -40,6 +40,12 @@ class SEIsIrRModelParameters():
 class FolkSEIsIrR(Folk):
     def __init__(self, home_address, max_social_energy, status):
         super().__init__(home_address, max_social_energy, status)
+        self.spreader_streak = 0
+
+    def convert(self, new_stat, status_dict_t):
+        if self.status == 'S':
+            self.spreader_streak = 0 # Reset spreader streak
+        super().convert(new_stat, status_dict_t)
 
     def interact(self, folks_here, status_dict_t, model_params, dice):
         # Rule 1
@@ -86,19 +92,19 @@ class FolkSEIsIrR(Folk):
     def sleep(self, status_dict_t, model_params, dice):
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
-            #TODO: Consider this
             if model_params.mem_span <= self.spreader_streak or dice < model_params.forget:
                 self.convert('R', status_dict_t)
             else:
                 self.spreader_streak += 1
-        self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
+        super().sleep()
     
 class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
         super().__init__(model_params)
         self.step_events = [StepEvent("greet_neighbors", 1, 5000, ['accommodation']),
                             StepEvent("chore", 1, 19000, ['commercial', 'workplace', 'education', 'religious'])]
-        self.all_status.extend(['E', 'Ir', 'Is', 'R'])
+        self.all_status = (['S', 'E', 'Ir', 'Is', 'R'])
+        self.infected_status = 'S'
         self.folk_class = FolkSEIsIrR
     
     def initialize_sim_population(self, num_pop, num_init_spreader, town):

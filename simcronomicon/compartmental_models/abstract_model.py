@@ -7,13 +7,11 @@ class Folk:
         self.max_social_energy = max_social_energy
         self.social_energy = rd.randint(0, max_social_energy)
         self.status = status
-        self.spreader_streak = 0
 
     def convert(self, new_stat, status_dict_t):
+        assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
         status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
-        if self.status == 'S':
-            self.spreader_streak = 0 # Reset spreader streak
         self.status = new_stat
 
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
@@ -27,8 +25,6 @@ class Folk:
             return 1-(1-conversion_prob)** (self.social_energy * num_contact / self.max_social_energy)
     
     def sleep(self):
-        if self.status == 'S':
-            self.spreader_streak += 1
         self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
     def __repr__(self):
         return f"Person live at {self.home_address}, currently at {self.address}, Social Energy={self.social_energy}, Status={self.status}"
@@ -36,7 +32,6 @@ class Folk:
 class AbstractCompartmentalModel():
     def __init__(self, model_params):
         self.model_params = model_params
-        self.all_status = ['S']
         self.folk_class = Folk
 
     def create_folk(self, *args, **kwargs):
