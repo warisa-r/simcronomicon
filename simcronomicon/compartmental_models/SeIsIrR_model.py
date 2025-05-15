@@ -1,3 +1,14 @@
+"""
+This module implements rumor spreading dynamics with considerations for
+credibility, correlation, and crowd personality-based classification.
+
+The implementation is based on:
+
+Chen, X., & Wang, N. (2020). 
+Rumor spreading model considering rumor credibility, correlation and crowd classification based on personality. 
+*Scientific Reports*, 10, 5887. https://doi.org/10.1038/s41598-020-62687-5
+"""
+
 from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
 from .step_event import StepEvent
 import random as rd
