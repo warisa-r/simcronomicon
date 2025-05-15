@@ -6,9 +6,7 @@ from . import plt
 from . import nx
 
 class TownParameters():
-    def __init__(self, literacy, max_social_energy, num_pop, num_init_spreader):
-        self.literacy = literacy
-        self.max_social_energy = max_social_energy
+    def __init__(self, num_pop, num_init_spreader):
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
 

@@ -8,12 +8,10 @@ from .visualize import _plot_status_data
 
 class Simulation:
     def __init__(self, town, compartmental_model, timesteps, step_events = None):
-
         self.folks = []
-        self.folk_max_social_energy = town.town_params.max_social_energy
         self.status_dicts = []
-        self.num_pop = town.town_params.num_pop
         self.town = town
+        self.num_pop = town.town_params.num_pop
         self.model = compartmental_model
         self.model_params = compartmental_model.model_params
         self.step_events = compartmental_model.step_events
@@ -74,7 +72,6 @@ class Simulation:
                     # One person just move in and make this node 'active' -> interaction here is possible
                     self.active_node_indices.add(new_node)
 
-
     def execute_social_event(self, step_event):
         for i in range(step_event.step_freq):   
             # Move people through the town first
@@ -103,30 +100,20 @@ class Simulation:
     def run(self, save_result=False, result_filename="simulation_results.csv", metadata_filename="sim_metadata.json"):
         writer = None
         if save_result:
-            #TODO: Generalize this
             metadata = {
-                        'model parameters': {
-                            'alpha': self.model_params.alpha,
-                            'gamma': self.model_params.gamma,
-                            'phi': self.model_params.E2R,
-                            'theta': self.model_params.E2S,
-                            'mu': self.model_params.mu,
-                            'eta1': self.model_params.S2R,
-                            'eta2': self.model_params.forget,
-                            'mem_span': self.model_params.mem_span,
-                        },
-                        'num_locations': len(self.town.town_graph.nodes),
-                        'max_timesteps': self.timesteps,
-                        'population': self.num_pop,
-                        'step_events': [
-                            {
-                                'name': event.name,
-                                'step_freq': event.step_freq,
-                                'max_distance': event.max_distance,
-                                'place_types': event.place_types,
-                            } for event in self.step_events
-                        ],
-                    }
+                'model parameters': self.model_params.to_metadata_dict(),
+                'num_locations': len(self.town.town_graph.nodes),
+                'max_timesteps': self.timesteps,
+                'population': self.num_pop,
+                'step_events': [
+                    {
+                        'name': event.name,
+                        'step_freq': event.step_freq,
+                        'max_distance': event.max_distance,
+                        'place_types': event.place_types,
+                    } for event in self.step_events
+                ],
+            }
             with open(metadata_filename, 'w') as f:
                 json.dump(metadata, f, indent=4)
 

@@ -1,9 +1,12 @@
-from .abstract_model import Folk, AbstractCompartmentalModel
+from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
 from .step_event import StepEvent
 import random as rd
 
-class SEIsIrRModelParameters():
-    def __init__(self, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
+class SEIsIrRModelParameters(AbstractModelParameters):
+    def __init__(self, max_social_energy, literacy, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
+        super().__init__(max_social_energy)
+        self.literacy = literacy
+
         # Use the same parameter sets as the model notation but precalculate the conversion rate
         # since these are the same through out the simulation
 
@@ -36,6 +39,19 @@ class SEIsIrRModelParameters():
         self.S2R = eta1
         self.forget = eta2
         self.mem_span = mem_span
+    def to_metadata_dict(self):
+        return {
+            'max_social_energy': self.max_social_energy,
+            'literacy': self.literacy,
+            'alpha': self.alpha,
+            'gamma': self.gamma,
+            'phi': self.E2R,
+            'theta': self.E2S,
+            'mu': self.mu,
+            'eta1': self.S2R,
+            'eta2': self.forget,
+            'mem_span': self.mem_span,
+        }
 
 class FolkSEIsIrR(Folk):
     def __init__(self, home_address, max_social_energy, status):
@@ -112,7 +128,7 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         folks = []
         household_node_indices = set()
 
-        num_Is = round(town.town_params.literacy * num_pop)
+        num_Is = round(self.model_params.literacy * num_pop)
         num_Ir = num_pop - num_Is
 
         # Spreaders often originated from Ir type of folks first
@@ -124,11 +140,11 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         for i in range(num_pop):
             node = rd.choice(town.accommodation_node_ids)
             if i < num_init_spreader:
-                folk = self.create_folk(node, town.town_params.max_social_energy, 'S')
+                folk = self.create_folk(node, self.model_params.max_social_energy, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = self.create_folk(node, town.town_params.max_social_energy, 'Is')
+                folk = self.create_folk(node, self.model_params.max_social_energy, 'Is')
             else:
-                folk = self.create_folk(node, town.town_params.max_social_energy,'Ir')
+                folk = self.create_folk(node, self.model_params.max_social_energy,'Ir')
             folks.append(folk)
             town.town_graph.nodes[node]['folks'].append(folk) # Account for which folks live where in the graph as well
         

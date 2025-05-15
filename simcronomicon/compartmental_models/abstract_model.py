@@ -1,5 +1,11 @@
 import random as rd
 
+class AbstractModelParameters():
+    def __init__(self, max_social_energy):
+        self.max_social_energy = max_social_energy
+    def to_metadata_dict(self):
+        raise NotImplementedError("Subclasses must implement to_metadata_dict()")
+
 class Folk:
     def __init__(self, home_address, max_social_energy, status):
         self.home_address = home_address
