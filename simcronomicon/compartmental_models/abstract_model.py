@@ -20,22 +20,18 @@ class Folk:
         status_dict_t[new_stat] += 1
         self.status = new_stat
 
-    def inverse_bernoulli(self, folks_here, conversion_prob, stats):
+    def inverse_bernoulli(self, contact_possibility, conversion_prob):
         """
-        This function that determines the probability of status transition comes from section 2.2 of
+        This function that determines the probability of status transition is adapted from section 2.2 of
         Eden, M., Castonguay, R., Munkhbat, B., Balasubramanian, H., & Gopalappa, C. (2021).
         Agent-based evolving network modeling: A new simulation method for modeling low prevalence infectious diseases.
         Health Care Management Science, 24, 623–639. https://doi.org/10.1007/s10729-021-09553-5
         """
-        num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
-
-        if num_contact == 0:
+        if contact_possibility == 0:
             return 0
-        elif num_contact >= self.social_energy:
-            return 1-(1-conversion_prob)**(self.social_energy)
         else:
-            return 1-(1-conversion_prob)** (self.social_energy * num_contact / self.max_social_energy)
-    
+            return 1-(1-conversion_prob)**(contact_possibility)
+
     def sleep(self):
         self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
 

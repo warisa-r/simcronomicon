@@ -68,6 +68,18 @@ class FolkSEIsIrR(Folk):
     def __init__(self, home_address, max_social_energy, status):
         super().__init__(home_address, max_social_energy, status)
         self.spreader_streak = 0
+    
+    def inverse_bernoulli(self, folks_here, conversion_prob, stats):
+        num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
+
+        if num_contact == 0:
+            contact_possibility = 0
+        elif num_contact >= self.social_energy:
+            contact_possibility = self.social_energy
+        else:
+            contact_possibility = self.social_energy * num_contact / self.max_social_energy
+
+        return super().inverse_bernoulli(contact_possibility, conversion_prob)
 
     def convert(self, new_stat, status_dict_t):
         if self.status == 'S':
