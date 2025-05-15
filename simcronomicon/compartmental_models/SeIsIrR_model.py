@@ -127,15 +127,17 @@ class FolkSEIsIrR(Folk):
     
 class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
+        self.all_status = (['S', 'E', 'Ir', 'Is', 'R'])
+        self.infected_status = 'S'
         super().__init__(model_params)
         self.step_events = [StepEvent("greet_neighbors", 1, 5000, ['accommodation']),
                             StepEvent("chore", 1, 19000, ['commercial', 'workplace', 'education', 'religious'])]
-        self.all_status = (['S', 'E', 'Ir', 'Is', 'R'])
-        self.infected_status = 'S'
         self.folk_class = FolkSEIsIrR
     
-    def initialize_sim_population(self, num_pop, num_init_spreader, town):
-        #TODO: max_social_energy and literacy should be model params
+    def initialize_sim_population(self, town):
+        num_pop = town.town_params.num_pop
+        num_init_spreader = town.town_params.num_init_spreader
+        
         folks = []
         household_node_indices = set()
 

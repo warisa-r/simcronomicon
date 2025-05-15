@@ -38,7 +38,7 @@ class Folk:
     
     def sleep(self):
         self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
-        
+
     def __repr__(self):
         return f"Person live at {self.home_address}, currently at {self.address}, Social Energy={self.social_energy}, Status={self.status}"
 
@@ -46,6 +46,12 @@ class AbstractCompartmentalModel():
     def __init__(self, model_params):
         self.model_params = model_params
         self.folk_class = Folk
+
+        # This is an important check and it will ONLY work when you define 
+        # the infected status before calling the abstract level constructor
+        # See SEIsIrR for an example of how to write a constructor.
+        if not hasattr(self, 'infected_status'):
+            raise NotImplementedError("Subclasses of AbstractCompartmentalModel must define 'infected_status'")
 
     def create_folk(self, *args, **kwargs):
         return self.folk_class(*args, **kwargs)

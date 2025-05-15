@@ -7,7 +7,7 @@ import json
 from .visualize import _plot_status_data
 
 class Simulation:
-    def __init__(self, town, compartmental_model, timesteps, step_events = None):
+    def __init__(self, town, compartmental_model, timesteps, seed=True, seed_value=5710):
         self.folks = []
         self.status_dicts = []
         self.town = town
@@ -20,9 +20,10 @@ class Simulation:
         self.active_node_indices = set()
         self.nodes_list = list(self.town.town_graph.nodes)
 
-        num_init_spreader = town.town_params.num_init_spreader
+        if seed:
+            rd.seed(seed_value)
         
-        self.folks, self.household_node_indices, status_dict_t0 = self.model.initialize_sim_population(self.num_pop, num_init_spreader, town)
+        self.folks, self.household_node_indices, status_dict_t0 = self.model.initialize_sim_population(town)
         self.active_node_indices = self.household_node_indices.copy()
 
         self.status_dicts.append(status_dict_t0)

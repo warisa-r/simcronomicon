@@ -4,7 +4,7 @@ __version__ = '0.1.0'
 
 import numpy as np
 import networkx as nx
-import random as rd
+import random
 import matplotlib.pyplot as plt
 
 from .town import Town, TownParameters
