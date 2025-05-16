@@ -1,7 +1,7 @@
 import simcronomicon as scon
 
 point = 50.7753, 6.0839
-town_params = scon.TownParameters(0.7, 2, 100, 10)
+town_params = scon.TownParameters(100, 10)
 #town = scon.Town.from_point(point, 2000, town_params)
 #town.draw_town()
 
@@ -13,10 +13,8 @@ town = scon.Town.from_files(
 )
 
 #town.draw_town()
-sim_params = scon.SEIsIrRModelParameters(0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
-sim = scon.Simulation(town, sim_params, 3)
+model_params = scon.SEIsIrRModelParameters(2 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
+model = scon.SEIsIrRModel(model_params)
+sim = scon.Simulation(town, model, 3)
 sim.run(True)
-#sim.plot_status('S')
-#sim.plot_status()
-#sim.plot_status(['S', 'E'])
-#scon.plot_results("simulation_results.csv")
+scon.plot_results("simulation_results.csv", 'S')
