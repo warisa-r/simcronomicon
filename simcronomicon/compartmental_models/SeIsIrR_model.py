@@ -65,8 +65,8 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         }
 
 class FolkSEIsIrR(Folk):
-    def __init__(self, home_address, max_social_energy, status):
-        super().__init__(home_address, max_social_energy, status)
+    def __init__(self, id, home_address, max_social_energy, status):
+        super().__init__(id, home_address, max_social_energy, status)
         self.spreader_streak = 0
     
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
@@ -165,11 +165,11 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         for i in range(num_pop):
             node = rd.choice(town.accommodation_node_ids)
             if i < num_init_spreader:
-                folk = self.create_folk(node, self.model_params.max_social_energy, 'S')
+                folk = self.create_folk(i, node, self.model_params.max_social_energy, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = self.create_folk(node, self.model_params.max_social_energy, 'Is')
+                folk = self.create_folk(i, node, self.model_params.max_social_energy, 'Is')
             else:
-                folk = self.create_folk(node, self.model_params.max_social_energy,'Ir')
+                folk = self.create_folk(i, node, self.model_params.max_social_energy,'Ir')
             folks.append(folk)
             town.town_graph.nodes[node]['folks'].append(folk) # Account for which folks live where in the graph as well
         

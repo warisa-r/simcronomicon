@@ -7,7 +7,8 @@ class AbstractModelParameters():
         raise NotImplementedError("Subclasses must implement to_metadata_dict()")
 
 class Folk:
-    def __init__(self, home_address, max_social_energy, status):
+    def __init__(self, id, home_address, max_social_energy, status):
+        self.id = id
         self.home_address = home_address
         self.address = self.home_address
         self.max_social_energy = max_social_energy
@@ -51,3 +52,5 @@ class AbstractCompartmentalModel():
 
     def create_folk(self, *args, **kwargs):
         return self.folk_class(*args, **kwargs)
+    
+    #TODO: Create a warning if initialize_population not defined
