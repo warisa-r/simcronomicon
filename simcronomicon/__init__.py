@@ -10,6 +10,6 @@ import matplotlib.pyplot as plt
 from .town import Town, TownParameters
 from .compartmental_models import StepEvent, SEIsIrRModel, SEIsIrRModelParameters
 from .sim import Simulation
-from .visualize import plot_results
+from .visualize import plot_status_summary_from_csv, plot_status_summary_from_hdf5
 
 __all__ = ["Town", "TownParameters", "SEIsIrRModel", "Simulation", "SEIsIrRModelParameters", "StepEvent", "plot_results"]

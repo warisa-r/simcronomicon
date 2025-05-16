@@ -45,10 +45,25 @@ class AbstractCompartmentalModel():
         self.folk_class = Folk
 
         # This is an important check and it will ONLY work when you define 
-        # the infected status before calling the abstract level constructor
+        # some of the attributes before calling the abstract level constructor
         # See SEIsIrR for an example of how to write a constructor.
-        if not hasattr(self, 'infected_status'):
-            raise NotImplementedError("Subclasses of AbstractCompartmentalModel must define 'infected_status'")
+        required_attrs = {
+            'infected_status': "Subclasses must define 'infected_status'.",
+            'all_statuses': "Subclasses must define 'all_statuses' with at least 3 statuses.",
+            'step_events': "Subclasses must define 'step_events' with at least one event."
+        }
+
+        for attr, message in required_attrs.items():
+            if not hasattr(self, attr):
+                raise NotImplementedError(message)
+
+        # Status is also actually plural of a status but for clarity that this is plural,
+        # the software will stick with the commonly used statuses
+        if len(self.all_statuses) < 3:
+            raise ValueError("A compartmental model must consist of at least 3 different statuses.")
+        
+        if len(self.step_events) < 1:
+            raise ValueError("A series of events that agents cannot be an empty set.")
 
     def create_folk(self, *args, **kwargs):
         return self.folk_class(*args, **kwargs)

@@ -1,10 +1,10 @@
 from . import nx
 
+import numpy as np
 import random as rd
-import csv
+import h5py
 import json
-
-from .visualize import _plot_status_data
+import os
 
 class Simulation:
     def __init__(self, town, compartmental_model, timesteps, seed=True, seed_value=5710):
@@ -83,85 +83,138 @@ class Simulation:
                     if folk.social_energy > 0:
                         folk.interact(folks_here, self.status_dicts[-1], self.model_params, rd.random())
     
-    def step(self, save_result, writer, indiv_folk_writer):
-            current_timestep = self.current_timestep + 1
-            for step_event in self.step_events:
-                self.status_dicts.append(self.status_dicts[-1].copy())
-                self.status_dicts[-1]['timestep'] = current_timestep
-                self.status_dicts[-1]['current_event'] = step_event.name
-            
-                self.execute_social_event(step_event)
-                if save_result:
-                    writer.writerow(self.status_dicts[-1])
-                    for folk in self.folks:
-                        indiv_folk_writer.writerow({
-                            'timestep': current_timestep,
-                            'event': step_event.name,
-                            'folk_id': folk.id,
-                            'status': folk.status,
-                            'address': folk.address
-                        })
+    def step(self, save_result):
+        current_timestep = self.current_timestep + 1
+        status_row = None
+        indiv_folk_rows = []
 
-            # Everybody goes home (but we don't record that as a new status)
-            self.reset_population_home()
-            self.current_timestep = current_timestep
+        for step_event in self.step_events:
+            # Copy and annotate the new state
+            self.status_dicts.append(self.status_dicts[-1].copy())
+            self.status_dicts[-1]['timestep'] = current_timestep
+            self.status_dicts[-1]['current_event'] = step_event.name
 
-    def run(self, save_result=False, result_filename="simulation_log.csv", metadata_filename="sim_metadata.json"):
-        writer = None
-        indiv_folk_writer = None
-        if save_result:
-            metadata = {
-                'model parameters': self.model_params.to_metadata_dict(),
-                'num_locations': len(self.town.town_graph.nodes),
-                'max_timesteps': self.timesteps,
-                'population': self.num_pop,
-                'step_events': [
-                    {
-                        'name': event.name,
-                        'step_freq': event.step_freq,
-                        'max_distance': event.max_distance,
-                        'place_types': event.place_types,
-                    } for event in self.step_events
-                ],
-            }
-            with open(metadata_filename, 'w') as f:
-                json.dump(metadata, f, indent=4)
+            self.execute_social_event(step_event)
 
-            # Write CSV while simulation runs
-            with open("individual_folks_log.csv", mode='w', newline='') as indiv_file, \
-                open(result_filename, mode='w', newline='') as result_file:
-                
-                indiv_folk_writer = csv.DictWriter(indiv_file, fieldnames=['timestep', 'event', 'folk_id', 'status', 'address'])
-                indiv_folk_writer.writeheader()
+            if save_result:
+                # Record the latest summary
+                status_row = self.status_dicts[-1].copy()
+
+                # Record each individual's state
                 for folk in self.folks:
-                        indiv_folk_writer.writerow({
-                            'timestep': 0,
-                            'event': None,
-                            'folk_id': folk.id,
-                            'status': folk.status,
-                            'address': folk.address
-                        })
+                    indiv_folk_rows.append({
+                        'timestep': current_timestep,
+                        'event': step_event.name,
+                        'folk_id': folk.id,
+                        'status': folk.status,
+                        'address': folk.address
+                    })
 
-                fieldnames = ['timestep', 'current_event']
-                for status in self.model.all_status:
-                    fieldnames.append(status)
-                writer = csv.DictWriter(result_file, fieldnames=fieldnames)
-                writer.writeheader()
+        # Everyone goes home
+        self.reset_population_home()
+        self.current_timestep = current_timestep
 
-                writer.writerow(self.status_dicts[-1])
+        if save_result:
+            return status_row, indiv_folk_rows
+        return None, None
 
-                # This loop has to be duplicated for the if else block
-                # Since if we run it outside of this block, the .csv will be closed.
-                for i in range(1, self.timesteps+1):
-                    self.step(save_result, writer, indiv_folk_writer)
+    def run(self, save_result=False, hdf5_path="simulation_output.h5",
+        town_metadata_path=None):
+        """
+        The output hierarchical structure is the following
+        simulation_output.h5
+        ├── metadata
+        │   └── simulation_metadata         (dataset: bytes, JSON-encoded metadata incl. town)
+        ├── status_summary
+        │   └── summary                     (dataset: structured array with timestep, current_event, and statuses)
+        ├── individual_logs
+        │   └── log                         (dataset: structured array with timestep, event, folk_id, status, address)
+        """
+
+        if save_result:
+            if not (town_metadata_path and os.path.exists(town_metadata_path)):
+                raise FileNotFoundError(f"Missing or invalid town_metadata_path: {town_metadata_path}")
+
+            with h5py.File(hdf5_path, "w") as h5file:
+                # Save simulation metadata
+                metadata_group = h5file.create_group("metadata")
+                metadata = {
+                    'model_parameters': self.model_params.to_metadata_dict(),
+                    'num_locations': len(self.town.town_graph.nodes),
+                    'max_timesteps': self.timesteps,
+                    'population': self.num_pop,
+                    'step_events': [
+                        {
+                            'name': event.name,
+                            'step_freq': event.step_freq,
+                            'max_distance': event.max_distance,
+                            'place_types': event.place_types,
+                        } for event in self.step_events
+                    ],
+                }
+                metadata_json = json.dumps(metadata)
+                metadata_group.create_dataset("simulation_metadata", data=np.bytes_(metadata_json))
+
+                # Save town files
+                with open(town_metadata_path, 'r') as f:
+                    town_metadata = json.load(f)
+                    metadata['town_metadata'] = town_metadata
+
+                # Save initial status summary
+                status_group = h5file.create_group("status_summary")
+                status_dtype = [("timestep", 'i4'), ("current_event", 'S32')] + [
+                    (status, 'i4') for status in self.model.all_statuses]
+                status_data = []
+                initial_status = self.status_dicts[-1]
+                row = tuple([initial_status.get("timestep", 0),
+                            bytes(str(initial_status.get("current_event", "")), 'utf-8')] +
+                            [initial_status[status] for status in self.model.all_statuses])
+                status_data.append(row)
+
+                # Save initial individual logs
+                indiv_group = h5file.create_group("individual_logs")
+                folk_dtype = [("timestep", 'i4'), ("event", 'S32'), ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
+                indiv_data = [
+                    (0, b"", folk.id, bytes(folk.status, 'utf-8'), folk.address)
+                    for folk in self.folks
+                ]
+
+                # Run simulation
+                for i in range(1, self.timesteps + 1):
+                    status_row, indiv_rows = self.step(save_result=True)
+
+                    # Collect status row
+                    row = tuple([
+                        status_row["timestep"],
+                        bytes(str(initial_status.get("current_event", "")), 'utf-8')
+                    ] + [status_row[status] for status in self.model.all_statuses])
+                    status_data.append(row)
+
+                    # Collect individual rows
+                    for row in indiv_rows:
+                        indiv_data.append((
+                            row["timestep"],
+                            bytes(row["event"], 'utf-8'),
+                            row["folk_id"],
+                            bytes(row["status"], 'utf-8'),
+                            row["address"]
+                        ))
+
                     print("Step has been run", i)
-                    print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
-                    if self.status_dicts[-1][self.model.infected_status] == 0:
+                    print("Status:", {k: v for k, v in status_row.items() if k not in ('timestep', 'current_event')})
+
+                    if status_row[self.model.infected_status] == 0:
                         break
+
+                # Store final datasets
+                status_group.create_dataset("summary", data=np.array(status_data, dtype=status_dtype))
+                indiv_group.create_dataset("log", data=np.array(indiv_data, dtype=folk_dtype))
+
         else:
-            for i in range(1, self.timesteps+1):
-                self.step(save_result, writer, indiv_folk_writer)
+            for i in range(1, self.timesteps + 1):
+                self.step(False)
                 print("Step has been run", i)
-                print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
+                print("Status:", {k: v for k, v in self.status_dicts[-1].items()
+                                if k not in ('timestep', 'current_event')})
                 if self.status_dicts[-1][self.model.infected_status] == 0:
                     break

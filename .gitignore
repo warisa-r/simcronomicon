@@ -45,6 +45,7 @@ docs/_build
 *.json
 *.graphml
 *.csv
+*.h5
 
 cache
 .venv
