@@ -165,9 +165,3 @@ class Simulation:
                 print("Status:", {k: v for k, v in self.status_dicts[-1].items() if k not in ('timestep', 'current_event')})
                 if self.status_dicts[-1][self.model.infected_status] == 0:
                     break
-
-    def plot_status(self, status_type=None):
-        timesteps = range(len(self.status_dicts))
-        all_keys = self.model.all_status
-        data = {key: [status[key] / self.num_pop for status in self.status_dicts] for key in all_keys}
-        _plot_status_data(timesteps, data, status_type, ylabel="Density")

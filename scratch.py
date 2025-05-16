@@ -17,7 +17,5 @@ model_params = scon.SEIsIrRModelParameters(2 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.6
 model = scon.SEIsIrRModel(model_params)
 sim = scon.Simulation(town, model, 3)
 sim.run(True)
-#sim.plot_status('S')
-sim.plot_status()
 #sim.plot_status(['S', 'E'])
-#scon.plot_results("simulation_results.csv")
+scon.plot_results("simulation_results.csv", 'S')
