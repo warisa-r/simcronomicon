@@ -124,4 +124,4 @@ if __name__ == "__main__":
     timestep = 2
     status = "S"  # Change based on your status labels
 
-    visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path, False)
+    visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path)
