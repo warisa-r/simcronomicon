@@ -10,6 +10,7 @@ import osmnx as ox
 import geopandas as gpd
 import pandas as pd
 from itertools import product
+from collections import defaultdict
 
 
 
@@ -51,13 +52,16 @@ def visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path):
     points = []
     for entry in folk_data:
         timestep = int(entry["timestep"])
+        event = entry["event"].decode("utf-8")
         status = entry["status"].decode("utf-8")
         address = str(entry["address"])
         raw_id = simplified_to_raw.get(address)
         if raw_id in node_pos:
             lat, lon = node_pos[raw_id]
+            frame_label = f"{timestep}: {event}"
+
             points.append({
-                "timestep": timestep,
+                "frame":frame_label,
                 "lat": lat,
                 "lon": lon,
                 "status": status,
@@ -67,25 +71,30 @@ def visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path):
     if not points:
         print("No data found.")
         return
+        
 
-    # Convert raw data to DataFrame
+    # Get all unique frame labels and coordinates
     df_raw = pd.DataFrame(points)
-
-    # Create full index: all combinations of timestep × status × location
-    unique_timesteps = df_raw["timestep"].unique()
+    unique_frames = df_raw["frame"].unique()
     unique_coords = df_raw[["lat", "lon"]].drop_duplicates().values.tolist()
-    full_index = list(product(unique_timesteps, all_statuses, [tuple(x) for x in unique_coords]))
+    full_index = list(product(unique_frames, all_statuses, [tuple(c) for c in unique_coords]))
 
-    # Group the real data
-    df_grouped = df_raw.groupby(["timestep", "status", "lat", "lon"], as_index=False).agg({"size": "sum"})
-
-    # Fill missing combinations with size 0
+    # Fill missing combinations
     full_df = pd.DataFrame([
-        {"timestep": ts, "status": st, "lat": lat, "lon": lon, "size": 0}
-        for ts, st, (lat, lon) in full_index
+        {
+            "frame": f,
+            "status": s,
+            "lat": lat,
+            "lon": lon,
+            "size": 0
+        }
+        for f, s, (lat, lon) in full_index
     ])
+    df_grouped = df_raw.groupby(["frame", "status", "lat", "lon"], as_index=False).agg({"size": "sum"})
+
+    # Merge real + filler
     df_filled = pd.concat([df_grouped, full_df], ignore_index=True).drop_duplicates(
-        subset=["timestep", "status", "lat", "lon"], keep="first"
+        subset=["frame", "status", "lat", "lon"], keep="first"
     )
 
     fig = px.scatter_map(
@@ -94,7 +103,7 @@ def visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path):
         lon="lon",
         size="size",
         color="status",
-        animation_frame="timestep",
+        animation_frame="frame",
         category_orders={"status": all_statuses},  # enforce full legend
         size_max=20,
         zoom=13,
@@ -115,4 +124,4 @@ if __name__ == "__main__":
     timestep = 2
     status = "S"  # Change based on your status labels
 
-    visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path)
+    visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path, False)
