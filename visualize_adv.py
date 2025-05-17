@@ -8,6 +8,9 @@ pio.renderers.default = "browser"
 import networkx as nx
 import osmnx as ox
 import geopandas as gpd
+import pandas as pd
+from itertools import product
+
 
 
 def load_projected_node_positions(graphml_path, epsg_code):
@@ -26,8 +29,8 @@ def load_projected_node_positions(graphml_path, epsg_code):
     return node_positions
 
 
-def visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path, timestep_to_plot):
-    # Load town metadata for EPSG code and node mapping
+def visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path):
+    # Load metadata JSON
     with open(metadata_json_path) as f:
         metadata = json.load(f)
     epsg_code = metadata.get("epsg_code", 4326)
@@ -40,58 +43,69 @@ def visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path, timestep
     # Load HDF5 data
     with h5py.File(hdf5_path, "r") as h5:
         folk_data = h5["individual_logs/log"][:]
+        metadata_json_bytes = h5["metadata/simulation_metadata"][()]
+        metadata = json.loads(metadata_json_bytes.decode("utf-8"))
+        all_statuses = metadata["all_statuses"]
 
-    # Aggregate people by (raw_id, status)
-    node_status_counts = {}
+    # Aggregate for all timesteps
+    points = []
     for entry in folk_data:
-        timestep = entry["timestep"]
+        timestep = int(entry["timestep"])
         status = entry["status"].decode("utf-8")
         address = str(entry["address"])
-
-        if timestep != timestep_to_plot:
-            continue
-
         raw_id = simplified_to_raw.get(address)
         if raw_id in node_pos:
-            key = (raw_id, status)
-            node_status_counts[key] = node_status_counts.get(key, 0) + 1
+            lat, lon = node_pos[raw_id]
+            points.append({
+                "timestep": timestep,
+                "lat": lat,
+                "lon": lon,
+                "status": status,
+                "size": 1
+            })
 
-    if not node_status_counts:
-        print(f"No matching data found at timestep {timestep_to_plot}.")
+    if not points:
+        print("No data found.")
         return
 
-    # Build DataFrame
-    points = []
-    for (raw_id, status), count in node_status_counts.items():
-        lat, lon = node_pos[raw_id]
-        points.append({
-            "lat": lat,
-            "lon": lon,
-            "count": count,
-            "status": status,
-            "size": count
-        })
+    # Convert raw data to DataFrame
+    df_raw = pd.DataFrame(points)
 
-    df = gpd.GeoDataFrame(points)
+    # Create full index: all combinations of timestep × status × location
+    unique_timesteps = df_raw["timestep"].unique()
+    unique_coords = df_raw[["lat", "lon"]].drop_duplicates().values.tolist()
+    full_index = list(product(unique_timesteps, all_statuses, [tuple(x) for x in unique_coords]))
 
-    # Plot with color by status
+    # Group the real data
+    df_grouped = df_raw.groupby(["timestep", "status", "lat", "lon"], as_index=False).agg({"size": "sum"})
+
+    # Fill missing combinations with size 0
+    full_df = pd.DataFrame([
+        {"timestep": ts, "status": st, "lat": lat, "lon": lon, "size": 0}
+        for ts, st, (lat, lon) in full_index
+    ])
+    df_filled = pd.concat([df_grouped, full_df], ignore_index=True).drop_duplicates(
+        subset=["timestep", "status", "lat", "lon"], keep="first"
+    )
+
     fig = px.scatter_map(
-        df,
+        df_filled,
         lat="lat",
         lon="lon",
         size="size",
         color="status",
+        animation_frame="timestep",
+        category_orders={"status": all_statuses},  # enforce full legend
         size_max=20,
         zoom=13,
         height=600
     )
-
     fig.update_layout(mapbox_style="open-street-map")
-    fig.update_layout(title=f"Population status at timestep {timestep_to_plot}")
+    fig.update_layout(title="Population status over time")
     fig.update_traces(marker=dict(opacity=0.7))
 
     fig.show()
-
+    
 if __name__ == "__main__":
     # Adjust these paths accordingly
     hdf5_path = "simulation_output.h5"
@@ -101,4 +115,4 @@ if __name__ == "__main__":
     timestep = 2
     status = "S"  # Change based on your status labels
 
-    visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path, timestep)
+    visualize_folks_on_map(hdf5_path, graphml_path, metadata_json_path)

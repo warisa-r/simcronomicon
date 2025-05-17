@@ -139,6 +139,7 @@ class Simulation:
                 # Save simulation metadata
                 metadata_group = h5file.create_group("metadata")
                 metadata = {
+                    'all_statuses': self.model.all_statuses,
                     'model_parameters': self.model_params.to_metadata_dict(),
                     'num_locations': len(self.town.town_graph.nodes),
                     'max_timesteps': self.timesteps,
