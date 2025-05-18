@@ -20,5 +20,6 @@ model_params = scon.SEIsIrRModelParameters(2 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.6
 model = scon.SEIsIrRModel(model_params)
 sim = scon.Simulation(town, model, 3)
 sim.run(True, town_metadata_path=town_metadata_path)
-scon.plot_status_summary_from_csv("simulation_results.csv")
-scon.plot_status_summary_from_hdf5("simulation_output.h5")
+#scon.plot_status_summary_from_csv("simulation_results.csv")
+#scon.plot_status_summary_from_hdf5("simulation_output.h5")
+scon.visualize_folks_on_map("simulation_output.h5", projected_graph_path, town_metadata_path, (1,7))

@@ -6,6 +6,8 @@ import h5py
 import json
 import os
 
+from .compartmental_models import EventType
+
 class Simulation:
     def __init__(self, town, compartmental_model, timesteps, seed=True, seed_value=5710):
         self.folks = []
@@ -28,7 +30,7 @@ class Simulation:
 
         self.status_dicts.append(status_dict_t0)
     
-    def reset_population_home(self):
+    def reset_population_home(self, ends_day):
         self.active_node_indices = self.household_node_indices.copy() # Simple list -> Shallow copy
         
         for i in range(len(self.town.town_graph.nodes)): # Reset every house to empty first
@@ -40,7 +42,8 @@ class Simulation:
         for i in range(self.num_pop):
             self.folks[i].address = self.folks[i].home_address
             self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(self.folks[i])
-            self.folks[i].sleep(self.status_dicts[-1], self.model_params, rd.random())
+            if ends_day: #TODO: Consider if I should unroll this as another loop. However, ends_day is almost always true
+                self.folks[i].sleep(self.status_dicts[-1], self.model_params, rd.random())
 
     def disperse_for_event(self, step_event):
         for person in self.folks:            
@@ -73,8 +76,10 @@ class Simulation:
                     # One person just move in and make this node 'active' -> interaction here is possible
                     self.active_node_indices.add(new_node)
 
-    def execute_social_event(self, step_event):
-        for i in range(step_event.step_freq):   
+    def execute_event(self, step_event):
+        if step_event.event_type == EventType.SEND_HOME:
+            self.reset_population_home(step_event.ends_day)
+        elif step_event.event_type == EventType.DISPERSE:
             # Move people through the town first
             self.disperse_for_event(step_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
@@ -94,7 +99,7 @@ class Simulation:
             self.status_dicts[-1]['timestep'] = current_timestep
             self.status_dicts[-1]['current_event'] = step_event.name
 
-            self.execute_social_event(step_event)
+            self.execute_event(step_event)
 
             if save_result:
                 # Record the latest summary
@@ -109,9 +114,6 @@ class Simulation:
                         'status': folk.status,
                         'address': folk.address
                     })
-
-        # Everyone goes home
-        self.reset_population_home()
         self.current_timestep = current_timestep
 
         if save_result:
@@ -139,6 +141,7 @@ class Simulation:
                 # Save simulation metadata
                 metadata_group = h5file.create_group("metadata")
                 metadata = {
+                    'all_statuses': self.model.all_statuses,
                     'model_parameters': self.model_params.to_metadata_dict(),
                     'num_locations': len(self.town.town_graph.nodes),
                     'max_timesteps': self.timesteps,
@@ -146,9 +149,10 @@ class Simulation:
                     'step_events': [
                         {
                             'name': event.name,
-                            'step_freq': event.step_freq,
                             'max_distance': event.max_distance,
                             'place_types': event.place_types,
+                            'event_type': event.event_type.value,
+                            'ends_day':event.ends_day
                         } for event in self.step_events
                     ],
                 }
