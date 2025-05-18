@@ -8,6 +8,7 @@ pio.renderers.default = "browser"
 import osmnx as ox
 import pandas as pd
 from itertools import product
+import warnings
 
 def _plot_status_summary_data(status_keys, timesteps, data_dict, status_type, ylabel="Density"):
     # Validate and select keys to plot
@@ -120,7 +121,6 @@ def _load_projected_node_positions(projected_graph_path, epsg_code):
 
 
 def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json_path, time_interval=None):
-    #TODO: Write a check that time interval exists -> raise error otherwise
     # Load metadata JSON
     with open(metadata_json_path) as f:
         metadata = json.load(f)
@@ -139,6 +139,21 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
         all_statuses = metadata["all_statuses"]
         step_events_order = [e['name'] for e in metadata.get("step_events", [])]
 
+    # Validate the user input time_interval
+    if time_interval is not None:
+        assert isinstance(time_interval, (tuple, list)) and all(isinstance(x, int) for x in time_interval), "time_interval must be a tuple or list of two integers (start, end)"
+        assert time_interval[0] >=0 and time_interval[1] > 0, "Timestep values in time_interval cannot be negative."
+
+        max_timestep_in_data = int(folk_data["timestep"].max())
+
+        if time_interval[1] > max_timestep_in_data:
+            warnings.warn(
+                f"Given end timestep {time_interval[1]} exceeds maximum timestep {max_timestep_in_data} in data. "
+                f"Plotting will only include timesteps up to {max_timestep_in_data}."
+            )
+            time_interval =  (time_interval[0], max_timestep_in_data)
+        assert time_interval[1] >= time_interval[0], "Start timestep cannot be greater than end timestep."
+        
     # Aggregate for all (or selected) timesteps
     points = []
     for entry in folk_data:
