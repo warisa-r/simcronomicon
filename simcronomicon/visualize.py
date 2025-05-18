@@ -137,6 +137,7 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
         metadata_json_bytes = h5["metadata/simulation_metadata"][()]
         metadata = json.loads(metadata_json_bytes.decode("utf-8"))
         all_statuses = metadata["all_statuses"]
+        step_events_order = [e['name'] for e in metadata.get("step_events", [])]
 
     # Aggregate for all (or selected) timesteps
     points = []
@@ -169,7 +170,20 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
         return
 
     df_raw = pd.DataFrame(points)
-    unique_frames = df_raw["frame"].unique()
+    df_raw["timestep"] = df_raw["frame"].str.extract(r"^(\d+):")[0].astype(int)
+    df_raw["event_name"] = df_raw["frame"].str.extract(r": (.*)$")[0]
+
+    # Map event names to their order (within each day)
+    event_order_map = {name: i for i, name in enumerate(step_events_order)}
+    df_raw["event_order"] = df_raw["event_name"].map(event_order_map)
+
+    # Sort by timestep then by event order
+    df_raw.sort_values(by=["timestep", "event_order"], inplace=True)
+
+    # Re-create frame column with the correct order
+    df_raw["frame"] = df_raw.apply(lambda row: f"{row['timestep']}: {row['event_name']}", axis=1)
+
+    unique_frames = df_raw["frame"].drop_duplicates().tolist()
     unique_coords = df_raw[["lat", "lon"]].drop_duplicates().values.tolist()
     full_index = list(product(unique_frames, all_statuses, [tuple(c) for c in unique_coords]))
 
@@ -196,7 +210,10 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
         size="size",
         color="status",
         animation_frame="frame",
-        category_orders={"status": all_statuses},
+        category_orders={
+        "status": all_statuses,
+        "frame": unique_frames
+        },
         size_max=20,
         zoom=13,
         height=600
