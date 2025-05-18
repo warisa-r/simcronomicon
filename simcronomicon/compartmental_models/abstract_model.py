@@ -1,4 +1,5 @@
 import random as rd
+from .step_event import StepEvent, EventType
 
 class AbstractModelParameters():
     def __init__(self, max_social_energy):
@@ -64,8 +65,13 @@ class AbstractCompartmentalModel():
         
         if len(self.step_events) < 1:
             raise ValueError("A series of events that agents cannot be an empty set.")
+        
+        # Append end_day event to the existing day events given by the user
+        end_day = StepEvent("end_day")
+        self.step_events.append(end_day)
 
     def create_folk(self, *args, **kwargs):
         return self.folk_class(*args, **kwargs)
     
-    #TODO: Create a warning if initialize_population not defined
+    def initialize_sim_population(self):
+        raise NotImplementedError("Subclasses must implement to_initialize_sim_population()")
