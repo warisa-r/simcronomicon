@@ -119,7 +119,8 @@ def _load_projected_node_positions(projected_graph_path, epsg_code):
     return node_positions
 
 
-def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json_path):
+def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json_path, time_interval=None):
+    #TODO: Write a check that time interval exists -> raise error otherwise
     # Load metadata JSON
     with open(metadata_json_path) as f:
         metadata = json.load(f)
@@ -137,10 +138,16 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
         metadata = json.loads(metadata_json_bytes.decode("utf-8"))
         all_statuses = metadata["all_statuses"]
 
-    # Aggregate for all timesteps
+    # Aggregate for all (or selected) timesteps
     points = []
     for entry in folk_data:
         timestep = int(entry["timestep"])
+
+        # Filter by time_interval if given
+        if time_interval is not None:
+            if timestep < time_interval[0] or timestep > time_interval[1]:
+                continue
+
         event = entry["event"].decode("utf-8")
         status = entry["status"].decode("utf-8")
         address = str(entry["address"])
@@ -150,7 +157,7 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
             frame_label = f"{timestep}: {event}"
 
             points.append({
-                "frame":frame_label,
+                "frame": frame_label,
                 "lat": lat,
                 "lon": lon,
                 "status": status,
@@ -158,17 +165,14 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
             })
 
     if not points:
-        print("No data found.")
+        print("No data found in the given time interval.")
         return
-        
 
-    # Get all unique frame labels and coordinates
     df_raw = pd.DataFrame(points)
     unique_frames = df_raw["frame"].unique()
     unique_coords = df_raw[["lat", "lon"]].drop_duplicates().values.tolist()
     full_index = list(product(unique_frames, all_statuses, [tuple(c) for c in unique_coords]))
 
-    # Fill missing combinations
     full_df = pd.DataFrame([
         {
             "frame": f,
@@ -181,7 +185,6 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
     ])
     df_grouped = df_raw.groupby(["frame", "status", "lat", "lon"], as_index=False).agg({"size": "sum"})
 
-    # Merge real + filler
     df_filled = pd.concat([df_grouped, full_df], ignore_index=True).drop_duplicates(
         subset=["frame", "status", "lat", "lon"], keep="first"
     )
@@ -193,7 +196,7 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
         size="size",
         color="status",
         animation_frame="frame",
-        category_orders={"status": all_statuses},  # enforce full legend
+        category_orders={"status": all_statuses},
         size_max=20,
         zoom=13,
         height=600
@@ -201,5 +204,4 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(title="Population status over time")
     fig.update_traces(marker=dict(opacity=0.7))
-
     fig.show()
