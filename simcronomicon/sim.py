@@ -80,14 +80,13 @@ class Simulation:
         if step_event.event_type == EventType.SEND_HOME:
             self.reset_population_home(step_event.ends_day)
         elif step_event.event_type == EventType.DISPERSE:
-            for i in range(step_event.step_freq):   
-                # Move people through the town first
-                self.disperse_for_event(step_event)
-                for node in self.active_node_indices:  # Only iterate through active nodes
-                    folks_here = self.town.town_graph.nodes[node]['folks']
-                    for folk in folks_here:
-                        if folk.social_energy > 0:
-                            folk.interact(folks_here, self.status_dicts[-1], self.model_params, rd.random())
+            # Move people through the town first
+            self.disperse_for_event(step_event)
+            for node in self.active_node_indices:  # Only iterate through active nodes
+                folks_here = self.town.town_graph.nodes[node]['folks']
+                for folk in folks_here:
+                    if folk.social_energy > 0:
+                        folk.interact(folks_here, self.status_dicts[-1], self.model_params, rd.random())
     
     def step(self, save_result):
         current_timestep = self.current_timestep + 1
@@ -150,9 +149,10 @@ class Simulation:
                     'step_events': [
                         {
                             'name': event.name,
-                            'step_freq': event.step_freq,
                             'max_distance': event.max_distance,
                             'place_types': event.place_types,
+                            'event_type': event.event_type.value,
+                            'ends_day':event.ends_day
                         } for event in self.step_events
                     ],
                 }

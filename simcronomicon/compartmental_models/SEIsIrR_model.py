@@ -141,8 +141,8 @@ class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
         self.all_statuses = (['S', 'E', 'Ir', 'Is', 'R'])
         self.infected_status = 'S'
-        self.step_events = [StepEvent("greet_neighbors", EventType.DISPERSE, False ,1, 5000, ['accommodation']),
-                            StepEvent("chore",  EventType.DISPERSE, False , 1, 19000, ['commercial', 'workplace', 'education', 'religious'])]
+        self.step_events = [StepEvent("greet_neighbors", EventType.DISPERSE, False, 5000, ['accommodation']),
+                            StepEvent("chore",  EventType.DISPERSE, False , 19000, ['commercial', 'workplace', 'education', 'religious'])]
         super().__init__(model_params)
         self.folk_class = FolkSEIsIrR
     
