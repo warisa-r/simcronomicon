@@ -8,17 +8,18 @@ town_graph_path = "test/test_data/town_graph_aachen.graphml"
 projected_graph_path = "test/test_data/raw_projected_graph_aachen.graphml"
 town_metadata_path = "test/test_data/town_graph_metadata_aachen.json"
 
-town = scon.Town.from_files(
-    metadata_path= town_metadata_path,
-    town_graph_path=town_graph_path,
-    projected_graph_path= projected_graph_path,
-    town_params=town_params
-)
+#town = scon.Town.from_files(
+#    metadata_path= town_metadata_path,
+#    town_graph_path=town_graph_path,
+#    projected_graph_path= projected_graph_path,
+#    town_params=town_params
+#)
 
 #town.draw_town()
-model_params = scon.SEIsIrRModelParameters(2 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
-model = scon.SEIsIrRModel(model_params)
-sim = scon.Simulation(town, model, 3)
-sim.run(True, town_metadata_path=town_metadata_path)
-scon.plot_status_summary_from_csv("simulation_results.csv")
-scon.plot_status_summary_from_hdf5("simulation_output.h5")
+#model_params = scon.SEIsIrRModelParameters(2 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
+#model = scon.SEIsIrRModel(model_params)
+#sim = scon.Simulation(town, model, 3)
+#sim.run(True, town_metadata_path=town_metadata_path)
+#scon.plot_status_summary_from_csv("simulation_results.csv")
+#scon.plot_status_summary_from_hdf5("simulation_output.h5")
+scon.visualize_folks_on_map("simulation_output.h5", projected_graph_path, town_metadata_path)
