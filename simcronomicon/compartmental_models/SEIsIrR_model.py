@@ -67,7 +67,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
 class FolkSEIsIrR(Folk):
     def __init__(self, id, home_address, max_social_energy, status):
         super().__init__(id, home_address, max_social_energy, status)
-        self.spreader_streak = 0
     
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
         num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
@@ -80,11 +79,6 @@ class FolkSEIsIrR(Folk):
             contact_possibility = self.social_energy * num_contact / self.max_social_energy
 
         return super().inverse_bernoulli(contact_possibility, conversion_prob)
-
-    def convert(self, new_stat, status_dict_t):
-        if self.status == 'S':
-            self.spreader_streak = 0 # Reset spreader streak
-        super().convert(new_stat, status_dict_t)
 
     def interact(self, folks_here, status_dict_t, model_params, dice):
         # Rule 1
@@ -129,13 +123,11 @@ class FolkSEIsIrR(Folk):
         self.social_energy -= 1
     
     def sleep(self, status_dict_t, model_params, dice):
+        super().sleep()
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
-            if model_params.mem_span <= self.spreader_streak or dice < model_params.forget:
+            if model_params.mem_span <= self.status_step_streak or dice < model_params.forget:
                 self.convert('R', status_dict_t)
-            else:
-                self.spreader_streak += 1
-        super().sleep()
     
 class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):

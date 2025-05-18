@@ -15,12 +15,14 @@ class Folk:
         self.max_social_energy = max_social_energy
         self.social_energy = rd.randint(0, max_social_energy)
         self.status = status
+        self.status_step_streak = 0
 
     def convert(self, new_stat, status_dict_t):
         assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
         status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
         self.status = new_stat
+        self.status_step_streak = 0
 
     def inverse_bernoulli(self, contact_possibility, conversion_prob):
         """
@@ -35,6 +37,7 @@ class Folk:
             return 1-(1-conversion_prob)**(contact_possibility)
 
     def sleep(self):
+        self.status_step_streak += 1
         self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
 
     def __repr__(self):
