@@ -3,7 +3,55 @@ import osmnx as ox
 from itertools import combinations
 
 from . import plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 from . import nx
+
+def classify_place( row):
+    b = str(row.get("building", "")).lower()
+    a = str(row.get("amenity", "")).lower()
+    l = str(row.get("landuse", "")).lower()
+    h = str(row.get("healthcare", "")).lower()
+    s = str(row.get("shop", "")).lower()
+    e = str(row.get("emergency", "")).lower()
+
+    # Accommodation classification
+    if b in ['residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace', 'allotment_house', 'bungalow', 'semidetached_house', 'hut']:
+        return 'accommodation'
+    
+    # Healthcare classification
+    elif b in ['hospital', 'dentist'] or \
+        h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
+        a in ['hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'] or \
+        s in ['medical_supply', 'hearing_aids'] or \
+        e == 'yes':
+        return 'healthcare_facility'
+    
+    # Commercial classification
+    elif b in ['commercial', 'retail', 'supermarket', 'shop', 'service', 'sports_centre'] or \
+        a in ['restaurant', 'bar', 'cafe', 'bank', 'fast_food'] or \
+        l in ['commercial']:
+        return 'commercial'
+    
+    # Workplace classification (universities, offices, factories)
+    elif b in ['office', 'factory', 'industrial', 'government'] or \
+        a in ['office', 'factory', 'industry'] or \
+        l in ['industrial', 'office']:
+        return 'workplace'
+    
+    # Education classification
+    elif b in ['school', 'university', 'kindergarten'] or \
+        a in ['university', 'kindergarten']:
+        return 'education'
+    
+    elif b in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
+        a in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
+        l in ['religious']:
+        return 'religious'
+    
+    else:
+        return 'other'
 
 class TownParameters():
     def __init__(self, num_pop, num_init_spreader):
@@ -16,8 +64,32 @@ class Town():
         pass
 
     @classmethod
-    def from_point(cls, point, dist, town_params):
+    def from_point(cls, point, dist, town_params, classify_place_func=classify_place,
+                   all_place_types=None):
+        
+        if not callable(classify_place_func):
+            raise TypeError("`classify_place_func` must be a function.")
+
+        # If the user passed a custom function, they must also pass custom place_types
+        if classify_place_func is not classify_place:
+            if all_place_types is None:
+                raise ValueError(
+                    "If you pass a custom `classify_place_func`, you must also provide `all_place_types`."
+                )
+            elif not "accommodation" in all_place_types:
+                raise ValueError(
+                                "Your `all_place_types` must be consisted of residential or 'accommodation' type of buildings."
+                )
+
+        # Use default place types only when using default function
+        if all_place_types is None:
+            all_place_types = [
+                "accommodation", "healthcare_facility", "commercial",
+                "workplace", "education", "religious", "other"
+            ]
+
         town = cls()
+        town.all_place_types = all_place_types
         town.town_params = town_params
         town.point = point
         town.dist = dist
@@ -44,7 +116,7 @@ class Town():
         buildings['nearest_node'] = buildings['centroid'].apply(
             lambda p: ox.distance.nearest_nodes(town.G_projected, p.x, p.y)
         )
-        buildings['place_type'] = buildings.apply(town.classify_place, axis=1)
+        buildings['place_type'] = buildings.apply(classify_place_func, axis=1)
 
         # 3. Annotate nodes
         place_type_map = buildings.set_index('nearest_node')['place_type'].to_dict()
@@ -83,6 +155,7 @@ class Town():
             "dist": dist,
             "epsg_code": int(epsg_code),
             "id_map": {str(k): v for k, v in town.id_map.items()},
+            "all_place_types": town.all_place_types,
             "accommodation_nodes": list(town.accommodation_node_ids),
         }
         with open("town_graph_metadata.json", "w") as f:
@@ -103,6 +176,7 @@ class Town():
 
         town.point = metadata["origin_point"]
         town.dist = metadata["dist"]
+        town.all_place_types = list(metadata["all_place_types"])
         town.epsg_code = metadata["epsg_code"]
         town.id_map = {k: v for k, v in metadata["id_map"].items()}
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])
@@ -124,72 +198,38 @@ class Town():
 
         return town
 
-    def classify_place(self, row):
-        b = str(row.get("building", "")).lower()
-        a = str(row.get("amenity", "")).lower()
-        l = str(row.get("landuse", "")).lower()
-        h = str(row.get("healthcare", "")).lower()
-        s = str(row.get("shop", "")).lower()
-        e = str(row.get("emergency", "")).lower()
-
-        # Accommodation classification
-        if b in ['residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace', 'allotment_house', 'bungalow', 'semidetached_house', 'hut']:
-            return 'accommodation'
-        
-        # Healthcare classification
-        elif b in ['hospital', 'dentist'] or \
-            h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
-            a in ['hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'] or \
-            s in ['medical_supply', 'hearing_aids'] or \
-            e == 'yes':
-            return 'healthcare_facility'
-        
-        # Commercial classification
-        elif b in ['commercial', 'retail', 'supermarket', 'shop', 'service', 'sports_centre'] or \
-            a in ['restaurant', 'bar', 'cafe', 'bank', 'fast_food'] or \
-            l in ['commercial']:
-            return 'commercial'
-        
-        # Workplace classification (universities, offices, factories)
-        elif b in ['office', 'factory', 'industrial', 'government'] or \
-            a in ['office', 'factory', 'industry'] or \
-            l in ['industrial', 'office']:
-            return 'workplace'
-        
-        # Education classification
-        elif b in ['school', 'university', 'kindergarten'] or \
-            a in ['university', 'kindergarten']:
-            return 'education'
-        
-        elif b in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
-            a in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
-            l in ['religious']:
-            return 'religious'
-        
-        else:
-            return 'other'
-
     def draw_town(self):
-        node_colors = []
-        for node, data in self.G_projected.nodes(data=True):
-            if data.get("place_type") == "healthcare_facility":
-                node_colors.append("red")         # Hospital → red
-            elif data.get("place_type") == "commercial":
-                node_colors.append("blue")        # Commercial → blue
-            elif data.get("place_type") == "accommodation":
-                node_colors.append("green")       # Accommodation → green
-            elif data.get("place_type") == "workplace":
-                node_colors.append("cyan")
-            elif data.get("place_type") == "education":
-                node_colors.append("yellow")
-            elif data.get("place_type") == "religious":
-                node_colors.append("magenta")
-            else:
-                node_colors.append("grey")
+        color_map = cm.get_cmap("tab10", len(self.all_place_types))
+        
+        place_types_for_coloring = [pt for pt in self.all_place_types if pt != "other"]
+        
+        place_type_to_color = {
+            pt: mcolors.to_hex(color_map(i)) for i, pt in enumerate(sorted(place_types_for_coloring))
+        }
+        place_type_to_color["other"] = "grey"
 
-        # Plot with custom node colors
+        node_colors = []
+        for _, data in self.G_projected.nodes(data=True):
+            pt = data.get("place_type", "other")
+            node_colors.append(place_type_to_color.get(pt, "grey"))
+
+        # Create figure and axes manually
+        fig, ax = plt.subplots(figsize=(10, 10))
+        legend_patches = [
+            mpatches.Patch(color=color, label=pt)
+            for pt, color in place_type_to_color.items()
+        ]
+        ax.legend(
+            handles=legend_patches,
+            title="Place Types",
+            loc="upper left",
+            bbox_to_anchor=(1.05, 1),
+            borderaxespad=0.
+        )
+
         fig, ax = ox.plot_graph(
             self.G_projected,
+            ax=ax,
             node_color=node_colors,
             node_size=20,
             edge_color="lightgray",

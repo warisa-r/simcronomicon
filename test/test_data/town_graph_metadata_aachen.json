@@ -339,6 +339,15 @@
     "60776441": 330,
     "60776445": 331
   },
+  "all_place_types": [
+    "accommodation",
+    "healthcare_facility",
+    "commercial",
+    "workplace",
+    "education",
+    "religious",
+    "other"
+  ],
   "accommodation_nodes": [
     0,
     2,
