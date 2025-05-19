@@ -2,6 +2,7 @@ from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmental
 from .step_event import StepEvent, EventType
 import random as rd
 
+#TODO: Allow infected status to be more than 1 status and run through all those stats to check for termination
 class SEIRModelParameters(AbstractModelParameters):
     def __init__(self, max_social_energy, beta, sigma, gamma, xi):
         super().__init__(max_social_energy)
@@ -47,7 +48,7 @@ class FolkSEIR(Folk):
 class SEIRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
         self.all_statuses = (['S', 'E', 'I', 'R'])
-        self.infected_status = 'I'
+        self.infected_statuses = ['I', 'E']
         self.step_events = [StepEvent("greet_neighbors", EventType.DISPERSE, False, 5000, ['accommodation']),
                             StepEvent("chore",  EventType.DISPERSE, False , 19000, ['commercial', 'workplace', 'education', 'religious'])]
         super().__init__(model_params)

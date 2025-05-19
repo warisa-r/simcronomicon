@@ -52,7 +52,7 @@ class AbstractCompartmentalModel():
         # some of the attributes before calling the abstract level constructor
         # See SEIsIrR for an example of how to write a constructor.
         required_attrs = {
-            'infected_status': "Subclasses must define 'infected_status'.",
+            'infected_statuses': "Subclasses must define 'infected_statuses'.",
             'all_statuses': "Subclasses must define 'all_statuses' with at least 3 statuses.",
             'step_events': "Subclasses must define 'step_events' with at least one event."
         }

@@ -207,7 +207,7 @@ class Simulation:
                     print("Step has been run", i)
                     print("Status:", {k: v for k, v in status_row.items() if k not in ('timestep', 'current_event')})
 
-                    if status_row[self.model.infected_status] == 0:
+                    if sum(status_row[status] for status in self.model.infected_statuses) == 0:
                         break
 
                 # Store final datasets
@@ -220,5 +220,5 @@ class Simulation:
                 print("Step has been run", i)
                 print("Status:", {k: v for k, v in self.status_dicts[-1].items()
                                 if k not in ('timestep', 'current_event')})
-                if self.status_dicts[-1][self.model.infected_status] == 0:
+                if sum(status_row[status] for status in self.model.infected_statuses) == 0:
                     break
