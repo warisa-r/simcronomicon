@@ -6,7 +6,6 @@ class SEIRModelParameters(AbstractModelParameters):
     def __init__(self, max_social_energy, beta, sigma, gamma, xi):
         super().__init__(max_social_energy)
 
-        
         self.beta = beta # Transimssion probability
         self.sigma = sigma # Incubation duration
         self.gamma = gamma # Symptom duration
@@ -35,7 +34,7 @@ class FolkSEIR(Folk):
         if self.status == 'S' and self.inverse_bernoulli(folks_here, model_params.beta, ['I']) > dice:
             self.convert('E', status_dict_t)
 
-    def sleep(self, status_dict_t, model_params):
+    def sleep(self, status_dict_t, model_params, dice):
         super().sleep()
         if self.status == 'E' and self.status_step_streak == model_params.sigma:
             self.convert('I', status_dict_t)
