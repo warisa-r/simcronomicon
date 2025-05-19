@@ -120,24 +120,23 @@ def _load_projected_node_positions(projected_graph_path, epsg_code):
     return node_positions
 
 
-def visualize_folks_on_map(output_hdf5_path, projected_graph_path, metadata_json_path, time_interval=None):
-    # Load metadata JSON
-    with open(metadata_json_path) as f:
-        metadata = json.load(f)
-    epsg_code = metadata.get("epsg_code", 4326)
-    raw_to_simplified = metadata.get("id_map", {})
-    simplified_to_raw = {str(v): str(k) for k, v in raw_to_simplified.items()}
-
-    # Load node positions
-    node_pos = _load_projected_node_positions(projected_graph_path, epsg_code)
-
+def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval=None):
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:
+        town_metadata_json_bytes = h5["metadata/town_metadata"][()]
+        town_metadata = json.loads(town_metadata_json_bytes.decode("utf-8"))
+        epsg_code = town_metadata["epsg_code"]
+        raw_to_simplified = town_metadata["id_map"]
+        simplified_to_raw = {str(v): str(k) for k, v in raw_to_simplified.items()}
+
         folk_data = h5["individual_logs/log"][:]
         metadata_json_bytes = h5["metadata/simulation_metadata"][()]
         metadata = json.loads(metadata_json_bytes.decode("utf-8"))
         all_statuses = metadata["all_statuses"]
         step_events_order = [e['name'] for e in metadata.get("step_events", [])]
+
+    # Load node positions
+    node_pos = _load_projected_node_positions(projected_graph_path, epsg_code)
 
     # Validate the user input time_interval
     if time_interval is not None:

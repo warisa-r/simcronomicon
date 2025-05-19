@@ -37,6 +37,10 @@ class Town():
         buildings = ox.features.features_from_point(point, tags, dist)
         buildings = buildings.to_crs(epsg=town.epsg_code)
         buildings['centroid'] = buildings.centroid
+        # We are getting in this simulation node in G_raw that is closest to the buildings
+        # osnmx provides a point in the street with some level of labels that imply the type of the buildings
+        # nearest to that node. For better labelings (to get more information on building type), 
+        # we pull data of building centroid.
         buildings['nearest_node'] = buildings['centroid'].apply(
             lambda p: ox.distance.nearest_nodes(town.G_projected, p.x, p.y)
         )
@@ -98,6 +102,7 @@ class Town():
             metadata = json.load(f)
 
         town.point = metadata["origin_point"]
+        town.dist = metadata["dist"]
         town.epsg_code = metadata["epsg_code"]
         town.id_map = {k: v for k, v in metadata["id_map"].items()}
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])

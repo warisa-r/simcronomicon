@@ -120,8 +120,7 @@ class Simulation:
             return status_row, indiv_folk_rows
         return None, None
 
-    def run(self, save_result=False, hdf5_path="simulation_output.h5",
-        town_metadata_path=None):
+    def run(self, save_result=False, hdf5_path="simulation_output.h5"):
         """
         The output hierarchical structure is the following
         simulation_output.h5
@@ -134,13 +133,13 @@ class Simulation:
         """
 
         if save_result:
-            if not (town_metadata_path and os.path.exists(town_metadata_path)):
-                raise FileNotFoundError(f"Missing or invalid town_metadata_path: {town_metadata_path}")
 
             with h5py.File(hdf5_path, "w") as h5file:
                 # Save simulation metadata
                 metadata_group = h5file.create_group("metadata")
-                metadata = {
+
+                # Write simulation metadata (without town)
+                sim_metadata = {
                     'all_statuses': self.model.all_statuses,
                     'model_parameters': self.model_params.to_metadata_dict(),
                     'num_locations': len(self.town.town_graph.nodes),
@@ -152,17 +151,23 @@ class Simulation:
                             'max_distance': event.max_distance,
                             'place_types': event.place_types,
                             'event_type': event.event_type.value,
-                            'ends_day':event.ends_day
+                            'ends_day': event.ends_day
                         } for event in self.step_events
-                    ],
+                    ]
                 }
-                metadata_json = json.dumps(metadata)
-                metadata_group.create_dataset("simulation_metadata", data=np.bytes_(metadata_json))
+                sim_metadata_json = json.dumps(sim_metadata)
+                metadata_group.create_dataset("simulation_metadata", data=np.bytes_(sim_metadata_json))
 
-                # Save town files
-                with open(town_metadata_path, 'r') as f:
-                    town_metadata = json.load(f)
-                    metadata['town_metadata'] = town_metadata
+                # Write town metadata separately
+                town_metadata = {
+                    "origin_point": [float(self.town.point[0]), float(self.town.point[1])],
+                    "dist": self.town.dist,
+                    "epsg_code": self.town.epsg_code,
+                    "id_map": {str(k): v for k, v in self.town.id_map.items()},
+                    "accommodation_nodes": list(self.town.accommodation_node_ids)
+                }
+                town_metadata_json = json.dumps(town_metadata)
+                metadata_group.create_dataset("town_metadata", data=np.bytes_(town_metadata_json))
 
                 # Save initial status summary
                 status_group = h5file.create_group("status_summary")
