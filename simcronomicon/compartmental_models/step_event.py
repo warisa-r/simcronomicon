@@ -14,17 +14,14 @@ class EventType(Enum):
     DISPERSE = "disperse"
     
 class StepEvent:
-    def __init__(self, name, event_type = EventType.SEND_HOME, ends_day = True, max_distance = 0, place_types = []):
-        #TODO: Raise Value error if choose DISPERSE and don't give max_distance and place_types
-        if ends_day and event_type != EventType.SEND_HOME:
-            raise ValueError("Only SEND_HOME events can end the day (ends_day=True).")
-
+    def __init__(self, name, folk_action, event_type = EventType.SEND_HOME, max_distance = 0, place_types = [], p = 1):
         #TODO: Write check that place_types is in the classification in town.py
         self.name = name
         self.max_distance = max_distance  # in meters
         self.place_types = place_types
         self.event_type = event_type
-        self.ends_day = ends_day # Will call folk.sleep()
+        self.probability = p
+        self.folk_action = folk_action # MUST ALWAYS BE A FUNCTION OF 4 ARGUMENTS (folks_here, status_dict_t, model_params, dice)
 
     def __repr__(self):
         return (f"{self.name} ({self.event_type.value}) happens {self.step_freq} time(s) a step "

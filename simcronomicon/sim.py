@@ -30,7 +30,7 @@ class Simulation:
 
         self.status_dicts.append(status_dict_t0)
     
-    def reset_population_home(self, ends_day):
+    def reset_population_home(self):
         self.active_node_indices = self.household_node_indices.copy() # Simple list -> Shallow copy
         
         for i in range(len(self.town.town_graph.nodes)): # Reset every house to empty first
@@ -42,8 +42,6 @@ class Simulation:
         for i in range(self.num_pop):
             self.folks[i].address = self.folks[i].home_address
             self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(self.folks[i])
-            if ends_day: #TODO: Consider if I should unroll this as another loop. However, ends_day is almost always true
-                self.folks[i].sleep(self.status_dicts[-1], self.model_params, rd.random())
 
     def disperse_for_event(self, step_event):
         for person in self.folks:            
@@ -78,15 +76,18 @@ class Simulation:
 
     def execute_event(self, step_event):
         if step_event.event_type == EventType.SEND_HOME:
-            self.reset_population_home(step_event.ends_day)
+            self.reset_population_home()
+            for i in range(self.num_pop):
+                # Dummy [] folks_here
+                step_event.folk_action(self.folks[i], [], self.status_dicts[-1], self.model_params, rd.random())
         elif step_event.event_type == EventType.DISPERSE:
             # Move people through the town first
             self.disperse_for_event(step_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
                 folks_here = self.town.town_graph.nodes[node]['folks']
                 for folk in folks_here:
-                    if folk.social_energy > 0:
-                        folk.interact(folks_here, self.status_dicts[-1], self.model_params, rd.random())
+                    if folk.energy > 0:
+                        step_event.folk_action(folk, folks_here, self.status_dicts[-1], self.model_params, rd.random())
     
     def step(self, save_result):
         current_timestep = self.current_timestep + 1
@@ -153,7 +154,7 @@ class Simulation:
                             'max_distance': event.max_distance,
                             'place_types': event.place_types,
                             'event_type': event.event_type.value,
-                            'ends_day': event.ends_day
+                            #TODO: If work add more
                         } for event in self.step_events
                     ]
                 }

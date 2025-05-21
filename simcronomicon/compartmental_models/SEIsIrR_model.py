@@ -14,8 +14,8 @@ from .step_event import StepEvent, EventType
 import random as rd
 
 class SEIsIrRModelParameters(AbstractModelParameters):
-    def __init__(self, max_social_energy, literacy, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
-        super().__init__(max_social_energy)
+    def __init__(self, max_energy, literacy, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
+        super().__init__(max_energy)
         self.literacy = literacy
 
         # Use the same parameter sets as the model notation but precalculate the conversion rate
@@ -52,7 +52,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         self.mem_span = mem_span
     def to_metadata_dict(self):
         return {
-            'max_social_energy': self.max_social_energy,
+            'max_energy': self.max_energy,
             'literacy': self.literacy,
             'alpha': self.alpha,
             'gamma': self.gamma,
@@ -65,18 +65,18 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         }
 
 class FolkSEIsIrR(Folk):
-    def __init__(self, id, home_address, max_social_energy, status):
-        super().__init__(id, home_address, max_social_energy, status)
+    def __init__(self, id, home_address, max_energy, status):
+        super().__init__(id, home_address, max_energy, status)
     
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
         num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
 
         if num_contact == 0:
             contact_possibility = 0
-        elif num_contact >= self.social_energy:
-            contact_possibility = self.social_energy
+        elif num_contact >= self.energy:
+            contact_possibility = self.energy
         else:
-            contact_possibility = self.social_energy * num_contact / self.max_social_energy
+            contact_possibility = self.energy * num_contact / self.max_energy
 
         return super().inverse_bernoulli(contact_possibility, conversion_prob)
 
@@ -120,9 +120,9 @@ class FolkSEIsIrR(Folk):
         elif self.status == 'S' and self.inverse_bernoulli(folks_here, model_params.S2R, ['S', 'E', 'R']) > dice:
             self.convert('R', status_dict_t)
 
-        self.social_energy -= 1
+        self.energy -= 1
     
-    def sleep(self, status_dict_t, model_params, dice):
+    def sleep(self, folks_here, status_dict_t, model_params, dice):
         super().sleep()
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
@@ -131,12 +131,12 @@ class FolkSEIsIrR(Folk):
     
 class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
+        self.folk_class = FolkSEIsIrR
         self.all_statuses = (['S', 'E', 'Ir', 'Is', 'R'])
         self.infected_statuses = 'S'
-        self.step_events = [StepEvent("greet_neighbors", EventType.DISPERSE, False, 5000, ['accommodation']),
-                            StepEvent("chore",  EventType.DISPERSE, False , 19000, ['commercial', 'workplace', 'education', 'religious'])]
+        self.step_events = [StepEvent("greet_neighbors", self.folk_class.interact, EventType.DISPERSE, 5000, ['accommodation']),
+                            StepEvent("chore", self.folk_class.interact,  EventType.DISPERSE, 19000, ['commercial', 'workplace', 'education', 'religious'])]
         super().__init__(model_params)
-        self.folk_class = FolkSEIsIrR
     
     def initialize_sim_population(self, town):
         num_pop = town.town_params.num_pop
@@ -157,11 +157,11 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         for i in range(num_pop):
             node = rd.choice(town.accommodation_node_ids)
             if i < num_init_spreader:
-                folk = self.create_folk(i, node, self.model_params.max_social_energy, 'S')
+                folk = self.create_folk(i, node, self.model_params.max_energy, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = self.create_folk(i, node, self.model_params.max_social_energy, 'Is')
+                folk = self.create_folk(i, node, self.model_params.max_energy, 'Is')
             else:
-                folk = self.create_folk(i, node, self.model_params.max_social_energy,'Ir')
+                folk = self.create_folk(i, node, self.model_params.max_energy,'Ir')
             folks.append(folk)
             town.town_graph.nodes[node]['folks'].append(folk) # Account for which folks live where in the graph as well
         

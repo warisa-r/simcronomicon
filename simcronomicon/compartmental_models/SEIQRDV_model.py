@@ -2,27 +2,38 @@ from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmental
 from .step_event import StepEvent, EventType
 import random as rd
 
-class SEIRModelParameters(AbstractModelParameters):
-    def __init__(self, max_energy, beta, sigma, gamma, xi):
+class SEIQRDVModelParameters(AbstractModelParameters):
+    def __init__(self, max_energy, beta, alpha, gamma, sigma, delta, lam, rho, kappa):
         super().__init__(max_energy)
 
+        # Adapted from https://www.mdpi.com/2227-7390/9/6/636
+
         self.beta = beta # Transimssion probability
-        self.sigma = sigma # Incubation duration
-        self.gamma = gamma # Symptom duration
-        self.xi = xi # Immune duration
+        self.alpha = alpha # Vaccination rate
+        self.gamma = gamma # Average latent time
+        self.sigma = sigma # Vaccine inefficacy
+        self.delta = delta # Average day until the infected case got confirmed and quarantined
+        self.lam = lam # Average day until recovery
+        self.rho = rho # Average day until death
+        self.kappa = kappa # Disease mortality rate
     
     def to_metadata_dict(self):
             return {
                 'max_energy': self.max_energy,
                 'beta': self.beta,
-                'sigma': self.sigma,
+                'alpha':self.alpha,
                 'gamma': self.gamma,
-                'xi':self.xi
+                'sigma': self.sigma,
+                'delta': self.delta,
+                'lam':self.lam,
+                'rho':self.rho,
+                'kappa':self.kappa
             }
 
-class FolkSEIR(Folk):
+class FolkSEIQRDV(Folk):
     def __init__(self, id, home_address, max_energy, status):
          super().__init__(id, home_address, max_energy, status)
+         self.will_die = False
 
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
         num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
@@ -33,25 +44,35 @@ class FolkSEIR(Folk):
         # they have a likelihood to become exposed to the disease
         if self.status == 'S' and self.inverse_bernoulli(folks_here, model_params.beta, ['I']) > dice:
             self.convert('E', status_dict_t)
+        # ADD INTERACTION WITH DOCTORS
 
     def sleep(self, folks_here, status_dict_t, model_params, dice):
         super().sleep()
-        if self.status == 'E' and self.status_step_streak == model_params.sigma:
+        if self.status == 'Q':
+            if self.will_die:
+                if self.status_step_streak == model_params.rho:
+                    self.convert('D', status_dict_t)
+                    self.alive = False
+            else:
+                if self.status_step_streak == model_params.lam:
+                    self.convert('R', status_dict_t)
+                    self.movement_restricted = True
+        elif self.status == 'E' and self.status_step_streak == self.gamma:
             self.convert('I', status_dict_t)
-        elif self.status == 'I' and self.status_step_streak == model_params.gamma:
-            self.convert('R', status_dict_t)
-        elif self.status == 'R' and self.status_step_streak == model_params.xi:
-            self.convert('S', status_dict_t)
+        elif self.status == 'I' and self.status_step_streak == self.delta:
+            self.convert('Q', status_dict_t)
+            self.movement_restricted = True
+            if dice > model_params.kappa:
+                self.will_die = True
 
-class SEIRModel(AbstractCompartmentalModel):
+class SEIQRDVModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
-        self.folk_class = FolkSEIR    
-        self.all_statuses = (['S', 'E', 'I', 'R'])
-        self.infected_statuses = ['I', 'E']
+        self.folk_class = FolkSEIQRDV
+        self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D' 'V'])
+        self.infected_statuses = ['I', 'E', 'Q']
         self.step_events = [StepEvent("greet_neighbors", self.folk_class.interact, EventType.DISPERSE, 5000, ['accommodation']),
                             StepEvent("chore", self.folk_class.interact,  EventType.DISPERSE, 19000, ['commercial', 'workplace', 'education', 'religious'])]
-        super().__init__(model_params)
-        
+        super().__init__(model_params)    
 
     def initialize_sim_population(self, town):
             num_pop = town.town_params.num_pop

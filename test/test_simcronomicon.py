@@ -179,10 +179,10 @@ class TestFolk(object):
         self.folk3.status = 'E'
 
         # Test Rule 4.1 and social energy diminishing mechanism
-        initial_energy = self.folk4.social_energy
+        initial_energy = self.folk4.energy
         a = self.folk4.inverse_bernoulli(folks_here, params.S2R, ['S', 'E', 'R'])
         self.folk4.interact(folks_here, status_dict_t, params, a - scale_tipper)
-        assert initial_energy == self.folk4.social_energy + 1
+        assert initial_energy == self.folk4.energy + 1
         assert self.folk4.status == 'R'
         self.folk4.status = 'S' # Reset
 

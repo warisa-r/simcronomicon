@@ -2,20 +2,22 @@ import random as rd
 from .step_event import StepEvent, EventType
 
 class AbstractModelParameters():
-    def __init__(self, max_social_energy):
-        self.max_social_energy = max_social_energy
+    def __init__(self, max_energy):
+        self.max_energy = max_energy
     def to_metadata_dict(self):
         raise NotImplementedError("Subclasses must implement to_metadata_dict()")
 
 class Folk:
-    def __init__(self, id, home_address, max_social_energy, status):
+    def __init__(self, id, home_address, max_energy, status):
         self.id = id
         self.home_address = home_address
         self.address = self.home_address
-        self.max_social_energy = max_social_energy
-        self.social_energy = rd.randint(0, max_social_energy)
+        self.max_energy = max_energy
+        self.energy = rd.randint(0, max_energy)
         self.status = status
         self.status_step_streak = 0
+        self.movement_restricted = False
+        self.alive = True
 
     def convert(self, new_stat, status_dict_t):
         assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
@@ -38,16 +40,14 @@ class Folk:
 
     def sleep(self):
         self.status_step_streak += 1
-        self.social_energy = rd.randint(0, self.max_social_energy) # Reset social energy
+        self.energy = rd.randint(0, self.max_energy) # Reset social energy
 
     def __repr__(self):
-        return f"Person live at {self.home_address}, currently at {self.address}, Social Energy={self.social_energy}, Status={self.status}"
+        return f"Person live at {self.home_address}, currently at {self.address}, Social Energy={self.energy}, Status={self.status}"
 
 class AbstractCompartmentalModel():
     def __init__(self, model_params):
         self.model_params = model_params
-        self.folk_class = Folk
-
         # This is an important check and it will ONLY work when you define 
         # some of the attributes before calling the abstract level constructor
         # See SEIsIrR for an example of how to write a constructor.
@@ -70,7 +70,7 @@ class AbstractCompartmentalModel():
             raise ValueError("A series of events that agents cannot be an empty set.")
         
         # Append end_day event to the existing day events given by the user
-        end_day = StepEvent("end_day")
+        end_day = StepEvent("end_day", self.folk_class.sleep)
         self.step_events.append(end_day)
 
     def create_folk(self, *args, **kwargs):
