@@ -125,7 +125,9 @@ class Simulation:
         The output hierarchical structure is the following
         simulation_output.h5
         ├── metadata
-        │   └── simulation_metadata         (dataset: bytes, JSON-encoded metadata incl. town)
+        │   └── simulation_metadata         (JSON-encoded metadata)
+        │   └── town_metadata               (bytes, JSON-encoded metadata)
+        │
         ├── status_summary
         │   └── summary                     (dataset: structured array with timestep, current_event, and statuses)
         ├── individual_logs
