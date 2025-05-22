@@ -32,6 +32,7 @@ class FolkSEIQRDV(Folk):
     def __init__(self, id, home_address, max_energy, status):
          super().__init__(id, home_address, max_energy, status)
          self.will_die = False
+         self.want_vaccine = False
 
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
         num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
@@ -44,8 +45,9 @@ class FolkSEIQRDV(Folk):
             self.convert('E', status_dict_t)
 
         if current_place_type == 'healthcare_facility':
-            if self.status == 'S':
+            if self.status == 'S' and self.want_vaccine:
                 self.convert('V', status_dict_t)
+                self.want_vaccine = False
 
     def sleep(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
         super().sleep()
@@ -68,6 +70,7 @@ class FolkSEIQRDV(Folk):
         elif self.status == 'S' and model_params.alpha > dice:
             # A person has a likelyhood alpha to plane to get vaccinated
             self.priority_place_type.append("healthcare_facility")
+            self.want_vaccine = True
 
 class SEIQRDVModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
