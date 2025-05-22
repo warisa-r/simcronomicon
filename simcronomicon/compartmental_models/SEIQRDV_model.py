@@ -22,7 +22,6 @@ class SEIQRDVModelParameters(AbstractModelParameters):
                 'beta': self.beta,
                 'alpha':self.alpha,
                 'gamma': self.gamma,
-                'sigma': self.sigma,
                 'delta': self.delta,
                 'lam':self.lam,
                 'rho':self.rho,
@@ -59,9 +58,9 @@ class FolkSEIQRDV(Folk):
                 if self.status_step_streak == model_params.lam:
                     self.convert('R', status_dict_t)
                     self.movement_restricted = True
-        elif self.status == 'E' and self.status_step_streak == self.gamma:
+        elif self.status == 'E' and self.status_step_streak == model_params.gamma:
             self.convert('I', status_dict_t)
-        elif self.status == 'I' and self.status_step_streak == self.delta:
+        elif self.status == 'I' and self.status_step_streak == model_params.delta:
             self.convert('Q', status_dict_t)
             self.movement_restricted = True
             if dice > model_params.kappa:
@@ -73,7 +72,7 @@ class FolkSEIQRDV(Folk):
 class SEIQRDVModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
         self.folk_class = FolkSEIQRDV
-        self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D' 'V'])
+        self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D', 'V'])
         self.infected_statuses = ['I', 'E', 'Q']
         self.step_events = [
             StepEvent("greet_neighbors", self.folk_class.interact, EventType.DISPERSE, 5000, ['accommodation']),
@@ -99,5 +98,5 @@ class SEIQRDVModel(AbstractCompartmentalModel):
                 if len(town.town_graph.nodes[node]['folks']) == 2: # Track which node has a 'family' living in it
                     household_node_indices.add(node)
 
-            status_dict_t0 = {'current_event': None, 'timestep':0, 'S': num_pop-num_init_spreader, 'E': 0, 'I': num_init_spreader, 'R': 0}
+            status_dict_t0 = {'current_event': None, 'timestep':0, 'S': num_pop-num_init_spreader, 'E': 0, 'Q': 0, 'I': num_init_spreader, 'R': 0, 'D':0, 'V':0}
             return folks, household_node_indices, status_dict_t0
