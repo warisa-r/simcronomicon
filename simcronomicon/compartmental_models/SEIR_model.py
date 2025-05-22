@@ -28,13 +28,13 @@ class FolkSEIR(Folk):
         num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
         return super().inverse_bernoulli(num_contact, conversion_prob)
     
-    def interact(self, folks_here, status_dict_t, model_params, dice):
+    def interact(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
         # When a susceptible person comes into contact with an infectious person,
         # they have a likelihood to become exposed to the disease
         if self.status == 'S' and self.inverse_bernoulli(folks_here, model_params.beta, ['I']) > dice:
             self.convert('E', status_dict_t)
 
-    def sleep(self, folks_here, status_dict_t, model_params, dice):
+    def sleep(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
         super().sleep()
         if self.status == 'E' and self.status_step_streak == model_params.sigma:
             self.convert('I', status_dict_t)

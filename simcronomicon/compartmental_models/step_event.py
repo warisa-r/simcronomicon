@@ -14,13 +14,12 @@ class EventType(Enum):
     DISPERSE = "disperse"
     
 class StepEvent:
-    def __init__(self, name, folk_action, event_type = EventType.SEND_HOME, max_distance = 0, place_types = [], p = 1):
+    def __init__(self, name, folk_action, event_type = EventType.SEND_HOME, max_distance = 0, place_types = []):
         #TODO: Write check that place_types is in the classification in town.py
         self.name = name
         self.max_distance = max_distance  # in meters
         self.place_types = place_types
         self.event_type = event_type
-        self.probability = p
         self.folk_action = folk_action # MUST ALWAYS BE A FUNCTION OF 4 ARGUMENTS (folks_here, status_dict_t, model_params, dice)
 
     def __repr__(self):

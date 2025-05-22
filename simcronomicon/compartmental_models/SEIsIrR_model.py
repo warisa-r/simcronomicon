@@ -80,7 +80,7 @@ class FolkSEIsIrR(Folk):
 
         return super().inverse_bernoulli(contact_possibility, conversion_prob)
 
-    def interact(self, folks_here, status_dict_t, model_params, dice):
+    def interact(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
         # Rule 1
         if self.status == 'Ir' and self.inverse_bernoulli(folks_here, model_params.Ir2S, ['S']) > dice:
             self.convert('S', status_dict_t)
@@ -122,7 +122,7 @@ class FolkSEIsIrR(Folk):
 
         self.energy -= 1
     
-    def sleep(self, folks_here, status_dict_t, model_params, dice):
+    def sleep(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
         super().sleep()
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
