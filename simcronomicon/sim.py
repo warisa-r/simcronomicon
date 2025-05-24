@@ -44,14 +44,41 @@ class Simulation:
             self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(self.folks[i])
 
     def disperse_for_event(self, step_event):
-        for person in self.folks:            
+        for person in self.folks:
+            if person.movement_restricted or person.alive == False or person.energy == 0:
+                continue  # Skip if the agent cannot act on this event         
             current_node = person.address
             # Get the shortest path lengths from current_node to all other nodes, considering edge weights
             lengths = nx.single_source_dijkstra_path_length(self.town.town_graph, current_node, cutoff=step_event.max_distance)
     
-            # Get the nodes where the shortest path length is less than or equal to the possible travel distance
-            candidates = [node for node, dist in lengths.items() if dist <= step_event.max_distance 
-                          and self.town.town_graph.nodes[node]['place_type'] in step_event.place_types]
+            if person.priority_place_type == []:
+                # If this agent doesn't have a place that they prioritize to go to, send them on their normal schedule
+                # like everybody else in the town.
+                # Get the nodes where the shortest path length is less than or equal to the possible travel distance
+                candidates = [node for node, dist in lengths.items() if dist <= step_event.max_distance 
+                            and self.town.town_graph.nodes[node]['place_type'] in step_event.place_types]
+            else:
+                # If the agent has prioritized place types to go to
+                # Find the closest node with one of those place types, regardless of max_distance
+                min_dist = float('inf')
+                chosen_node = None
+                chosen_place_type = None
+                for node in self.town.town_graph.nodes:
+                    node_place_type = self.town.town_graph.nodes[node]['place_type']
+                    if node_place_type in person.priority_place_type:
+                        try:
+                            dist = nx.shortest_path_length(self.town.town_graph, person.address, node, weight='length')
+                        except nx.NetworkXNoPath:
+                            continue
+                        if dist < min_dist:
+                            min_dist = dist
+                            chosen_node = node
+                            chosen_place_type = node_place_type
+
+                candidates = [chosen_node]
+                # Remove the visited place type from the priority list
+                person.priority_place_type.remove(chosen_place_type)
+                            
             if candidates:
                 new_node = rd.choice(candidates)
 
@@ -78,16 +105,22 @@ class Simulation:
         if step_event.event_type == EventType.SEND_HOME:
             self.reset_population_home()
             for i in range(self.num_pop):
-                # Dummy [] folks_here
-                step_event.folk_action(self.folks[i], [], self.status_dicts[-1], self.model_params, rd.random())
+                if self.folks[i].alive == False:
+                    continue
+                # Dummy folks_here and current_place_type since
+                # this type of event is meant to relocate people and allow them some time to pass
+                # for time-sensitive transition while they do that
+                step_event.folk_action(self.folks[i], None, None, self.status_dicts[-1], self.model_params, rd.random())
         elif step_event.event_type == EventType.DISPERSE:
             # Move people through the town first
             self.disperse_for_event(step_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
-                folks_here = self.town.town_graph.nodes[node]['folks']
+                # A person whose movement is restricted can stil be interact with other people who come to their location
+                # e.g. delivery service comes into contact with people are quarantined...
+                folks_here = [folk for folk in self.town.town_graph.nodes[node]['folks'] if folk.alive and folk.energy > 0]
+                current_place_type = self.town.town_graph.nodes[node]['place_type']
                 for folk in folks_here:
-                    if folk.energy > 0:
-                        step_event.folk_action(folk, folks_here, self.status_dicts[-1], self.model_params, rd.random())
+                    step_event.folk_action(folk, folks_here, current_place_type, self.status_dicts[-1], self.model_params, rd.random())
     
     def step(self, save_result):
         current_timestep = self.current_timestep + 1

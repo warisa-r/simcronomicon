@@ -18,6 +18,7 @@ class Folk:
         self.status_step_streak = 0
         self.movement_restricted = False
         self.alive = True
+        self.priority_place_type = []
 
     def convert(self, new_stat, status_dict_t):
         assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
@@ -31,7 +32,7 @@ class Folk:
         This function that determines the probability of status transition is adapted from section 2.2 of
         Eden, M., Castonguay, R., Munkhbat, B., Balasubramanian, H., & Gopalappa, C. (2021).
         Agent-based evolving network modeling: A new simulation method for modeling low prevalence infectious diseases.
-        Health Care Management Science, 24, 623–639. https://doi.org/10.1007/s10729-021-09553-5
+        Health Care Management Science, 24, 623–639. https://link.springer.com/article/10.1007/s10729-021-09558-0
         """
         if contact_possibility == 0:
             return 0
