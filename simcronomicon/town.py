@@ -246,5 +246,5 @@ class Town():
             if "folks" not in town.town_graph.nodes[i]:
                 town.town_graph.nodes[i]["folks"] = []
 
-        print("Town graph successfully built and saved!")
+        print("Town graph successfully built from input files!")
         return town
