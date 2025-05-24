@@ -199,7 +199,6 @@ class Simulation:
                     "origin_point": [float(self.town.point[0]), float(self.town.point[1])],
                     "dist": self.town.dist,
                     "epsg_code": self.town.epsg_code,
-                    "id_map": {str(k): v for k, v in self.town.id_map.items()},
                     "accommodation_nodes": list(self.town.accommodation_node_ids)
                 }
                 town_metadata_json = json.dumps(town_metadata)

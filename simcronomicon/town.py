@@ -106,36 +106,36 @@ class Town():
         G_raw = ox.graph.graph_from_point(point, network_type="all", dist=dist)
         tags = {"building": True}
 
-        # 2. Project the raw graph and classify the buildings
-        town.G_projected = ox.project_graph(G_raw)
+        # 2. Project the raw graph and get the buildings in the area
+        G_projected = ox.project_graph(G_raw)
         buildings = ox.features.features_from_point(point, tags, dist)
         buildings = buildings.to_crs(epsg=town.epsg_code)
 
-
+        # 3. Find 'points' that represent the geometrical shapes of the buildings
         is_polygon = buildings.geometry.geom_type.isin(['Polygon', 'MultiPolygon'])
         buildings.loc[is_polygon, 'geometry'] = buildings.loc[is_polygon, 'geometry'].centroid
         POI = buildings[buildings.geometry.geom_type == 'Point']
 
-
-        # We are getting in this simulation node in G_raw that is closest to the buildings
-        # osnmx provides a point in the street with some level of labels that imply the type of the buildings
-        # nearest to that node. For better labelings (to get more information on building type), 
-        # we pull data of building centroid.
+        # Find the points in the osmnx street connections that are closest to the building centroid
+        # We do this to get correct the travelling distances between the buildings
         POI['nearest_node'] = POI.geometry.apply(
-            lambda geom: ox.distance.nearest_nodes(town.G_projected, geom.x, geom.y)
+            lambda geom: ox.distance.nearest_nodes(G_projected, geom.x, geom.y)
         )
+
+        # 4. Classify building
         POI['place_type'] = POI.apply(classify_place_func, axis=1)
 
-        # 3. Annotate nodes
+        # 5. Annotate nodes
         place_type_map = POI.set_index('nearest_node')['place_type'].to_dict()
-        nx.set_node_attributes(town.G_projected, place_type_map, 'place_type')
+        nx.set_node_attributes(G_projected, place_type_map, 'place_type')
 
-        # 4. Filter nodes
-        nodes_to_keep = [n for n, d in town.G_projected.nodes(data=True)
+        # 6. Filter nodes
+        nodes_to_keep = [n for n, d in G_projected.nodes(data=True)
                          if d.get('place_type') in ['accommodation', 'healthcare_facility', 'commercial']]
-        G_filtered = town.G_projected.subgraph(nodes_to_keep).copy()
+        G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
-        # 5. Build town_graph
+        # 5. Build town_graph with the centroid of the buildings and the edges having weight of the
+        # shortest paths beween the nodes on the projected osmnx street connection graph
         town.town_graph = nx.Graph()
         old_nodes = list(G_filtered.nodes)
         town.id_map = {old_id: new_id for new_id, old_id in enumerate(old_nodes)}
@@ -151,8 +151,7 @@ class Town():
                 x = geom.x
                 y = geom.y
             else:
-                Warning("What is going on. Cant find that")
-                x = y = None  # Fallback if something's off
+                ValueError("Corrupted DataFrame found. Please check again that the area you input is consisted of mapped buildings!")
 
             if place_type == 'accommodation':
                 town.accommodation_node_ids.append(new_id)
@@ -164,19 +163,17 @@ class Town():
 
         for id1, id2 in combinations(old_nodes, 2):
             try:
-                dist = nx.shortest_path_length(town.G_projected, source=id1, target=id2, weight='length')
+                dist = nx.shortest_path_length(G_projected, source=id1, target=id2, weight='length')
                 town.town_graph.add_edge(town.id_map[id1], town.id_map[id2], weight=dist)
             except nx.NetworkXNoPath:
                 continue
 
         # 6. Save graphs and metadata
-        ox.save_graphml(town.G_projected, "raw_projected_graph.graphml")
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
         metadata = {
             "origin_point": [float(point[0]), float(point[1])],
             "dist": dist,
             "epsg_code": int(epsg_code),
-            "id_map": {str(k): v for k, v in town.id_map.items()},
             "all_place_types": town.all_place_types,
             "accommodation_nodes": list(town.accommodation_node_ids),
         }
@@ -189,7 +186,7 @@ class Town():
         return town
 
     @classmethod
-    def from_files(cls, metadata_path, town_graph_path, projected_graph_path, town_params):
+    def from_files(cls, metadata_path, town_graph_path, town_params):
         town = cls()
         town.town_params = town_params
 
@@ -200,60 +197,17 @@ class Town():
         town.dist = metadata["dist"]
         town.all_place_types = list(metadata["all_place_types"])
         town.epsg_code = metadata["epsg_code"]
-        town.id_map = {k: v for k, v in metadata["id_map"].items()}
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])
 
         # Now, to make sure the IDs are integers (if they were originally strings):
         town.accommodation_node_ids = list(map(int, town.accommodation_node_ids))
 
-        town.id_map = {int(k): v for k, v in town.id_map.items()}
-
         town.town_graph = nx.read_graphml(town_graph_path)
-        town.G_projected = ox.load_graphml(projected_graph_path)
 
         # Convert node IDs to integers (assuming they are digit strings)
         town.town_graph = nx.relabel_nodes(town.town_graph, lambda x: int(x))
-        town.G_projected = nx.relabel_nodes(town.G_projected, lambda x: int(x))
 
         for i in range(len(town.town_graph.nodes)):
             town.town_graph.nodes[i]['folks'] = []
 
         return town
-
-    def draw_town(self):
-        color_map = cm.get_cmap("tab10", len(self.all_place_types))
-        
-        place_types_for_coloring = [pt for pt in self.all_place_types if pt != "other"]
-        
-        place_type_to_color = {
-            pt: mcolors.to_hex(color_map(i)) for i, pt in enumerate(sorted(place_types_for_coloring))
-        }
-        place_type_to_color["other"] = "grey"
-
-        node_colors = []
-        for _, data in self.G_projected.nodes(data=True):
-            pt = data.get("place_type", "other")
-            node_colors.append(place_type_to_color.get(pt, "grey"))
-
-        # Create figure and axes manually
-        fig, ax = plt.subplots(figsize=(10, 10))
-        legend_patches = [
-            mpatches.Patch(color=color, label=pt)
-            for pt, color in place_type_to_color.items()
-        ]
-        ax.legend(
-            handles=legend_patches,
-            title="Place Types",
-            loc="upper left",
-            bbox_to_anchor=(1.05, 1),
-            borderaxespad=0.
-        )
-
-        fig, ax = ox.plot_graph(
-            self.G_projected,
-            ax=ax,
-            node_color=node_colors,
-            node_size=20,
-            edge_color="lightgray",
-            bgcolor="white",
-        )

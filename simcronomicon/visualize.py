@@ -131,8 +131,6 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
         town_metadata_json_bytes = h5["metadata/town_metadata"][()]
         town_metadata = json.loads(town_metadata_json_bytes.decode("utf-8"))
         epsg_code = town_metadata["epsg_code"]
-        raw_to_simplified = town_metadata["id_map"]
-        simplified_to_raw = {str(v): str(k) for k, v in raw_to_simplified.items()}
 
         folk_data = h5["individual_logs/log"][:]
         metadata_json_bytes = h5["metadata/simulation_metadata"][()]
@@ -171,7 +169,6 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
         event = entry["event"].decode("utf-8")
         status = entry["status"].decode("utf-8")
         address = str(entry["address"])
-        #raw_id = simplified_to_raw.get(address)
         if address in node_pos:
             lat, lon = node_pos[address]
             frame_label = f"{timestep}: {event}"
