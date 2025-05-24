@@ -4,8 +4,8 @@ credibility, correlation, and crowd personality-based classification.
 
 The implementation is based on:
 
-Chen, X., & Wang, N. (2020). 
-Rumor spreading model considering rumor credibility, correlation and crowd classification based on personality. 
+Chen, X., & Wang, N. (2020).
+Rumor spreading model considering rumor credibility, correlation and crowd classification based on personality.
 *Scientific Reports*, 10, 5887. https://doi.org/10.1038/s41598-020-62687-5
 """
 
@@ -13,8 +13,21 @@ from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmental
 from .step_event import StepEvent, EventType
 import random as rd
 
+
 class SEIsIrRModelParameters(AbstractModelParameters):
-    def __init__(self, max_energy, literacy, gamma, alpha, lam, phi, theta, mu, eta1, eta2, mem_span = 10):
+    def __init__(
+            self,
+            max_energy,
+            literacy,
+            gamma,
+            alpha,
+            lam,
+            phi,
+            theta,
+            mu,
+            eta1,
+            eta2,
+            mem_span=10):
         super().__init__(max_energy)
         self.literacy = literacy
 
@@ -27,22 +40,28 @@ class SEIsIrRModelParameters(AbstractModelParameters):
             [gamma, alpha, lam, phi, theta, mu, eta1, eta2]
         ):
             if not isinstance(value, (float, int)):
-                raise TypeError(f"{name} must be a float or int, got {type(value).__name__}")
-        
+                raise TypeError(
+                    f"{name} must be a float or int, got {
+                        type(value).__name__}")
+
         # Cast to float
-        gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
+        gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(
+            float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
 
         if not isinstance(mem_span, int) or mem_span <= 1:
-            raise ValueError(f"mem_span must be an integer greater than 1, got {mem_span}")
+            raise ValueError(
+                f"mem_span must be an integer greater than 1, got {mem_span}")
 
-        # Store some parameters so that they can be recalled as simulation metadata later on 
+        # Store some parameters so that they can be recalled as simulation
+        # metadata later on
         self.alpha = alpha
         self.gamma = gamma
         self.mu = mu
         gamma_alpha_lam = gamma * alpha * lam
 
-        # We use number 2 to signify transition that happens because of interaction
-        self.Is2E = (1-gamma) * gamma_alpha_lam
+        # We use number 2 to signify transition that happens because of
+        # interaction
+        self.Is2E = (1 - gamma) * gamma_alpha_lam
         self.Is2S = gamma_alpha_lam * mu
         self.Ir2S = gamma_alpha_lam
         self.E2S = theta
@@ -50,6 +69,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         self.S2R = eta1
         self.forget = eta2
         self.mem_span = mem_span
+
     def to_metadata_dict(self):
         return {
             'max_energy': self.max_energy,
@@ -64,12 +84,14 @@ class SEIsIrRModelParameters(AbstractModelParameters):
             'mem_span': self.mem_span,
         }
 
+
 class FolkSEIsIrR(Folk):
     def __init__(self, id, home_address, max_energy, status):
         super().__init__(id, home_address, max_energy, status)
-    
+
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
-        num_contact = len([folk for folk in folks_here if folk != self and folk.status in stats])
+        num_contact = len(
+            [folk for folk in folks_here if folk != self and folk.status in stats])
 
         if num_contact == 0:
             contact_possibility = 0
@@ -80,14 +102,23 @@ class FolkSEIsIrR(Folk):
 
         return super().inverse_bernoulli(contact_possibility, conversion_prob)
 
-    def interact(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
+    def interact(
+            self,
+            folks_here,
+            current_place_type,
+            status_dict_t,
+            model_params,
+            dice):
         # Rule 1
-        if self.status == 'Ir' and self.inverse_bernoulli(folks_here, model_params.Ir2S, ['S']) > dice:
+        if self.status == 'Ir' and self.inverse_bernoulli(
+                folks_here, model_params.Ir2S, ['S']) > dice:
             self.convert('S', status_dict_t)
         # Rule 2
         elif self.status == 'Is':
-            conversion_rate_S = self.inverse_bernoulli(folks_here, model_params.Is2S, ['S'])
-            conversion_rate_E = self.inverse_bernoulli(folks_here, model_params.Is2E, ['S'])
+            conversion_rate_S = self.inverse_bernoulli(
+                folks_here, model_params.Is2S, ['S'])
+            conversion_rate_E = self.inverse_bernoulli(
+                folks_here, model_params.Is2E, ['S'])
 
             if conversion_rate_S > conversion_rate_E:
                 if conversion_rate_E > dice:
@@ -99,11 +130,13 @@ class FolkSEIsIrR(Folk):
                     self.convert('S', status_dict_t)
                 elif conversion_rate_E > dice:
                     self.convert('E', status_dict_t)
-            
+
         # Rule 3
         elif self.status == 'E':
-            conversion_rate_S = self.inverse_bernoulli(folks_here, model_params.E2S, ['S'])
-            conversion_rate_R = self.inverse_bernoulli(folks_here, model_params.E2R, ['R'])
+            conversion_rate_S = self.inverse_bernoulli(
+                folks_here, model_params.E2S, ['S'])
+            conversion_rate_R = self.inverse_bernoulli(
+                folks_here, model_params.E2R, ['R'])
 
             if conversion_rate_S > conversion_rate_R:
                 if conversion_rate_R > dice:
@@ -121,27 +154,51 @@ class FolkSEIsIrR(Folk):
             self.convert('R', status_dict_t)
 
         self.energy -= 1
-    
-    def sleep(self, folks_here, current_place_type,  status_dict_t, model_params, dice):
+
+    def sleep(
+            self,
+            folks_here,
+            current_place_type,
+            status_dict_t,
+            model_params,
+            dice):
         super().sleep()
         if self.status == 'S':
             # Rule 4.2: Forgetting mechanism
             if model_params.mem_span <= self.status_step_streak or dice < model_params.forget:
                 self.convert('R', status_dict_t)
-    
+
+
 class SEIsIrRModel(AbstractCompartmentalModel):
     def __init__(self, model_params):
         self.folk_class = FolkSEIsIrR
         self.all_statuses = (['S', 'E', 'Ir', 'Is', 'R'])
         self.infected_statuses = 'S'
-        self.step_events = [StepEvent("greet_neighbors", self.folk_class.interact, EventType.DISPERSE, 5000, ['accommodation']),
-                            StepEvent("chore", self.folk_class.interact,  EventType.DISPERSE, 19000, ['commercial', 'workplace', 'education', 'religious'])]
+        self.required_place_types = set(
+            ['workplace', 'education', 'religious'])
+        self.step_events = [
+            StepEvent(
+                "greet_neighbors",
+                self.folk_class.interact,
+                EventType.DISPERSE,
+                5000,
+                ['accommodation']),
+            StepEvent(
+                "chore",
+                self.folk_class.interact,
+                EventType.DISPERSE,
+                19000,
+                [
+                    'commercial',
+                    'workplace',
+                    'education',
+                    'religious'])]
         super().__init__(model_params)
-    
+
     def initialize_sim_population(self, town):
         num_pop = town.town_params.num_pop
         num_init_spreader = town.town_params.num_init_spreader
-        
+
         folks = []
         household_node_indices = set()
 
@@ -150,23 +207,35 @@ class SEIsIrRModel(AbstractCompartmentalModel):
 
         # Spreaders often originated from Ir type of folks first
         num_Ir -= num_init_spreader
-        if num_Ir < 0: # Then some Is folks can become spreader too
+        if num_Ir < 0:  # Then some Is folks can become spreader too
             num_Is += num_Ir
             num_Ir = 0
 
         for i in range(num_pop):
             node = rd.choice(town.accommodation_node_ids)
             if i < num_init_spreader:
-                folk = self.create_folk(i, node, self.model_params.max_energy, 'S')
+                folk = self.create_folk(
+                    i, node, self.model_params.max_energy, 'S')
             elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = self.create_folk(i, node, self.model_params.max_energy, 'Is')
+                folk = self.create_folk(
+                    i, node, self.model_params.max_energy, 'Is')
             else:
-                folk = self.create_folk(i, node, self.model_params.max_energy,'Ir')
+                folk = self.create_folk(
+                    i, node, self.model_params.max_energy, 'Ir')
             folks.append(folk)
-            town.town_graph.nodes[node]['folks'].append(folk) # Account for which folks live where in the graph as well
-        
-            if len(town.town_graph.nodes[node]['folks']) == 2: # Track which node has a 'family' living in it
+            # Account for which folks live where in the graph as well
+            town.town_graph.nodes[node]['folks'].append(folk)
+
+            # Track which node has a 'family' living in it
+            if len(town.town_graph.nodes[node]['folks']) == 2:
                 household_node_indices.add(node)
 
-        status_dict_t0 = {'current_event': None, 'timestep':0, 'S': num_init_spreader, 'E': 0, 'Is': num_Is, 'Ir': num_Ir, 'R': 0}
+        status_dict_t0 = {
+            'current_event': None,
+            'timestep': 0,
+            'S': num_init_spreader,
+            'E': 0,
+            'Is': num_Is,
+            'Ir': num_Ir,
+            'R': 0}
         return folks, household_node_indices, status_dict_t0

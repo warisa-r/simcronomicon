@@ -1,11 +1,15 @@
 import random as rd
 from .step_event import StepEvent, EventType
 
+
 class AbstractModelParameters():
     def __init__(self, max_energy):
         self.max_energy = max_energy
+
     def to_metadata_dict(self):
-        raise NotImplementedError("Subclasses must implement to_metadata_dict()")
+        raise NotImplementedError(
+            "Subclasses must implement to_metadata_dict()")
+
 
 class Folk:
     def __init__(self, id, home_address, max_energy, status):
@@ -37,45 +41,56 @@ class Folk:
         if contact_possibility == 0:
             return 0
         else:
-            return 1-(1-conversion_prob)**(contact_possibility)
+            return 1 - (1 - conversion_prob)**(contact_possibility)
 
     def sleep(self):
         self.status_step_streak += 1
-        self.energy = rd.randint(0, self.max_energy) # Reset social energy
+        self.energy = rd.randint(0, self.max_energy)  # Reset social energy
 
     def __repr__(self):
-        return f"Person live at {self.home_address}, currently at {self.address}, Social Energy={self.energy}, Status={self.status}"
+        return f"Person live at {
+            self.home_address}, currently at {
+            self.address}, Social Energy={
+            self.energy}, Status={
+                self.status}"
+
 
 class AbstractCompartmentalModel():
     def __init__(self, model_params):
         self.model_params = model_params
-        # This is an important check and it will ONLY work when you define 
+        # This is an important check and it will ONLY work when you define
         # some of the attributes before calling the abstract level constructor
         # See SEIsIrR for an example of how to write a constructor.
         required_attrs = {
             'infected_statuses': "Subclasses must define 'infected_statuses'.",
             'all_statuses': "Subclasses must define 'all_statuses' with at least 3 statuses.",
-            'step_events': "Subclasses must define 'step_events' with at least one event."
-        }
+            'step_events': "Subclasses must define 'step_events' with at least one event."}
 
         for attr, message in required_attrs.items():
             if not hasattr(self, attr):
                 raise NotImplementedError(message)
 
+        if not hasattr(self, 'required_place_types'):
+            self.required_place_types = set()
+        self.required_place_types.update(['accommodation', 'commercial'])
+
         # Status is also actually plural of a status but for clarity that this is plural,
         # the software will stick with the commonly used statuses
         if len(self.all_statuses) < 3:
-            raise ValueError("A compartmental model must consist of at least 3 different statuses.")
-        
+            raise ValueError(
+                "A compartmental model must consist of at least 3 different statuses.")
+
         if len(self.step_events) < 1:
-            raise ValueError("A series of events that agents cannot be an empty set.")
-        
+            raise ValueError(
+                "A series of events that agents cannot be an empty set.")
+
         # Append end_day event to the existing day events given by the user
         end_day = StepEvent("end_day", self.folk_class.sleep)
         self.step_events.append(end_day)
 
     def create_folk(self, *args, **kwargs):
         return self.folk_class(*args, **kwargs)
-    
+
     def initialize_sim_population(self):
-        raise NotImplementedError("Subclasses must implement to_initialize_sim_population()")
+        raise NotImplementedError(
+            "Subclasses must implement to_initialize_sim_population()")

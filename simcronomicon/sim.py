@@ -8,8 +8,15 @@ import os
 
 from .compartmental_models import EventType
 
+
 class Simulation:
-    def __init__(self, town, compartmental_model, timesteps, seed=True, seed_value=5710):
+    def __init__(
+            self,
+            town,
+            compartmental_model,
+            timesteps,
+            seed=True,
+            seed_value=5710):
         self.folks = []
         self.status_dicts = []
         self.town = town
@@ -22,18 +29,27 @@ class Simulation:
         self.active_node_indices = set()
         self.nodes_list = list(self.town.town_graph.nodes)
 
+        missing = [
+            ptype for ptype in self.model.required_place_types if ptype not in self.town.found_place_types]
+        if missing:
+            raise ValueError(
+                f"Missing required place types for this model in town data: {missing}. Please increase the radius of your interested area or change it.")
+
         if seed:
             rd.seed(seed_value)
-        
-        self.folks, self.household_node_indices, status_dict_t0 = self.model.initialize_sim_population(town)
+
+        self.folks, self.household_node_indices, status_dict_t0 = self.model.initialize_sim_population(
+            town)
         self.active_node_indices = self.household_node_indices.copy()
 
         self.status_dicts.append(status_dict_t0)
-    
+
     def reset_population_home(self):
-        self.active_node_indices = self.household_node_indices.copy() # Simple list -> Shallow copy
-        
-        for i in range(len(self.town.town_graph.nodes)): # Reset every house to empty first
+        # Simple list -> Shallow copy
+        self.active_node_indices = self.household_node_indices.copy()
+
+        for i in range(len(self.town.town_graph.nodes)
+                       ):  # Reset every house to empty first
             self.town.town_graph.nodes[i]['folks'] = []
 
         # Reset every person's current address to their home address
@@ -41,25 +57,30 @@ class Simulation:
         # In addition, send everyone to sleep as well
         for i in range(self.num_pop):
             self.folks[i].address = self.folks[i].home_address
-            self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(self.folks[i])
+            self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(
+                self.folks[i])
 
     def disperse_for_event(self, step_event):
         for person in self.folks:
             if person.movement_restricted or person.alive == False or person.energy == 0:
-                continue  # Skip if the agent cannot act on this event         
+                continue  # Skip if the agent cannot act on this event
             current_node = person.address
-            # Get the shortest path lengths from current_node to all other nodes, considering edge weights
-            lengths = nx.single_source_dijkstra_path_length(self.town.town_graph, current_node, cutoff=step_event.max_distance)
-    
+            # Get the shortest path lengths from current_node to all other
+            # nodes, considering edge weights
+            lengths = nx.single_source_dijkstra_path_length(
+                self.town.town_graph, current_node, cutoff=step_event.max_distance)
+
             if person.priority_place_type == []:
                 # If this agent doesn't have a place that they prioritize to go to, send them on their normal schedule
                 # like everybody else in the town.
-                # Get the nodes where the shortest path length is less than or equal to the possible travel distance
-                candidates = [node for node, dist in lengths.items() if dist <= step_event.max_distance 
-                            and self.town.town_graph.nodes[node]['place_type'] in step_event.place_types]
+                # Get the nodes where the shortest path length is less than or
+                # equal to the possible travel distance
+                candidates = [node for node, dist in lengths.items() if dist <= step_event.max_distance
+                              and self.town.town_graph.nodes[node]['place_type'] in step_event.place_types]
             else:
                 # If the agent has prioritized place types to go to
-                # Find the closest node with one of those place types, regardless of max_distance
+                # Find the closest node with one of those place types,
+                # regardless of max_distance
                 min_dist = float('inf')
                 chosen_node = None
                 chosen_place_type = None
@@ -67,7 +88,8 @@ class Simulation:
                     node_place_type = self.town.town_graph.nodes[node]['place_type']
                     if node_place_type in person.priority_place_type:
                         try:
-                            dist = nx.shortest_path_length(self.town.town_graph, person.address, node, weight='length')
+                            dist = nx.shortest_path_length(
+                                self.town.town_graph, person.address, node, weight='length')
                         except nx.NetworkXNoPath:
                             continue
                         if dist < min_dist:
@@ -78,50 +100,65 @@ class Simulation:
                 candidates = [chosen_node]
                 # Remove the visited place type from the priority list
                 person.priority_place_type.remove(chosen_place_type)
-                            
+
             if candidates:
                 new_node = rd.choice(candidates)
 
-                # Track the number of folks at current node to see if this node becomes inactive later on
-                num_folks_current_node = len(self.town.town_graph.nodes[current_node]['folks'])
+                # Track the number of folks at current node to see if this node
+                # becomes inactive later on
+                num_folks_current_node = len(
+                    self.town.town_graph.nodes[current_node]['folks'])
                 # Remove the person from their old address
-                self.town.town_graph.nodes[current_node]['folks'].remove(person)
+                self.town.town_graph.nodes[current_node]['folks'].remove(
+                    person)
 
-                num_folks_new_node = len(self.town.town_graph.nodes[new_node]['folks'])
+                num_folks_new_node = len(
+                    self.town.town_graph.nodes[new_node]['folks'])
                 # Add person to new node
                 self.town.town_graph.nodes[new_node]['folks'].append(person)
                 # Update person's address
                 person.address = new_node
 
                 # Update active_node_indices
-                if len(self.town.town_graph.nodes[current_node]['folks']) == 1 and num_folks_current_node == 2: 
+                if len(self.town.town_graph.nodes[current_node]
+                       ['folks']) == 1 and num_folks_current_node == 2:
                     # Node has become inactive after one person moves away
                     self.active_node_indices.remove(current_node)
-                if len(self.town.town_graph.nodes[new_node]['folks']) == 2 and num_folks_new_node == 1:
-                    # One person just move in and make this node 'active' -> interaction here is possible
+                if len(
+                        self.town.town_graph.nodes[new_node]['folks']) == 2 and num_folks_new_node == 1:
+                    # One person just move in and make this node 'active' ->
+                    # interaction here is possible
                     self.active_node_indices.add(new_node)
 
     def execute_event(self, step_event):
         if step_event.event_type == EventType.SEND_HOME:
             self.reset_population_home()
             for i in range(self.num_pop):
-                if self.folks[i].alive == False:
+                if not self.folks[i].alive:
                     continue
                 # Dummy folks_here and current_place_type since
                 # this type of event is meant to relocate people and allow them some time to pass
                 # for time-sensitive transition while they do that
-                step_event.folk_action(self.folks[i], None, None, self.status_dicts[-1], self.model_params, rd.random())
+                step_event.folk_action(
+                    self.folks[i], None, None, self.status_dicts[-1], self.model_params, rd.random())
         elif step_event.event_type == EventType.DISPERSE:
             # Move people through the town first
             self.disperse_for_event(step_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
                 # A person whose movement is restricted can stil be interact with other people who come to their location
-                # e.g. delivery service comes into contact with people are quarantined...
-                folks_here = [folk for folk in self.town.town_graph.nodes[node]['folks'] if folk.alive and folk.energy > 0]
+                # e.g. delivery service comes into contact with people are
+                # quarantined...
+                folks_here = [folk for folk in self.town.town_graph.nodes[node]
+                              ['folks'] if folk.alive and folk.energy > 0]
                 current_place_type = self.town.town_graph.nodes[node]['place_type']
                 for folk in folks_here:
-                    step_event.folk_action(folk, folks_here, current_place_type, self.status_dicts[-1], self.model_params, rd.random())
-    
+                    step_event.folk_action(folk,
+                                           folks_here,
+                                           current_place_type,
+                                           self.status_dicts[-1],
+                                           self.model_params,
+                                           rd.random())
+
     def step(self, save_result):
         current_timestep = self.current_timestep + 1
         status_row = None
@@ -187,23 +224,28 @@ class Simulation:
                             'max_distance': event.max_distance,
                             'place_types': event.place_types,
                             'event_type': event.event_type.value,
-                            #TODO: If work add more
+                            # TODO: If work add more
                         } for event in self.step_events
                     ]
                 }
                 sim_metadata_json = json.dumps(sim_metadata)
-                metadata_group.create_dataset("simulation_metadata", data=np.bytes_(sim_metadata_json))
+                metadata_group.create_dataset(
+                    "simulation_metadata", data=np.bytes_(sim_metadata_json))
 
                 # Write town metadata separately
                 town_metadata = {
-                    "origin_point": [float(self.town.point[0]), float(self.town.point[1])],
+                    "origin_point": [
+                        float(
+                            self.town.point[0]),
+                        float(
+                            self.town.point[1])],
                     "dist": self.town.dist,
                     "epsg_code": self.town.epsg_code,
-                    "id_map": {str(k): v for k, v in self.town.id_map.items()},
-                    "accommodation_nodes": list(self.town.accommodation_node_ids)
-                }
+                    "accommodation_nodes": list(
+                        self.town.accommodation_node_ids)}
                 town_metadata_json = json.dumps(town_metadata)
-                metadata_group.create_dataset("town_metadata", data=np.bytes_(town_metadata_json))
+                metadata_group.create_dataset(
+                    "town_metadata", data=np.bytes_(town_metadata_json))
 
                 # Save initial status summary
                 status_group = h5file.create_group("status_summary")
@@ -218,7 +260,8 @@ class Simulation:
 
                 # Save initial individual logs
                 indiv_group = h5file.create_group("individual_logs")
-                folk_dtype = [("timestep", 'i4'), ("event", 'S32'), ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
+                folk_dtype = [("timestep", 'i4'), ("event", 'S32'),
+                              ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
                 indiv_data = [
                     (0, b"", folk.id, bytes(folk.status, 'utf-8'), folk.address)
                     for folk in self.folks
@@ -246,20 +289,31 @@ class Simulation:
                         ))
 
                     print("Step has been run", i)
-                    print("Status:", {k: v for k, v in status_row.items() if k not in ('timestep', 'current_event')})
+                    print(
+                        "Status:", {
+                            k: v for k, v in status_row.items() if k not in (
+                                'timestep', 'current_event')})
 
-                    if sum(status_row[status] for status in self.model.infected_statuses) == 0:
+                    if sum(status_row[status]
+                           for status in self.model.infected_statuses) == 0:
                         break
 
                 # Store final datasets
-                status_group.create_dataset("summary", data=np.array(status_data, dtype=status_dtype))
-                indiv_group.create_dataset("log", data=np.array(indiv_data, dtype=folk_dtype))
+                status_group.create_dataset(
+                    "summary", data=np.array(
+                        status_data, dtype=status_dtype))
+                indiv_group.create_dataset(
+                    "log", data=np.array(
+                        indiv_data, dtype=folk_dtype))
 
         else:
             for i in range(1, self.timesteps + 1):
                 self.step(False)
                 print("Step has been run", i)
-                print("Status:", {k: v for k, v in self.status_dicts[-1].items()
-                                if k not in ('timestep', 'current_event')})
-                if sum(status_row[status] for status in self.model.infected_statuses) == 0:
+                print("Status:",
+                      {k: v for k,
+                       v in self.status_dicts[-1].items() if k not in ('timestep',
+                                                                       'current_event')})
+                if sum(status_row[status]
+                       for status in self.model.infected_statuses) == 0:
                     break

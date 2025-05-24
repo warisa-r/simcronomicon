@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class EventType(Enum):
     """
     Step events are classified into two types.
@@ -12,16 +13,22 @@ class EventType(Enum):
     """
     SEND_HOME = "send_home"
     DISPERSE = "disperse"
-    
+
+
 class StepEvent:
-    def __init__(self, name, folk_action, event_type = EventType.SEND_HOME, max_distance = 0, place_types = []):
-        #TODO: Write check that place_types is in the classification in town.py
+    def __init__(
+            self,
+            name,
+            folk_action,
+            event_type=EventType.SEND_HOME,
+            max_distance=0,
+            place_types=[]):
+        # TODO: Write check that place_types is in the classification in
+        # town.py
         self.name = name
         self.max_distance = max_distance  # in meters
         self.place_types = place_types
         self.event_type = event_type
-        self.folk_action = folk_action # MUST ALWAYS BE A FUNCTION OF 4 ARGUMENTS (folks_here, status_dict_t, model_params, dice)
-
-    def __repr__(self):
-        return (f"{self.name} ({self.event_type.value}) happens {self.step_freq} time(s) a step "
-                f"and each folk can travel up to {self.max_distance}m to complete it.")
+        # MUST ALWAYS BE A FUNCTION OF 4 ARGUMENTS (folks_here, status_dict_t,
+        # model_params, dice)
+        self.folk_action = folk_action
