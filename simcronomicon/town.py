@@ -2,6 +2,9 @@ import json
 import osmnx as ox
 from itertools import combinations
 from tqdm import tqdm
+import zipfile
+import os
+import tempfile
 
 from . import nx
 
@@ -174,11 +177,15 @@ class Town():
 
         town.found_place_types = set(nx.get_node_attributes(town.town_graph, 'place_type').values())
 
-        print("[10/10] Saving graph and metadata...")
+        print("[10/10] Saving a compressed graph and metadata...")
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
+        with zipfile.ZipFile("town_graph.graphmlz", "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.write("town_graph.graphml", arcname="graph.graphml")
+        os.remove("town_graph.graphml")
+
         metadata = {
             "origin_point": [float(point[0]), float(point[1])],
-            "dist": dist,
+            "dist": town.dist,
             "epsg_code": int(epsg_code),
             "all_place_types": town.all_place_types,
             "found_place_types": list(town.found_place_types),
@@ -195,30 +202,34 @@ class Town():
 
     @classmethod
     def from_files(cls, metadata_path, town_graph_path, town_params):
-        town = cls()
-        town.town_params = town_params
+        # 1. Unzip the graphmlz to a temp folder
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            with zipfile.ZipFile(town_graph_path, 'r') as zf:
+                zf.extractall(tmpdirname)
+                graphml_path = os.path.join(tmpdirname, "graph.graphml")
+                G = nx.read_graphml(graphml_path)
+                G = nx.relabel_nodes(G, lambda x: int(x)) # Relabel node ID as integers
 
+        # 2. Load metadata
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
 
+        # 3. Rebuild Town object
+        town = cls()
+        town.town_graph = G
+        town.town_params = town_params
+        town.epsg_code = metadata["epsg_code"]
         town.point = metadata["origin_point"]
         town.dist = metadata["dist"]
-        town.all_place_types = list(metadata["all_place_types"])
-        town.found_place_types = list(metadata["found_place_types"])
-        town.epsg_code = metadata["epsg_code"]
-        town.accommodation_node_ids = list(metadata["accommodation_nodes"])
+        town.all_place_types = metadata["all_place_types"]
+        town.found_place_types = metadata["found_place_types"]
+        town.accommodation_node_ids = metadata["accommodation_nodes"]
+        town.id_map = {i: i for i in G.nodes}
 
-        # Now, to make sure the IDs are integers (if they were originally
-        # strings):
-        town.accommodation_node_ids = list(
-            map(int, town.accommodation_node_ids))
-
-        town.town_graph = nx.read_graphml(town_graph_path)
-
-        # Convert node IDs to integers (assuming they are digit strings)
-        town.town_graph = nx.relabel_nodes(town.town_graph, lambda x: int(x))
-
-        for i in range(len(town.town_graph.nodes)):
-            town.town_graph.nodes[i]['folks'] = []
+        # Initialize folks list if not already present
+        
+        for i in town.town_graph.nodes:
+            if "folks" not in town.town_graph.nodes[i]:
+                town.town_graph.nodes[i]["folks"] = []
 
         return town

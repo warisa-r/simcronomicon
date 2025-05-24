@@ -1,10 +1,10 @@
 import simcronomicon as scon
 
-point = 50.7753, 6.0839
+point =     50.7753, 6.0839
 town_params = scon.TownParameters(100, 10)
 town = scon.Town.from_point(point, 750, town_params)
-#town_graph_path = "test/test_data/town_graph_uniklinik_500m.graphml"
-#town_metadata_path = "test/test_data/town_graph_metadata_uniklinik_500m.json"
+#town_graph_path = "town_graph.graphmlz"
+#town_metadata_path = "town_graph_metadata.json"
 
 
 #town = scon.Town.from_files(
@@ -17,10 +17,10 @@ town = scon.Town.from_point(point, 750, town_params)
 #model = scon.SEIsIrRModel(model_params)
 #model_params = scon.SEIRModelParameters(max_energy=5, beta= 0.4, sigma= 6, gamma=5, xi = 200)
 #model = scon.SEIRModel(model_params)
-model_params = scon.SEIQRDVModelParameters(2, 0.6, 0.05, 5, 2, 3, 4, 0.3)
-model = scon.SEIQRDVModel(model_params)
-sim = scon.Simulation(town, model, 2)
-sim.run(True)
+#model_params = scon.SEIQRDVModelParameters(2, 0.6, 0.05, 5, 2, 3, 4, 0.3)
+#model = scon.SEIQRDVModel(model_params)
+#sim = scon.Simulation(town, model, 2)
+#sim.run(True)
 #scon.plot_status_summary_from_csv("simulation_results.csv")
-scon.plot_status_summary_from_hdf5("simulation_output.h5")
+#scon.plot_status_summary_from_hdf5("simulation_output.h5")
 #scon.visualize_folks_on_map("simulation_output.h5", town_graph_path)

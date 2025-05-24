@@ -3,7 +3,7 @@
     50.7753,
     6.0839
   ],
-  "dist": 523.3037157182602,
+  "dist": 500,
   "epsg_code": 32632,
   "all_place_types": [
     "accommodation",
@@ -15,10 +15,10 @@
     "other"
   ],
   "found_place_types": [
-    "workplace",
     "education",
-    "commercial",
     "accommodation",
+    "workplace",
+    "commercial",
     "religious"
   ],
   "accommodation_nodes": [

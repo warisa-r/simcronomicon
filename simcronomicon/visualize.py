@@ -7,6 +7,9 @@ from . import nx
 from pyproj import Transformer
 
 import csv
+import os
+import zipfile
+import tempfile
 import h5py
 import json
 import plotly.express as px
@@ -137,8 +140,13 @@ def plot_status_summary_from_csv(file_path, status_type=None):
         ylabel="Density")
 
 
-def _load_projected_node_positions(projected_graph_path, epsg_code):
-    G = nx.read_graphml(projected_graph_path)
+def _load_projected_node_positions(town_graph_path, epsg_code):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        with zipfile.ZipFile(town_graph_path, 'r') as zf:
+            zf.extractall(tmpdirname)
+            graphml_path = os.path.join(tmpdirname, "graph.graphml")
+            G = nx.read_graphml(graphml_path)
+            G = nx.relabel_nodes(G, lambda x: int(x))
 
     # Prepare transformer: from the projected EPSG to lat/lon (EPSG:4326)
     transformer = Transformer.from_crs(
@@ -158,7 +166,7 @@ def _load_projected_node_positions(projected_graph_path, epsg_code):
 
 def visualize_folks_on_map(
         output_hdf5_path,
-        projected_graph_path,
+        town_graph_path,
         time_interval=None):
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:
@@ -174,7 +182,7 @@ def visualize_folks_on_map(
                              for e in metadata.get("step_events", [])]
 
     # Load node positions
-    node_pos = _load_projected_node_positions(projected_graph_path, epsg_code)
+    node_pos = _load_projected_node_positions(town_graph_path, epsg_code)
 
     # Validate the user input time_interval
     if time_interval is not None:
