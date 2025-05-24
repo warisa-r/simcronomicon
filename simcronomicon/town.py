@@ -35,7 +35,7 @@ def classify_place(row):
     elif b in ['hospital', 'dentist'] or \
             h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
             a in ['hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'] or \
-            s in ['medical_supply', 'hearing_aids'] or \
+            s in ['medical_supply'] or \
             e == 'yes':
         return 'healthcare_facility'
 
