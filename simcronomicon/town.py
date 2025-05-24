@@ -125,8 +125,11 @@ class Town():
         buildings = buildings.to_crs(epsg=town.epsg_code)
 
         print("[4/10] Processing building geometries...")
-        is_polygon = buildings.geometry.geom_type.isin(['Polygon', 'MultiPolygon'])
-        buildings.loc[is_polygon, 'geometry'] = buildings.loc[is_polygon, 'geometry'].centroid
+        is_polygon = buildings.geometry.geom_type.isin(
+            ['Polygon', 'MultiPolygon'])
+        buildings.loc[is_polygon,
+                      'geometry'] = buildings.loc[is_polygon,
+                                                  'geometry'].centroid
         POI = buildings[buildings.geometry.geom_type == 'Point']
 
         print("[5/10] Matching building centroids to nearest road nodes...")
@@ -142,14 +145,16 @@ class Town():
         nx.set_node_attributes(G_projected, place_type_map, 'place_type')
 
         print("[8/10] Filtering out irrelevant nodes...")
-        nodes_to_keep = [n for n, d in G_projected.nodes(data=True)
-                        if d.get('place_type') is not None and d.get('place_type') != 'other']
+        nodes_to_keep = [n for n, d in G_projected.nodes(data=True) if d.get(
+            'place_type') is not None and d.get('place_type') != 'other']
         G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
         print("[9/10] Building town graph...")
         town.town_graph = nx.Graph()
         old_nodes = list(G_filtered.nodes)
-        town.id_map = {old_id: new_id for new_id, old_id in enumerate(old_nodes)}
+        town.id_map = {
+            old_id: new_id for new_id,
+            old_id in enumerate(old_nodes)}
         town.accommodation_node_ids = []
 
         for old_id, new_id in town.id_map.items():
@@ -160,7 +165,8 @@ class Town():
                 x = geom.x
                 y = geom.y
             else:
-                raise ValueError("Corrupted DataFrame found. Please check that the input area includes buildings with valid centroid mappings!")
+                raise ValueError(
+                    "Corrupted DataFrame found. Please check that the input area includes buildings with valid centroid mappings!")
 
             if place_type == 'accommodation':
                 town.accommodation_node_ids.append(new_id)
@@ -168,14 +174,20 @@ class Town():
             town.town_graph.add_node(new_id, place_type=place_type, x=x, y=y)
 
         print("Calculating shortest paths between all node pairs...")
-        for id1, id2 in tqdm(combinations(old_nodes, 2), total=len(old_nodes)*(len(old_nodes)-1)//2):
+        for id1, id2 in tqdm(combinations(old_nodes, 2), total=len(
+                old_nodes) * (len(old_nodes) - 1) // 2):
             try:
-                dist = nx.shortest_path_length(G_projected, source=id1, target=id2, weight='length')
-                town.town_graph.add_edge(town.id_map[id1], town.id_map[id2], weight=dist)
+                dist = nx.shortest_path_length(
+                    G_projected, source=id1, target=id2, weight='length')
+                town.town_graph.add_edge(
+                    town.id_map[id1], town.id_map[id2], weight=dist)
             except nx.NetworkXNoPath:
                 continue
 
-        town.found_place_types = set(nx.get_node_attributes(town.town_graph, 'place_type').values())
+        town.found_place_types = set(
+            nx.get_node_attributes(
+                town.town_graph,
+                'place_type').values())
 
         print("[10/10] Saving a compressed graph and metadata...")
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
@@ -203,18 +215,22 @@ class Town():
     @classmethod
     def from_files(cls, metadata_path, town_graph_path, town_params):
         # 1. Unzip the graphmlz to a temp folder
+        print("[1/3] Decompressing the graphmlz file...")
         with tempfile.TemporaryDirectory() as tmpdirname:
             with zipfile.ZipFile(town_graph_path, 'r') as zf:
                 zf.extractall(tmpdirname)
                 graphml_path = os.path.join(tmpdirname, "graph.graphml")
                 G = nx.read_graphml(graphml_path)
-                G = nx.relabel_nodes(G, lambda x: int(x)) # Relabel node ID as integers
+                # Relabel node ID as integers
+                G = nx.relabel_nodes(G, lambda x: int(x))
 
         # 2. Load metadata
+        print("[2/3] Load the metadata...")
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
 
         # 3. Rebuild Town object
+        print("[3/3] Rebuild the town object...")
         town = cls()
         town.town_graph = G
         town.town_params = town_params
@@ -227,9 +243,9 @@ class Town():
         town.id_map = {i: i for i in G.nodes}
 
         # Initialize folks list if not already present
-        
         for i in town.town_graph.nodes:
             if "folks" not in town.town_graph.nodes[i]:
                 town.town_graph.nodes[i]["folks"] = []
 
+        print("Town graph successfully built and saved!")
         return town
