@@ -2,7 +2,7 @@ import simcronomicon as scon
 
 point = 50.7753, 6.0839
 town_params = scon.TownParameters(100, 10)
-town = scon.Town.from_point(point, 2000, town_params)
+town = scon.Town.from_point(point, 750, town_params)
 #town_graph_path = "test/test_data/town_graph_uniklinik_500m.graphml"
 #town_metadata_path = "test/test_data/town_graph_metadata_uniklinik_500m.json"
 
