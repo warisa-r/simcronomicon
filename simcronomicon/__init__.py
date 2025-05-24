@@ -18,5 +18,4 @@ __all__ = [
     "SEIsIrRModel",
     "Simulation",
     "SEIsIrRModelParameters",
-    "StepEvent",
-    "plot_results"]
+    "StepEvent"]
