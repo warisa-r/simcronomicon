@@ -198,7 +198,7 @@ class Town():
         town.point = metadata["origin_point"]
         town.dist = metadata["dist"]
         town.all_place_types = list(metadata["all_place_types"])
-        town.all_place_types = list(metadata["found_place_types"])
+        town.found_place_types = list(metadata["found_place_types"])
         town.epsg_code = metadata["epsg_code"]
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])
 

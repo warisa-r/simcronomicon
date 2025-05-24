@@ -22,6 +22,10 @@ class Simulation:
         self.active_node_indices = set()
         self.nodes_list = list(self.town.town_graph.nodes)
 
+        missing = [ptype for ptype in self.model.required_place_types if ptype not in self.town.found_place_types]
+        if missing:
+            raise ValueError(f"Missing required place types in town data: {missing}")
+
         if seed:
             rd.seed(seed_value)
         
