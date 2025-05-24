@@ -61,6 +61,10 @@ class AbstractCompartmentalModel():
         for attr, message in required_attrs.items():
             if not hasattr(self, attr):
                 raise NotImplementedError(message)
+        
+        if not hasattr(self, 'required_place_types'):
+            self.required_place_types = set()
+        self.required_place_types.update(['accommodation', 'commercial'])
 
         # Status is also actually plural of a status but for clarity that this is plural,
         # the software will stick with the commonly used statuses
@@ -73,6 +77,7 @@ class AbstractCompartmentalModel():
         # Append end_day event to the existing day events given by the user
         end_day = StepEvent("end_day", self.folk_class.sleep)
         self.step_events.append(end_day)
+        
 
     def create_folk(self, *args, **kwargs):
         return self.folk_class(*args, **kwargs)

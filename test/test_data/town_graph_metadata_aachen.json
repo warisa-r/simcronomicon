@@ -14,6 +14,15 @@
     "religious",
     "other"
   ],
+  "found_place_types": [
+    "accommodation",
+    "commercial",
+    "education",
+    "healthcare_facility",
+    "other",
+    "religious",
+    "workplace"
+  ],
   "accommodation_nodes": [
     0,
     1,

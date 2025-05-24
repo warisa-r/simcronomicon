@@ -69,7 +69,7 @@ class FolkSEIQRDV(Folk):
                 self.will_die = True
         elif self.status == 'S' and model_params.alpha > dice:
             # A person has a likelyhood alpha to plane to get vaccinated
-            self.priority_place_type.append("healthcare_facility")
+            self.priority_place_type.append('healthcare_facility')
             self.want_vaccine = True
 
 class SEIQRDVModel(AbstractCompartmentalModel):
@@ -77,6 +77,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         self.folk_class = FolkSEIQRDV
         self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D', 'V'])
         self.infected_statuses = ['I', 'E', 'Q']
+        self.required_place_types = set(["healthcare_facility", 'workplace', 'education', 'religious'])
         self.step_events = [
             StepEvent("greet_neighbors", self.folk_class.interact, EventType.DISPERSE, 5000, ['accommodation']),
             StepEvent("chore", self.folk_class.interact, EventType.DISPERSE, 19000, ['commercial', 'workplace', 'education', 'religious'])]

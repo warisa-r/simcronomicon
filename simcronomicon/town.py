@@ -10,7 +10,7 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 from . import nx
 
-def classify_place( row):
+def classify_place(row):
     b = str(row.get("building", "")).lower()
     a = str(row.get("amenity", "")).lower()
     l = str(row.get("landuse", "")).lower()
@@ -124,6 +124,7 @@ class Town():
 
         # 4. Classify building
         POI['place_type'] = POI.apply(classify_place_func, axis=1)
+        town.found_place_types = sorted(POI['place_type'].unique().tolist())
 
         # 5. Annotate nodes
         place_type_map = POI.set_index('nearest_node')['place_type'].to_dict()
@@ -175,6 +176,7 @@ class Town():
             "dist": dist,
             "epsg_code": int(epsg_code),
             "all_place_types": town.all_place_types,
+            "found_place_types": town.found_place_types,
             "accommodation_nodes": list(town.accommodation_node_ids),
         }
         with open("town_graph_metadata.json", "w") as f:
@@ -196,6 +198,7 @@ class Town():
         town.point = metadata["origin_point"]
         town.dist = metadata["dist"]
         town.all_place_types = list(metadata["all_place_types"])
+        town.all_place_types = list(metadata["found_place_types"])
         town.epsg_code = metadata["epsg_code"]
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])
 
