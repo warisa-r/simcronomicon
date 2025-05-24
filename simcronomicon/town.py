@@ -124,7 +124,6 @@ class Town():
 
         # 4. Classify building
         POI['place_type'] = POI.apply(classify_place_func, axis=1)
-        town.found_place_types = sorted(POI['place_type'].unique().tolist())
 
         # 5. Annotate nodes
         place_type_map = POI.set_index('nearest_node')['place_type'].to_dict()
@@ -132,7 +131,7 @@ class Town():
 
         # 6. Filter nodes
         nodes_to_keep = [n for n, d in G_projected.nodes(data=True)
-                         if d.get('place_type') in ['accommodation', 'healthcare_facility', 'commercial']]
+                         if d.get('place_type') is not None and d.get('place_type') != 'other']
         G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
         # 5. Build town_graph with the centroid of the buildings and the edges having weight of the
@@ -152,7 +151,7 @@ class Town():
                 x = geom.x
                 y = geom.y
             else:
-                ValueError("Corrupted DataFrame found. Please check again that the area you input is consisted of mapped buildings!")
+                raise ValueError("Corrupted DataFrame found. Please check that the input area includes buildings with valid centroid mappings!")
 
             if place_type == 'accommodation':
                 town.accommodation_node_ids.append(new_id)
@@ -168,6 +167,7 @@ class Town():
                 town.town_graph.add_edge(town.id_map[id1], town.id_map[id2], weight=dist)
             except nx.NetworkXNoPath:
                 continue
+        town.found_place_types = set(nx.get_node_attributes(town.town_graph, 'place_type').values())
 
         # 6. Save graphs and metadata
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
@@ -176,7 +176,7 @@ class Town():
             "dist": dist,
             "epsg_code": int(epsg_code),
             "all_place_types": town.all_place_types,
-            "found_place_types": town.found_place_types,
+            "found_place_types": list(town.found_place_types),
             "accommodation_nodes": list(town.accommodation_node_ids),
         }
         with open("town_graph_metadata.json", "w") as f:

@@ -24,7 +24,7 @@ class Simulation:
 
         missing = [ptype for ptype in self.model.required_place_types if ptype not in self.town.found_place_types]
         if missing:
-            raise ValueError(f"Missing required place types in town data: {missing}")
+            raise ValueError(f"Missing required place types for this model in town data: {missing}. Please increase the radius of your interested area or change it.")
 
         if seed:
             rd.seed(seed_value)

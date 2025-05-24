@@ -203,7 +203,8 @@ class TestFolk(object):
     def teardown_class(cls):
         pass
 
-#TODO: Test that we check that there exists a place in the given map that has the priority place classification
+#TODO: Test that we check that there exists a place in the given map that has the priority place classification -> 500m from the same point
+# Testdata have this info doesnt have hospitals
 """
     sim.run(True)
   File "C:\Users\user\Documents\School\Sem6\SCE\simcronomicon\simcronomicon\sim.py", line 229, in run
