@@ -48,6 +48,7 @@ class SEIRModel(AbstractCompartmentalModel):
         self.folk_class = FolkSEIR    
         self.all_statuses = (['S', 'E', 'I', 'R'])
         self.infected_statuses = ['I', 'E']
+        self.required_place_types = set(['workplace', 'education', 'religious'])
         self.step_events = [StepEvent("greet_neighbors", self.folk_class.interact, EventType.DISPERSE, 5000, ['accommodation']),
                             StepEvent("chore", self.folk_class.interact,  EventType.DISPERSE, 19000, ['commercial', 'workplace', 'education', 'religious'])]
         super().__init__(model_params)

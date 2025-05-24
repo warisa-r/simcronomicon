@@ -1,17 +1,17 @@
 import simcronomicon as scon
 
-point = 50.77583, 6.045277
+point = 50.7753, 6.0839
 town_params = scon.TownParameters(100, 10)
-#town = scon.Town.from_point(point, 1000, town_params)
-town_graph_path = "test/test_data/town_graph_uniklinik_500m.graphml"
-town_metadata_path = "test/test_data/town_graph_metadata_uniklinik_500m.json"
+town = scon.Town.from_point(point, 2000, town_params)
+#town_graph_path = "test/test_data/town_graph_uniklinik_500m.graphml"
+#town_metadata_path = "test/test_data/town_graph_metadata_uniklinik_500m.json"
 
 
-town = scon.Town.from_files(
-    metadata_path= town_metadata_path,
-    town_graph_path=town_graph_path,
-    town_params=town_params
-)
+#town = scon.Town.from_files(
+#    metadata_path= town_metadata_path,
+#    town_graph_path=town_graph_path,
+#    town_params=town_params
+#)
 
 #model_params = scon.SEIsIrRModelParameters(4 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
 #model = scon.SEIsIrRModel(model_params)
@@ -23,4 +23,4 @@ sim = scon.Simulation(town, model, 2)
 sim.run(True)
 #scon.plot_status_summary_from_csv("simulation_results.csv")
 scon.plot_status_summary_from_hdf5("simulation_output.h5")
-scon.visualize_folks_on_map("simulation_output.h5", town_graph_path)
+#scon.visualize_folks_on_map("simulation_output.h5", town_graph_path)
