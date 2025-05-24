@@ -152,12 +152,12 @@ class Town():
         print("[9/10] Building town graph...")
         town.town_graph = nx.Graph()
         old_nodes = list(G_filtered.nodes)
-        town.id_map = {
+        id_map = {
             old_id: new_id for new_id,
             old_id in enumerate(old_nodes)}
         town.accommodation_node_ids = []
 
-        for old_id, new_id in town.id_map.items():
+        for old_id, new_id in id_map.items():
             place_type = G_filtered.nodes[old_id].get('place_type')
             row = POI[POI['nearest_node'] == old_id]
             if not row.empty:
@@ -180,7 +180,7 @@ class Town():
                 dist = nx.shortest_path_length(
                     G_projected, source=id1, target=id2, weight='length')
                 town.town_graph.add_edge(
-                    town.id_map[id1], town.id_map[id2], weight=dist)
+                    id_map[id1], id_map[id2], weight=dist)
             except nx.NetworkXNoPath:
                 continue
 
@@ -240,7 +240,6 @@ class Town():
         town.all_place_types = metadata["all_place_types"]
         town.found_place_types = metadata["found_place_types"]
         town.accommodation_node_ids = metadata["accommodation_nodes"]
-        town.id_map = {i: i for i in G.nodes}
 
         # Initialize folks list if not already present
         for i in town.town_graph.nodes:

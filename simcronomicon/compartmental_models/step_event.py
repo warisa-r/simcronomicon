@@ -32,11 +32,3 @@ class StepEvent:
         # MUST ALWAYS BE A FUNCTION OF 4 ARGUMENTS (folks_here, status_dict_t,
         # model_params, dice)
         self.folk_action = folk_action
-
-    def __repr__(self):
-        return (
-            f"{
-                self.name} ({
-                self.event_type.value}) happens {
-                self.step_freq} time(s) a step " f"and each folk can travel up to {
-                    self.max_distance}m to complete it.")

@@ -2,7 +2,7 @@ import simcronomicon as scon
 
 point =     50.7753, 6.0839
 town_params = scon.TownParameters(100, 10)
-town = scon.Town.from_point(point, 750, town_params)
+town = scon.Town.from_point(point, 500, town_params)
 #town_graph_path = "town_graph.graphmlz"
 #town_metadata_path = "town_graph_metadata.json"
 
@@ -13,8 +13,8 @@ town = scon.Town.from_point(point, 750, town_params)
 #    town_params=town_params
 #)
 
-#model_params = scon.SEIsIrRModelParameters(4 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
-#model = scon.SEIsIrRModel(model_params)
+model_params = scon.SEIsIrRModelParameters(4 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
+model = scon.SEIsIrRModel(model_params)
 #model_params = scon.SEIRModelParameters(max_energy=5, beta= 0.4, sigma= 6, gamma=5, xi = 200)
 #model = scon.SEIRModel(model_params)
 #model_params = scon.SEIQRDVModelParameters(2, 0.6, 0.05, 5, 2, 3, 4, 0.3)
