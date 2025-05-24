@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from .town import Town, TownParameters
 from .compartmental_models import StepEvent, EventType, SEIsIrRModel, SEIsIrRModelParameters, SEIRModel, SEIRModelParameters, SEIQRDVModel, SEIQRDVModelParameters
 from .sim import Simulation
-from .visualize import plot_status_summary_from_csv, plot_status_summary_from_hdf5, visualize_folks_on_map
+from .visualize import plot_status_summary_from_csv, plot_status_summary_from_hdf5, visualize_folks_on_map_from_sim, visualize_place_types_from_graphml
 
 __all__ = [
     "Town",

@@ -140,7 +140,7 @@ def plot_status_summary_from_csv(file_path, status_type=None):
         ylabel="Density")
 
 
-def _load_projected_node_positions(town_graph_path, epsg_code):
+def _load_node_info_from_graphmlz(town_graph_path, epsg_code, return_place_type=False):
     with tempfile.TemporaryDirectory() as tmpdirname:
         with zipfile.ZipFile(town_graph_path, 'r') as zf:
             zf.extractall(tmpdirname)
@@ -148,23 +148,77 @@ def _load_projected_node_positions(town_graph_path, epsg_code):
             G = nx.read_graphml(graphml_path)
             G = nx.relabel_nodes(G, lambda x: int(x))
 
-    # Prepare transformer: from the projected EPSG to lat/lon (EPSG:4326)
-    transformer = Transformer.from_crs(
-        f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
+    transformer = Transformer.from_crs(f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
 
-    # Convert x, y (projected) → lon, lat (geographic)
     node_positions = {}
+    node_place_types = {} if return_place_type else None
+
     for node, data in G.nodes(data=True):
-        if "x" in data and "y" in data:
+        try:
             x = float(data["x"])
             y = float(data["y"])
-            lon, lat = transformer.transform(x, y)
-            node_positions[str(node)] = (lat, lon)  # Return as (lat, lon)
+        except (KeyError, ValueError):
+            continue
 
+        lon, lat = transformer.transform(x, y)
+        node_positions[node] = (lat, lon)
+
+        if return_place_type:
+            place_type = data.get("place_type", "unknown")
+            node_place_types[node] = place_type
+
+    if return_place_type:
+        return node_positions, node_place_types
     return node_positions
 
+def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
+    """
+    Visualize nodes from town_graph.graphmlz with their place_type using Plotly + OSM.
+    """
+    with open(town_metadata_path, "r") as f:
+        metadata = json.load(f)
+    epsg_code = metadata["epsg_code"]
 
-def visualize_folks_on_map(
+    node_positions, node_place_types = _load_node_info_from_graphmlz(
+        town_graph_path, epsg_code, return_place_type=True
+    )
+
+    # Assemble DataFrame
+    data = []
+    for node_id, (lat, lon) in node_positions.items():
+        place_type = node_place_types.get(node_id, "unknown")
+        data.append({
+            "node_id": node_id,
+            "lat": lat,
+            "lon": lon,
+            "place_type": place_type
+        })
+
+    df = pd.DataFrame(data)
+    if df.empty:
+        print("No valid nodes to visualize.")
+        return
+
+    fig = px.scatter_map(
+        df,
+        lat="lat",
+        lon="lon",
+        color="place_type",
+        hover_data=["node_id"],
+        zoom=14,
+        height=700
+    )
+
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        title="Town Graph Nodes by Place Type",
+        legend_title="Place Type",
+        margin={"r": 0, "t": 50, "l": 0, "b": 0}
+    )
+    fig.update_traces(marker=dict(size=9, opacity=0.8))
+    fig.show()
+
+def visualize_folks_on_map_from_sim(
         output_hdf5_path,
         town_graph_path,
         time_interval=None):
@@ -182,7 +236,7 @@ def visualize_folks_on_map(
                              for e in metadata.get("step_events", [])]
 
     # Load node positions
-    node_pos = _load_projected_node_positions(town_graph_path, epsg_code)
+    node_pos = _load_node_info_from_graphmlz(town_graph_path, epsg_code)
 
     # Validate the user input time_interval
     if time_interval is not None:
@@ -212,7 +266,7 @@ def visualize_folks_on_map(
 
         event = entry["event"].decode("utf-8")
         status = entry["status"].decode("utf-8")
-        address = str(entry["address"])
+        address = int(entry["address"])
         if address in node_pos:
             lat, lon = node_pos[address]
             frame_label = f"{timestep}: {event}"
