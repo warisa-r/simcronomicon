@@ -202,3 +202,18 @@ class TestFolk(object):
     @classmethod
     def teardown_class(cls):
         pass
+
+#TODO: Test that we check that there exists a place in the given map that has the priority place classification
+"""
+    sim.run(True)
+  File "C:\Users\user\Documents\School\Sem6\SCE\simcronomicon\simcronomicon\sim.py", line 229, in run
+    status_row, indiv_rows = self.step(save_result=True)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\Documents\School\Sem6\SCE\simcronomicon\simcronomicon\sim.py", line 136, in step
+    self.execute_event(step_event)
+  File "C:\Users\user\Documents\School\Sem6\SCE\simcronomicon\simcronomicon\sim.py", line 116, in execute_event
+    self.disperse_for_event(step_event)
+  File "C:\Users\user\Documents\School\Sem6\SCE\simcronomicon\simcronomicon\sim.py", line 80, in disperse_for_event
+    person.priority_place_type.remove(chosen_place_type)
+ValueError: list.remove(x): x not in list
+"""

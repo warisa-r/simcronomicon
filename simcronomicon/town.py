@@ -1,6 +1,8 @@
 import json
 import osmnx as ox
 from itertools import combinations
+import geopandas as gpd
+from shapely.geometry import Point
 
 from . import plt
 import matplotlib.cm as cm
@@ -101,25 +103,31 @@ class Town():
         town.epsg_code = int(epsg_code)
 
         # 1. Download road network and buildings
-        G_raw = ox.graph.graph_from_point(point, network_type="drive", dist=dist)
+        G_raw = ox.graph.graph_from_point(point, network_type="all", dist=dist)
         tags = {"building": True}
 
         # 2. Project the raw graph and classify the buildings
         town.G_projected = ox.project_graph(G_raw)
         buildings = ox.features.features_from_point(point, tags, dist)
         buildings = buildings.to_crs(epsg=town.epsg_code)
-        buildings['centroid'] = buildings.centroid
+
+
+        is_polygon = buildings.geometry.geom_type.isin(['Polygon', 'MultiPolygon'])
+        buildings.loc[is_polygon, 'geometry'] = buildings.loc[is_polygon, 'geometry'].centroid
+        POI = buildings[buildings.geometry.geom_type == 'Point']
+
+
         # We are getting in this simulation node in G_raw that is closest to the buildings
         # osnmx provides a point in the street with some level of labels that imply the type of the buildings
         # nearest to that node. For better labelings (to get more information on building type), 
         # we pull data of building centroid.
-        buildings['nearest_node'] = buildings['centroid'].apply(
-            lambda p: ox.distance.nearest_nodes(town.G_projected, p.x, p.y)
+        POI['nearest_node'] = POI.geometry.apply(
+            lambda geom: ox.distance.nearest_nodes(town.G_projected, geom.x, geom.y)
         )
-        buildings['place_type'] = buildings.apply(classify_place_func, axis=1)
+        POI['place_type'] = POI.apply(classify_place_func, axis=1)
 
         # 3. Annotate nodes
-        place_type_map = buildings.set_index('nearest_node')['place_type'].to_dict()
+        place_type_map = POI.set_index('nearest_node')['place_type'].to_dict()
         nx.set_node_attributes(town.G_projected, place_type_map, 'place_type')
 
         # 4. Filter nodes
@@ -135,10 +143,24 @@ class Town():
 
         for old_id, new_id in town.id_map.items():
             place_type = G_filtered.nodes[old_id].get('place_type')
+
+            # Find matching point in POI (should be only one)
+            row = POI[POI['nearest_node'] == old_id]
+            if not row.empty:
+                geom = row.iloc[0].geometry
+                x = geom.x
+                y = geom.y
+            else:
+                Warning("What is going on. Cant find that")
+                x = y = None  # Fallback if something's off
+
             if place_type == 'accommodation':
                 town.accommodation_node_ids.append(new_id)
 
-            town.town_graph.add_node(new_id, place_type=place_type)
+            town.town_graph.add_node(new_id, 
+                                    place_type=place_type,
+                                    x=x,
+                                    y=y)
 
         for id1, id2 in combinations(old_nodes, 2):
             try:

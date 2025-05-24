@@ -1,4 +1,7 @@
 from . import plt
+from . import nx
+from pyproj import Transformer
+
 import csv
 import h5py
 import json
@@ -105,18 +108,20 @@ def plot_status_summary_from_csv(file_path, status_type=None):
     _plot_status_summary_data(status_keys, final_timesteps, final_status_data, status_type, ylabel="Density")
 
 def _load_projected_node_positions(projected_graph_path, epsg_code):
-    G = ox.load_graphml(projected_graph_path)
-    nodes = ox.graph_to_gdfs(G, edges=False)
+    G = nx.read_graphml(projected_graph_path)
 
-    if epsg_code != 4326:
-        nodes_latlon = nodes.to_crs(epsg=4326)
-    else:
-        nodes_latlon = nodes
+    # Prepare transformer: from the projected EPSG to lat/lon (EPSG:4326)
+    transformer = Transformer.from_crs(f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
 
-    node_positions = {
-        str(node): (row.geometry.y, row.geometry.x)
-        for node, row in nodes_latlon.iterrows()
-    }
+    # Convert x, y (projected) → lon, lat (geographic)
+    node_positions = {}
+    for node, data in G.nodes(data=True):
+        if "x" in data and "y" in data:
+            x = float(data["x"])
+            y = float(data["y"])
+            lon, lat = transformer.transform(x, y)
+            node_positions[str(node)] = (lat, lon)  # Return as (lat, lon)
+    
     return node_positions
 
 
@@ -166,9 +171,9 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
         event = entry["event"].decode("utf-8")
         status = entry["status"].decode("utf-8")
         address = str(entry["address"])
-        raw_id = simplified_to_raw.get(address)
-        if raw_id in node_pos:
-            lat, lon = node_pos[raw_id]
+        #raw_id = simplified_to_raw.get(address)
+        if address in node_pos:
+            lat, lon = node_pos[address]
             frame_label = f"{timestep}: {event}"
 
             points.append({
