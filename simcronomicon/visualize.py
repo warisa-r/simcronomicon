@@ -1,3 +1,7 @@
+import warnings
+from itertools import product
+import pandas as pd
+import osmnx as ox
 from . import plt
 from . import nx
 from pyproj import Transformer
@@ -8,26 +12,32 @@ import json
 import plotly.express as px
 import plotly.io as pio
 pio.renderers.default = "browser"
-import osmnx as ox
-import pandas as pd
-from itertools import product
-import warnings
 
-def _plot_status_summary_data(status_keys, timesteps, data_dict, status_type, ylabel="Density"):
+
+def _plot_status_summary_data(
+        status_keys,
+        timesteps,
+        data_dict,
+        status_type,
+        ylabel="Density"):
     # Validate and select keys to plot
     if status_type is None:
         keys_to_plot = status_keys
     elif isinstance(status_type, str):
         if status_type not in status_keys:
-            raise ValueError(f"Invalid status_type '{status_type}'. Must be one of {status_keys}.")
+            raise ValueError(
+                f"Invalid status_type '{status_type}'. Must be one of {status_keys}.")
         keys_to_plot = [status_type]
     elif isinstance(status_type, list):
         invalid = [k for k in status_type if k not in status_keys]
         if invalid:
-            raise ValueError(f"Invalid status types {invalid}. Must be from {status_keys}.")
+            raise ValueError(
+                f"Invalid status types {invalid}. Must be from {status_keys}.")
         keys_to_plot = status_type
     else:
-        raise TypeError(f"status_type must be None, str, or list of str, got {type(status_type).__name__}.")
+        raise TypeError(
+            f"status_type must be None, str, or list of str, got {
+                type(status_type).__name__}.")
 
     # Plotting
     plt.figure(figsize=(10, 6))
@@ -42,6 +52,7 @@ def _plot_status_summary_data(status_keys, timesteps, data_dict, status_type, yl
     plt.tight_layout()
     plt.show()
 
+
 def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
     with h5py.File(output_hdf5_path, "r") as h5file:
         status_ds = h5file["status_summary/summary"]
@@ -49,10 +60,13 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
             raise ValueError("No status data found in HDF5 file.")
 
         # Extract status keys from dtype
-        all_keys = [name for name in status_ds.dtype.names if name not in ("timestep", "current_event")]
+        all_keys = [
+            name for name in status_ds.dtype.names if name not in (
+                "timestep", "current_event")]
 
         # Extract total population from metadata
-        metadata_str = h5file["metadata/simulation_metadata"][()].decode("utf-8")
+        metadata_str = h5file["metadata/simulation_metadata"][()
+                                                              ].decode("utf-8")
         metadata = json.loads(metadata_str)
         total_population = metadata["population"]
         if total_population == 0:
@@ -62,7 +76,8 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
         last_entry_by_timestep = {}
         for row in status_ds:
             timestep = int(row["timestep"])
-            last_entry_by_timestep[timestep] = row  # Always keep the last one seen per timestep
+            # Always keep the last one seen per timestep
+            last_entry_by_timestep[timestep] = row
 
         final_timesteps = sorted(last_entry_by_timestep.keys())
         final_status_data = {key: [] for key in all_keys}
@@ -72,7 +87,13 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
             for key in all_keys:
                 final_status_data[key].append(row[key] / total_population)
 
-    _plot_status_summary_data(all_keys, final_timesteps, final_status_data, status_type, ylabel="Density")
+    _plot_status_summary_data(
+        all_keys,
+        final_timesteps,
+        final_status_data,
+        status_type,
+        ylabel="Density")
+
 
 def plot_status_summary_from_csv(file_path, status_type=None):
     with open(file_path, newline='') as csvfile:
@@ -80,7 +101,9 @@ def plot_status_summary_from_csv(file_path, status_type=None):
         all_keys = reader.fieldnames
 
         # Identify status columns
-        status_keys = [key for key in all_keys if key not in ('timestep', 'current_event')]
+        status_keys = [
+            key for key in all_keys if key not in (
+                'timestep', 'current_event')]
         rows = list(reader)
 
         if not rows:
@@ -94,7 +117,8 @@ def plot_status_summary_from_csv(file_path, status_type=None):
         last_entry_by_timestep = {}
         for row in rows:
             timestep = int(row['timestep'])
-            last_entry_by_timestep[timestep] = row  # Always overwrite, so we get the last status entry of that day
+            # Always overwrite, so we get the last status entry of that day
+            last_entry_by_timestep[timestep] = row
 
         # Sort by timestep
         final_timesteps = sorted(last_entry_by_timestep.keys())
@@ -105,13 +129,20 @@ def plot_status_summary_from_csv(file_path, status_type=None):
             for key in status_keys:
                 final_status_data[key].append(int(row[key]) / total_population)
 
-    _plot_status_summary_data(status_keys, final_timesteps, final_status_data, status_type, ylabel="Density")
+    _plot_status_summary_data(
+        status_keys,
+        final_timesteps,
+        final_status_data,
+        status_type,
+        ylabel="Density")
+
 
 def _load_projected_node_positions(projected_graph_path, epsg_code):
     G = nx.read_graphml(projected_graph_path)
 
     # Prepare transformer: from the projected EPSG to lat/lon (EPSG:4326)
-    transformer = Transformer.from_crs(f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
+    transformer = Transformer.from_crs(
+        f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
 
     # Convert x, y (projected) → lon, lat (geographic)
     node_positions = {}
@@ -121,11 +152,14 @@ def _load_projected_node_positions(projected_graph_path, epsg_code):
             y = float(data["y"])
             lon, lat = transformer.transform(x, y)
             node_positions[str(node)] = (lat, lon)  # Return as (lat, lon)
-    
+
     return node_positions
 
 
-def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval=None):
+def visualize_folks_on_map(
+        output_hdf5_path,
+        projected_graph_path,
+        time_interval=None):
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:
         town_metadata_json_bytes = h5["metadata/town_metadata"][()]
@@ -136,15 +170,17 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
         metadata_json_bytes = h5["metadata/simulation_metadata"][()]
         metadata = json.loads(metadata_json_bytes.decode("utf-8"))
         all_statuses = metadata["all_statuses"]
-        step_events_order = [e['name'] for e in metadata.get("step_events", [])]
+        step_events_order = [e['name']
+                             for e in metadata.get("step_events", [])]
 
     # Load node positions
     node_pos = _load_projected_node_positions(projected_graph_path, epsg_code)
 
     # Validate the user input time_interval
     if time_interval is not None:
-        assert isinstance(time_interval, (tuple, list)) and all(isinstance(x, int) for x in time_interval), "time_interval must be a tuple or list of two integers (start, end)"
-        assert time_interval[0] >=0 and time_interval[1] > 0, "Timestep values in time_interval cannot be negative."
+        assert isinstance(time_interval, (tuple, list)) and all(isinstance(
+            x, int) for x in time_interval), "time_interval must be a tuple or list of two integers (start, end)"
+        assert time_interval[0] >= 0 and time_interval[1] > 0, "Timestep values in time_interval cannot be negative."
 
         max_timestep_in_data = int(folk_data["timestep"].max())
 
@@ -153,9 +189,9 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
                 f"Given end timestep {time_interval[1]} exceeds maximum timestep {max_timestep_in_data} in data. "
                 f"Plotting will only include timesteps up to {max_timestep_in_data}."
             )
-            time_interval =  (time_interval[0], max_timestep_in_data)
+            time_interval = (time_interval[0], max_timestep_in_data)
         assert time_interval[1] >= time_interval[0], "Start timestep cannot be greater than end timestep."
-        
+
     # Aggregate for all (or selected) timesteps
     points = []
     for entry in folk_data:
@@ -197,11 +233,18 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
     df_raw.sort_values(by=["timestep", "event_order"], inplace=True)
 
     # Re-create frame column with the correct order
-    df_raw["frame"] = df_raw.apply(lambda row: f"{row['timestep']}: {row['event_name']}", axis=1)
+    df_raw["frame"] = df_raw.apply(
+        lambda row: f"{
+            row['timestep']}: {
+            row['event_name']}",
+        axis=1)
 
     unique_frames = df_raw["frame"].drop_duplicates().tolist()
     unique_coords = df_raw[["lat", "lon"]].drop_duplicates().values.tolist()
-    full_index = list(product(unique_frames, all_statuses, [tuple(c) for c in unique_coords]))
+    full_index = list(
+        product(
+            unique_frames, all_statuses, [
+                tuple(c) for c in unique_coords]))
 
     full_df = pd.DataFrame([
         {
@@ -213,11 +256,11 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
         }
         for f, s, (lat, lon) in full_index
     ])
-    df_grouped = df_raw.groupby(["frame", "status", "lat", "lon"], as_index=False).agg({"size": "sum"})
+    df_grouped = df_raw.groupby(
+        ["frame", "status", "lat", "lon"], as_index=False).agg({"size": "sum"})
 
     df_filled = pd.concat([df_grouped, full_df], ignore_index=True).drop_duplicates(
-        subset=["frame", "status", "lat", "lon"], keep="first"
-    )
+        subset=["frame", "status", "lat", "lon"], keep="first")
 
     fig = px.scatter_map(
         df_filled,
@@ -227,8 +270,8 @@ def visualize_folks_on_map(output_hdf5_path, projected_graph_path, time_interval
         color="status",
         animation_frame="frame",
         category_orders={
-        "status": all_statuses,
-        "frame": unique_frames
+            "status": all_statuses,
+            "frame": unique_frames
         },
         size_max=20,
         zoom=13,

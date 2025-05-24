@@ -218,3 +218,6 @@ class TestFolk(object):
     person.priority_place_type.remove(chosen_place_type)
 ValueError: list.remove(x): x not in list
 """
+
+# TODO: Test all three models by seeing the last frame t = ... ensure no infected and all status are the same num
+#

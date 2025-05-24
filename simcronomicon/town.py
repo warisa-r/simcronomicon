@@ -10,6 +10,7 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 from . import nx
 
+
 def classify_place(row):
     b = str(row.get("building", "")).lower()
     a = str(row.get("amenity", "")).lower()
@@ -19,46 +20,58 @@ def classify_place(row):
     e = str(row.get("emergency", "")).lower()
 
     # Accommodation classification
-    if b in ['residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace', 'allotment_house', 'bungalow', 'semidetached_house', 'hut']:
+    if b in [
+        'residential',
+        'apartments',
+        'house',
+        'detached',
+        'dormitory',
+        'terrace',
+        'allotment_house',
+        'bungalow',
+        'semidetached_house',
+            'hut']:
         return 'accommodation'
-    
+
     # Healthcare classification
     elif b in ['hospital', 'dentist'] or \
-        h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
-        a in ['hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'] or \
-        s in ['medical_supply', 'hearing_aids'] or \
-        e == 'yes':
+            h in ['hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'] or \
+            a in ['hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'] or \
+            s in ['medical_supply', 'hearing_aids'] or \
+            e == 'yes':
         return 'healthcare_facility'
-    
+
     # Commercial classification
     elif b in ['commercial', 'retail', 'supermarket', 'shop', 'service', 'sports_centre'] or \
-        a in ['restaurant', 'bar', 'cafe', 'bank', 'fast_food'] or \
-        l in ['commercial']:
+            a in ['restaurant', 'bar', 'cafe', 'bank', 'fast_food'] or \
+            l in ['commercial']:
         return 'commercial'
-    
+
     # Workplace classification (universities, offices, factories)
     elif b in ['office', 'factory', 'industrial', 'government'] or \
-        a in ['office', 'factory', 'industry'] or \
-        l in ['industrial', 'office']:
+            a in ['office', 'factory', 'industry'] or \
+            l in ['industrial', 'office']:
         return 'workplace'
-    
+
     # Education classification
     elif b in ['school', 'university', 'kindergarten'] or \
-        a in ['university', 'kindergarten']:
+            a in ['university', 'kindergarten']:
         return 'education'
-    
+
     elif b in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
-        a in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
-        l in ['religious']:
+            a in ['chapel', 'church', 'temple', 'mosque', 'synagogue'] or \
+            l in ['religious']:
         return 'religious'
-    
+
     else:
         return 'other'
+
 
 class TownParameters():
     def __init__(self, num_pop, num_init_spreader):
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
+
 
 class Town():
     def __init__(self):
@@ -66,21 +79,27 @@ class Town():
         pass
 
     @classmethod
-    def from_point(cls, point, dist, town_params, classify_place_func=classify_place,
-                   all_place_types=None):
-        
+    def from_point(
+            cls,
+            point,
+            dist,
+            town_params,
+            classify_place_func=classify_place,
+            all_place_types=None):
+
         if not callable(classify_place_func):
             raise TypeError("`classify_place_func` must be a function.")
 
-        # If the user passed a custom function, they must also pass custom place_types
+        # If the user passed a custom function, they must also pass custom
+        # place_types
         if classify_place_func is not classify_place:
             if all_place_types is None:
                 raise ValueError(
                     "If you pass a custom `classify_place_func`, you must also provide `all_place_types`."
                 )
-            elif not "accommodation" in all_place_types:
+            elif "accommodation" not in all_place_types:
                 raise ValueError(
-                                "Your `all_place_types` must be consisted of residential or 'accommodation' type of buildings."
+                    "Your `all_place_types` must be consisted of residential or 'accommodation' type of buildings."
                 )
 
         # Use default place types only when using default function
@@ -111,13 +130,18 @@ class Town():
         buildings = ox.features.features_from_point(point, tags, dist)
         buildings = buildings.to_crs(epsg=town.epsg_code)
 
-        # 3. Find 'points' that represent the geometrical shapes of the buildings
-        is_polygon = buildings.geometry.geom_type.isin(['Polygon', 'MultiPolygon'])
-        buildings.loc[is_polygon, 'geometry'] = buildings.loc[is_polygon, 'geometry'].centroid
+        # 3. Find 'points' that represent the geometrical shapes of the
+        # buildings
+        is_polygon = buildings.geometry.geom_type.isin(
+            ['Polygon', 'MultiPolygon'])
+        buildings.loc[is_polygon,
+                      'geometry'] = buildings.loc[is_polygon,
+                                                  'geometry'].centroid
         POI = buildings[buildings.geometry.geom_type == 'Point']
 
         # Find the points in the osmnx street connections that are closest to the building centroid
-        # We do this to get correct the travelling distances between the buildings
+        # We do this to get correct the travelling distances between the
+        # buildings
         POI['nearest_node'] = POI.geometry.apply(
             lambda geom: ox.distance.nearest_nodes(G_projected, geom.x, geom.y)
         )
@@ -130,15 +154,18 @@ class Town():
         nx.set_node_attributes(G_projected, place_type_map, 'place_type')
 
         # 6. Filter nodes
-        nodes_to_keep = [n for n, d in G_projected.nodes(data=True)
-                         if d.get('place_type') is not None and d.get('place_type') != 'other']
+        nodes_to_keep = [n for n, d in G_projected.nodes(data=True) if d.get(
+            'place_type') is not None and d.get('place_type') != 'other']
         G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
         # 5. Build town_graph with the centroid of the buildings and the edges having weight of the
-        # shortest paths beween the nodes on the projected osmnx street connection graph
+        # shortest paths beween the nodes on the projected osmnx street
+        # connection graph
         town.town_graph = nx.Graph()
         old_nodes = list(G_filtered.nodes)
-        town.id_map = {old_id: new_id for new_id, old_id in enumerate(old_nodes)}
+        town.id_map = {
+            old_id: new_id for new_id,
+            old_id in enumerate(old_nodes)}
         town.accommodation_node_ids = []
 
         for old_id, new_id in town.id_map.items():
@@ -151,23 +178,29 @@ class Town():
                 x = geom.x
                 y = geom.y
             else:
-                raise ValueError("Corrupted DataFrame found. Please check that the input area includes buildings with valid centroid mappings!")
+                raise ValueError(
+                    "Corrupted DataFrame found. Please check that the input area includes buildings with valid centroid mappings!")
 
             if place_type == 'accommodation':
                 town.accommodation_node_ids.append(new_id)
 
-            town.town_graph.add_node(new_id, 
-                                    place_type=place_type,
-                                    x=x,
-                                    y=y)
+            town.town_graph.add_node(new_id,
+                                     place_type=place_type,
+                                     x=x,
+                                     y=y)
 
         for id1, id2 in combinations(old_nodes, 2):
             try:
-                dist = nx.shortest_path_length(G_projected, source=id1, target=id2, weight='length')
-                town.town_graph.add_edge(town.id_map[id1], town.id_map[id2], weight=dist)
+                dist = nx.shortest_path_length(
+                    G_projected, source=id1, target=id2, weight='length')
+                town.town_graph.add_edge(
+                    town.id_map[id1], town.id_map[id2], weight=dist)
             except nx.NetworkXNoPath:
                 continue
-        town.found_place_types = set(nx.get_node_attributes(town.town_graph, 'place_type').values())
+        town.found_place_types = set(
+            nx.get_node_attributes(
+                town.town_graph,
+                'place_type').values())
 
         # 6. Save graphs and metadata
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
@@ -202,8 +235,10 @@ class Town():
         town.epsg_code = metadata["epsg_code"]
         town.accommodation_node_ids = list(metadata["accommodation_nodes"])
 
-        # Now, to make sure the IDs are integers (if they were originally strings):
-        town.accommodation_node_ids = list(map(int, town.accommodation_node_ids))
+        # Now, to make sure the IDs are integers (if they were originally
+        # strings):
+        town.accommodation_node_ids = list(
+            map(int, town.accommodation_node_ids))
 
         town.town_graph = nx.read_graphml(town_graph_path)
 
