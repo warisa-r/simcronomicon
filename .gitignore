@@ -42,7 +42,7 @@ output/*/index.html
 docs/_build
 
 # Some graph file saves
-#*.json
+*.json
 *.graphml
 *.csv
 *.h5
