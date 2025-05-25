@@ -6,147 +6,186 @@ import os
 import shutil
 import pyproj
 import numpy as np
+import tempfile
+from scipy.spatial import KDTree
+from pyproj import Transformer
 
 # Import all the necessary packages for testing
 import networkx as nx
-import matplotlib.pyplot as plt
-import random
+import osmnx as ox
 
 import simcronomicon as scon
 
 class TestTown(object):
 
-    @classmethod
-    def setup_class(cls):
-        cls.point_dom = 50.7753, 6.0839
-        cls.point_uniklinik = 50.77583, 6.045277
-        cls.town_params = scon.TownParameters(100, 10)
-
-        cls.town_dom = scon.Town.from_point(cls.point_dom, 500, cls.town_params)
-        cls.files_dom = [
-            "town_graph_metadata.json",
-            "town_graph.graphmlz"
-        ]
-        for file in cls.files_dom:
-            os.rename(file, f"dom_{file}")
-
-        cls.town_uniklinik = scon.Town.from_point(cls.point_uniklinik, 500, cls.town_params)
-        cls.files_uniklinik = [
-            "town_graph_metadata.json",
-            "town_graph.graphmlz"
-        ]
-        for file in cls.files_uniklinik:
-            os.rename(file, f"uniklinik_{file}")
-
-    def test_healthcare_presence_and_all_types(self):
-        assert 'healthcare_facility' not in self.town_dom.found_place_types, \
-            "Expected DOM area to have no healthcare_facility"
-        assert 'healthcare_facility' in self.town_uniklinik.found_place_types, \
-            "Expected UNIKLINIK area to have healthcare_facility"
-
-        assert self.town_dom.all_place_types == self.town_uniklinik.all_place_types, \
-            "Expected both towns to have the same all_place_types list"
-
-    def test_superc_is_classified_as_education(self):
-        superc_latlon = (50.77828, 6.078571)
-        dom_750m_graph_path = "test/test_data/town_graph_aachen_dom_750m.graphmlz"
-        dom_750m_metadatata_path = "test/test_data/town_graph_metadata_aachen_dom_750m.json"
-        town = scon.Town.from_files(metadata_path=dom_750m_metadatata_path, town_graph_path= dom_750m_graph_path, town_params= self.town_params)
-
-        # Project lat/lon to same CRS as town graph
-        wgs84 = pyproj.CRS("EPSG:4326")
-        target_crs = pyproj.CRS(town.epsg_code)
-        transformer = pyproj.Transformer.from_crs(wgs84, target_crs, always_xy=True)
-        x_proj, y_proj = transformer.transform(superc_latlon[1], superc_latlon[0])
-
-        # Find closest node by Euclidean distance in CRS
-        min_dist = float("inf")
-        closest_node_id = None
-
-        for node_id, data in town.town_graph.nodes(data=True):
-            dx = data['x'] - x_proj
-            dy = data['y'] - y_proj
-            dist = dx * dx + dy * dy  # squared distance for speed
-            if dist < min_dist:
-                min_dist = dist
-                closest_node_id = node_id
-
-        assert closest_node_id is not None, "No closest node found."
-        place_type = town.town_graph.nodes[closest_node_id].get("place_type")
-        assert place_type == "education", f"Expected 'education', got '{place_type}'"
-
-        # Confirm that the actual coordinate of super C centroid is not far
-        actual_x = town.town_graph.nodes[closest_node_id]["x"]
-        actual_y = town.town_graph.nodes[closest_node_id]["y"]
-        euclidean_distance = np.sqrt((actual_x - x_proj)**2 + (actual_y - y_proj)**2)
-        assert euclidean_distance < 50, f"Too far from SuperC (~{euclidean_distance:.2f} m)"    
-
-    def test_distance_to_landmarks_dom(self):
-        """
-        Test that the distance from the center of a large (2000m) DOM town to Theresienkirche and Hausarzt
-        is shorter than from a small (750m) DOM town, and that the distances do not deviate from expected values by more than 50m.
-        """
-        from scipy.spatial import KDTree
-
-        # Coordinates of landmarks
-        coords_theresienkirche = (50.77828, 6.078571)  # Theresienkirche
-        coords_hausarzt = (50.76943, 6.081437)         # Hausarzt
-
-        # Build two towns: one with 2000m, one with 750m
-        town_params_2000 = scon.TownParameters(100, 10)
-        town_2000 = scon.Town.from_point(self.point_dom, 2000, town_params_2000)
-        town_params_750 = scon.TownParameters(100, 10)
-        town_750 = scon.Town.from_point(self.point_dom, 750, town_params_750)
-
-        # Helper to get node nearest to a coordinate
-        def get_nearest_node(town, coords):
-            df = town.df_places
-            coords_arr = df[["lat", "lon"]].to_numpy()
-            kdtree = KDTree(coords_arr)
-            node_ids = df["node_id"].to_numpy()
-            _, idx = kdtree.query(coords)
-            return int(node_ids[idx])
-
-        node_theresienkirche_2000 = get_nearest_node(town_2000, coords_theresienkirche)
-        node_hausarzt_2000 = get_nearest_node(town_2000, coords_hausarzt)
-        node_theresienkirche_750 = get_nearest_node(town_750, coords_theresienkirche)
-        node_hausarzt_750 = get_nearest_node(town_750, coords_hausarzt)
-
-        # Helper to get shortest path distance between two nodes
-        def get_shortest_path_length(town, node_a, node_b):
-            G = town.town_graph
-            assert nx.has_path(G, node_a, node_b), \
-                "A path between Super C and the destinations (Theresienkirche/ Hausarzt) isn't found!"
-            return nx.shortest_path_length(G, node_a, node_b, weight="weight")
-
-        # Expected distances (meters)
-        expected_theresienkirche = 335
-        expected_hausarzt = 1245
-        tolerance = 50
-
-        # Calculate distances
-        dist_theresienkirche_2000 = get_shortest_path_length(town_2000, town_2000.center_node, node_theresienkirche_2000)
-        dist_theresienkirche_750 = get_shortest_path_length(town_750, town_750.center_node, node_theresienkirche_750)
-        dist_hausarzt_2000 = get_shortest_path_length(town_2000, town_2000.center_node, node_hausarzt_2000)
-        dist_hausarzt_750 = get_shortest_path_length(town_750, town_750.center_node, node_hausarzt_750)
-
-        # Assert that 2000m town gives shorter or equal distances than 750m town
-        # since with more streets included, a shorter or equal path is expected to be found.
-        assert dist_theresienkirche_2000 <= dist_theresienkirche_750, "Distance to Theresienkirche should be shorter in 2000m town"
-        assert dist_hausarzt_2000 <= dist_hausarzt_750, "Distance to Hausarzt should be shorter in 2000m town"
-
-        # Assert that distances do not deviate from expected values by more than 50m
-        assert abs(dist_theresienkirche_2000 - expected_theresienkirche) < tolerance, \
-            f"Distance to Theresienkirche deviates by more than {tolerance}m (got {dist_theresienkirche_2000:.2f}m)"
-        assert abs(dist_hausarzt_2000 - expected_hausarzt) < tolerance, \
-            f"Distance to Hausarzt deviates by more than {tolerance}m (got {dist_hausarzt_2000:.2f}m)"
-    @classmethod
-    def teardown_class(cls):
-        for prefix in ["dom", "uniklinik"]:
-            for fname in ["town_graph_metadata.json", "town_graph.graphmlz"]:
-                fpath = f"{prefix}_{fname}"
-                if os.path.exists(fpath):
-                    os.remove(fpath)
-
+    def setup_method(self):
+        # Disable OSMnx cache for tests
+        ox.settings.use_cache = False
+        # Remove OSMnx cache directory if it exists
+        cache_dir = os.path.expanduser("~/.osmnx")
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+        # Remove any custom cache or temp files the code might create
         if os.path.exists("cache"):
             shutil.rmtree("cache")
+
+    def teardown_method(self):
+        # Repeat cleanup after each test
+        cache_dir = os.path.expanduser("~/.osmnx")
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+        if os.path.exists("cache"):
+            shutil.rmtree("cache")
+
+    def test_healthcare_presence_and_all_types(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            point_dom = 50.7753, 6.0839
+            point_uniklinik = 50.77583, 6.045277
+            town_params = scon.TownParameters(100, 10)
+
+            town_dom = scon.Town.from_point(point_dom, 500, town_params, file_prefix="dom", save_dir=tmpdir)
+            town_uniklinik = scon.Town.from_point(point_uniklinik, 500, town_params, file_prefix="uniklinik", save_dir=tmpdir)
+
+            assert 'healthcare_facility' not in town_dom.found_place_types, \
+                "Expected the area within 0.5km from Aachener Dom to have no healthcare_facility."
+            assert 'healthcare_facility' in town_uniklinik.found_place_types, \
+                "Expected the area within 0.5km from Uniklinik to have healthcare_facility"
+
+            assert town_dom.all_place_types == town_uniklinik.all_place_types, \
+                "Expected both towns to have the same all_place_types list"
+
+    def test_superc_is_classified_as_education(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            superc_latlon = (50.77828, 6.078571)
+            point_dom = 50.7753, 6.0839
+            town_params = scon.TownParameters(100, 10)
+            town = scon.Town.from_point(point_dom, 750, town_params, file_prefix="dom_750m", save_dir=tmpdir)
+
+            # Project lat/lon to same CRS as town graph
+            wgs84 = pyproj.CRS("EPSG:4326")
+            target_crs = pyproj.CRS(town.epsg_code)
+            transformer = pyproj.Transformer.from_crs(wgs84, target_crs, always_xy=True)
+            x_proj, y_proj = transformer.transform(superc_latlon[1], superc_latlon[0])
+
+            # Find closest node by Euclidean distance in CRS
+            min_dist = float("inf")
+            closest_node_id = None
+
+            for node_id, data in town.town_graph.nodes(data=True):
+                dx = data['x'] - x_proj
+                dy = data['y'] - y_proj
+                dist = dx * dx + dy * dy  # squared distance for speed
+                if dist < min_dist:
+                    min_dist = dist
+                    closest_node_id = node_id
+
+            assert closest_node_id is not None, "No closest node found."
+            place_type = town.town_graph.nodes[closest_node_id].get("place_type")
+            assert place_type == "education", f"Expected 'education', got '{place_type}'"
+
+            # Confirm that the actual coordinate of super C centroid is not far
+            actual_x = town.town_graph.nodes[closest_node_id]["x"]
+            actual_y = town.town_graph.nodes[closest_node_id]["y"]
+            euclidean_distance = np.sqrt((actual_x - x_proj)**2 + (actual_y - y_proj)**2)
+            assert euclidean_distance < 50, f"Too far from SuperC (~{euclidean_distance:.2f} m)"
+
+    def test_distance_to_landmarks_dom(self):
+
+        # Coordinates of landmarks
+        coords_theresienkirche = (50.77809, 6.081859)  # Theresienkirche
+        coords_hausarzt = (50.76943, 6.081437)         # Hausarzt
+        coords_superC = (50.77828, 6.078571)           # SuperC 
+        point_dom = 50.7753, 6.0839
+
+        town_params_2000 = scon.TownParameters(100, 10)
+        town_params_750 = scon.TownParameters(100, 10)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            town_2000 = scon.Town.from_point(point_dom, 2000, town_params_2000, file_prefix="dom_2000m", save_dir=tmpdir)
+            town_750 = scon.Town.from_point(point_dom, 750, town_params_750, file_prefix="dom_750m", save_dir=tmpdir)
+
+            # Helper to get node nearest to a coordinate
+            def get_nearest_node(town, coords):
+                lat, lon = coords
+                # Transform lat/lon to projected x/y coordinates
+                transformer = Transformer.from_crs("EPSG:4326", f"EPSG:{town.epsg_code}", always_xy=True)
+                x, y = transformer.transform(lon, lat)
+
+                # Find the closest node in the graph using Euclidean distance
+                min_dist = float("inf")
+                closest_node = None
+                for node, data in town.town_graph.nodes(data=True):
+                    dx = float(data["x"]) - x
+                    dy = float(data["y"]) - y
+                    dist = dx ** 2 + dy ** 2  # squared distance
+                    if dist < min_dist:
+                        min_dist = dist
+                        closest_node = node
+                return closest_node
+            # Helper to get shortest path distance between two nodes
+            def get_shortest_path_length(town, node_a, node_b):
+                G = town.town_graph
+                assert nx.has_path(G, node_a, node_b), \
+                    "A path between Super C and the destinations (Theresienkirche/ Hausarzt) isn't found!"
+                return nx.shortest_path_length(G, node_a, node_b, weight="weight")
+                
+            node_theresienkirche_2000 = get_nearest_node(town_2000, coords_theresienkirche)
+            node_hausarzt_2000 = get_nearest_node(town_2000, coords_hausarzt)
+            node_superC_2000 = get_nearest_node(town_2000, coords_superC)
+            node_theresienkirche_750 = get_nearest_node(town_750, coords_theresienkirche)
+            node_hausarzt_750 = get_nearest_node(town_750, coords_hausarzt)
+            node_superC_750 = get_nearest_node(town_750, coords_superC)
+
+            # Expected distances (meters)
+            expected_theresienkirche = 335
+            expected_hausarzt = 1245
+            tolerance = 50
+
+            # Calculate distances
+            dist_theresienkirche_2000 = get_shortest_path_length(town_2000, node_superC_2000, node_theresienkirche_2000)
+            dist_theresienkirche_750 = get_shortest_path_length(town_750, node_superC_750, node_theresienkirche_750)
+            dist_hausarzt_2000 = get_shortest_path_length(town_2000, node_superC_2000, node_hausarzt_2000)
+            dist_hausarzt_750 = get_shortest_path_length(town_750, node_superC_750, node_hausarzt_750)
+
+            # Assert that 2000m town gives shorter or equal distances than 750m town
+            assert dist_theresienkirche_2000 <= dist_theresienkirche_750, "Distance to Theresienkirche should be shorter in 2000m town"
+            assert dist_hausarzt_2000 <= dist_hausarzt_750, "Distance to Hausarzt should be shorter in 2000m town"
+
+            # Assert that distances do not deviate from expected values by more than 50m
+            assert abs(dist_theresienkirche_2000 - expected_theresienkirche) < tolerance, \
+                f"Distance to Theresienkirche deviates by more than {tolerance}m (got {dist_theresienkirche_2000:.2f}m)"
+            assert abs(dist_hausarzt_2000 - expected_hausarzt) < tolerance, \
+                f"Distance to Hausarzt deviates by more than {tolerance}m (got {dist_hausarzt_2000:.2f}m)"
+
+    def test_from_point_and_from_files_equivalence(self):
+        # Use test_data for from_files, and a temp dir for from_point
+        test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
+        test_metadata = "test/test_data/aachen_dom_500m_metadata.json"
+        town_params = scon.TownParameters(100, 10)
+        point_dom = 50.7753, 6.0839
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Generate a new town with the same parameters and save to temp dir
+            town = scon.Town.from_point(point_dom, 500, town_params, file_prefix="compare", save_dir=tmpdir)
+            # Now load both graphs
+            town_from_file = scon.Town.from_files(
+                metadata_path=test_metadata,
+                town_graph_path=test_graphmlz,
+                town_params=town_params
+            )
+            # Compare node and edge sets and attributes
+            G1 = town.town_graph
+            G2 = town_from_file.town_graph
+
+            # Check nodes and attributes
+            assert set(G1.nodes) == set(G2.nodes), "Node sets differ"
+            for n in G1.nodes:
+                assert G1.nodes[n] == G2.nodes[n], f"Node attributes differ for node {n}"
+
+            # Check edges and attributes
+            assert set(G1.edges) == set(G2.edges), "Edge sets differ"
+            for e in G1.edges:
+                assert G1.edges[e] == G2.edges[e], f"Edge attributes differ for edge {e}"
+
+            # Optionally, compare metadata if needed
+            assert town.all_place_types == town_from_file.all_place_types, "all_place_types differ"
+            assert set(town.found_place_types) == set(town_from_file.found_place_types), "found_place_types differ"
