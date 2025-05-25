@@ -1,13 +1,9 @@
 import json
 import osmnx as ox
-from itertools import combinations
-from tqdm import tqdm
-from scipy.spatial import KDTree
 import numpy as np
 import zipfile
 import os
 import tempfile
-import igraph as ig
 
 from . import nx
 
@@ -90,6 +86,10 @@ class Town():
             file_prefix="town_graph",
             save_dir="."       
         ):
+
+        import igraph as ig
+        from tqdm import tqdm
+        from scipy.spatial import KDTree
 
         if not callable(classify_place_func):
             raise TypeError("`classify_place_func` must be a function.")
@@ -199,7 +199,7 @@ class Town():
 
         # Compute all-pairs shortest paths among filtered nodes
         print("Computing shortest paths between filtered nodes...")
-        dist_matrix = g_ig.shortest_paths_dijkstra(
+        dist_matrix = g_ig.distances(
             source=filtered_indices, target=filtered_indices, weights=g_ig.es["weight"]
         )
 
