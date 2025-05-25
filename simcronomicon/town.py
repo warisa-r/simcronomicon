@@ -5,6 +5,7 @@ from tqdm import tqdm
 import zipfile
 import os
 import tempfile
+import igraph as ig
 
 from . import nx
 
@@ -112,6 +113,10 @@ class Town():
         town.dist = dist
 
         print("[2/10] Calculating EPSG code...")
+        if not isinstance(point, (list, tuple)) or len(point) != 2:
+            raise ValueError("`point` must be a list or tuple in the format [latitude, longitude].")
+        if not (-90 <= point[0] <= 90 and -180 <= point[1] <= 180):
+            raise ValueError("`point` values must represent valid latitude and longitude coordinates.")
         utm_zone = int((point[1] + 180) / 6) + 1
         hemisphere = 'north' if point[0] >= 0 else 'south'
         epsg_code = f"326{utm_zone}" if hemisphere == 'north' else f"327{utm_zone}"
@@ -150,39 +155,61 @@ class Town():
         G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
         print("[9/10] Building town graph...")
+        # Step 1: Convert G_projected to igraph
+        projected_nodes = list(G_projected.nodes)
+        node_idx_map = {node: idx for idx, node in enumerate(projected_nodes)}
+
+        g_ig = ig.Graph(directed=False)
+        g_ig.add_vertices(len(projected_nodes))
+
+        edges = []
+        weights = []
+
+        for u, v, data in G_projected.edges(data=True):
+            if u in node_idx_map and v in node_idx_map:
+                edges.append((node_idx_map[u], node_idx_map[v]))
+                weights.append(data.get("length", 1.0))
+
+        g_ig.add_edges(edges)
+        g_ig.es["weight"] = weights
+
+        # Step 2: Filtered nodes for shortest path computation
+        filtered_nodes = list(G_filtered.nodes)
+        filtered_indices = [node_idx_map[n] for n in filtered_nodes]
+
+        # Step 3: Compute all-pairs shortest paths among filtered nodes
+        print("Computing shortest paths between filtered nodes...")
+        dist_matrix = g_ig.shortest_paths_dijkstra(
+            source=filtered_indices, target=filtered_indices, weights=g_ig.es["weight"]
+        )
+
+        # Step 4: Build final NetworkX town graph using filtered nodes and shortest paths
         town.town_graph = nx.Graph()
-        old_nodes = list(G_filtered.nodes)
-        id_map = {
-            old_id: new_id for new_id,
-            old_id in enumerate(old_nodes)}
+        id_map = {old_id: new_id for new_id, old_id in enumerate(filtered_nodes)}
         town.accommodation_node_ids = []
 
         for old_id, new_id in id_map.items():
-            place_type = G_filtered.nodes[old_id].get('place_type')
+            place_type = G_filtered.nodes[old_id].get("place_type")
             row = POI[POI['nearest_node'] == old_id]
             if not row.empty:
                 geom = row.iloc[0].geometry
-                x = geom.x
-                y = geom.y
+                x, y = geom.x, geom.y
             else:
-                raise ValueError(
-                    "Corrupted DataFrame found. Please check that the input area includes buildings with valid centroid mappings!")
+                raise ValueError("Missing centroid mapping for node.")
 
-            if place_type == 'accommodation':
+            if place_type == "accommodation":
                 town.accommodation_node_ids.append(new_id)
 
             town.town_graph.add_node(new_id, place_type=place_type, x=x, y=y)
 
-        print("Calculating shortest paths between all node pairs...")
-        for id1, id2 in tqdm(combinations(old_nodes, 2), total=len(
-                old_nodes) * (len(old_nodes) - 1) // 2):
-            try:
-                dist = nx.shortest_path_length(
-                    G_projected, source=id1, target=id2, weight='length')
-                town.town_graph.add_edge(
-                    id_map[id1], id_map[id2], weight=dist)
-            except nx.NetworkXNoPath:
-                continue
+        print("Adding edges to final town graph...")
+        for i in tqdm(range(len(filtered_nodes))):
+            for j in range(i + 1, len(filtered_nodes)):
+                dist = dist_matrix[i][j]
+                if dist != float("inf"):
+                    town.town_graph.add_edge(id_map[filtered_nodes[i]],
+                                            id_map[filtered_nodes[j]],
+                                            weight=dist)
 
         town.found_place_types = set(
             nx.get_node_attributes(
@@ -191,6 +218,12 @@ class Town():
 
         print("[10/10] Saving a compressed graph and metadata...")
         nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
+        if os.path.exists("town_graph.graphmlz"):
+            overwrite = input("The file 'town_graph.graphmlz' already exists. Overwrite? (y/n): ").strip().lower()
+            if overwrite != 'y':
+                print("Operation aborted to avoid overwriting the file.")
+                return town
+
         with zipfile.ZipFile("town_graph.graphmlz", "w", zipfile.ZIP_DEFLATED) as zf:
             zf.write("town_graph.graphml", arcname="graph.graphml")
         os.remove("town_graph.graphml")
@@ -206,8 +239,8 @@ class Town():
         with open("town_graph_metadata.json", "w") as f:
             json.dump(metadata, f, indent=2)
 
-        for i in range(len(town.town_graph.nodes)):
-            town.town_graph.nodes[i]['folks'] = []
+        for node in town.town_graph.nodes:
+            town.town_graph.nodes[node]['folks'] = []
 
         print("Town graph successfully built and saved!")
         return town

@@ -67,16 +67,19 @@ class Simulation:
             current_node = person.address
             # Get the shortest path lengths from current_node to all other
             # nodes, considering edge weights
-            lengths = nx.single_source_dijkstra_path_length(
-                self.town.town_graph, current_node, cutoff=step_event.max_distance)
 
             if person.priority_place_type == []:
                 # If this agent doesn't have a place that they prioritize to go to, send them on their normal schedule
                 # like everybody else in the town.
                 # Get the nodes where the shortest path length is less than or
                 # equal to the possible travel distance
-                candidates = [node for node, dist in lengths.items() if dist <= step_event.max_distance
-                              and self.town.town_graph.nodes[node]['place_type'] in step_event.place_types]
+                candidates = [
+                                neighbor for neighbor in self.town.town_graph.nodes
+                                if neighbor != current_node
+                                and self.town.town_graph[current_node].get(neighbor)  # check if an edge exists
+                                and self.town.town_graph[current_node][neighbor]['weight'] <= step_event.max_distance
+                                and self.town.town_graph.nodes[neighbor]['place_type'] in step_event.place_types
+                            ]
             else:
                 # If the agent has prioritized place types to go to
                 # Find the closest node with one of those place types,
