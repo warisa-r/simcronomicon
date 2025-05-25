@@ -3,8 +3,8 @@ import simcronomicon as scon
 point =     50.7753, 6.0839
 town_params = scon.TownParameters(10000, 10)
 #town = scon.Town.from_point(point, 500, town_params)
-town_graph_path = "test/test_data/town_graph_aachen_dom_2000m.graphmlz"
-town_metadata_path = "test/test_data/town_graph_metadata_aachen_dom_2000m.json"
+town_graph_path = "test/test_data/aachen_dom_2000m.graphmlz"
+town_metadata_path = "test/test_data/aachen_dom_2000m_metadata.json"
 
 
 town = scon.Town.from_files(
@@ -25,6 +25,5 @@ model_params = scon.SEIQRDVModelParameters(2, 0.6, 0.05, 5, 2, 3, 4, 0.3)
 model = scon.SEIQRDVModel(model_params)
 sim = scon.Simulation(town, model, 1000)
 sim.run(True)
-#scon.plot_status_summary_from_csv("simulation_results.csv")
-#scon.plot_status_summary_from_hdf5("simulation_output.h5")
+scon.plot_status_summary_from_hdf5("simulation_output.h5")
 #scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
