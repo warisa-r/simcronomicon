@@ -86,7 +86,10 @@ class Town():
             dist,
             town_params,
             classify_place_func=classify_place,
-            all_place_types=None):
+            all_place_types=None,
+            file_prefix="town_graph",
+            save_dir="."       
+        ):
 
         if not callable(classify_place_func):
             raise TypeError("`classify_place_func` must be a function.")
@@ -234,16 +237,20 @@ class Town():
                 'place_type').values())
 
         print("[10/10] Saving a compressed graph and metadata...")
-        nx.write_graphml_lxml(town.town_graph, "town_graph.graphml")
-        if os.path.exists("town_graph.graphmlz"):
-            overwrite = input("The file 'town_graph.graphmlz' already exists. Overwrite? (y/n): ").strip().lower()
+        graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
+        graphmlz_name = os.path.join(save_dir, f"{file_prefix}.graphmlz")
+        metadata_name = os.path.join(save_dir, f"{file_prefix}_metadata.json")
+
+        nx.write_graphml_lxml(town.town_graph, graphml_name)
+        if os.path.exists(graphmlz_name):
+            overwrite = input(f"The file '{graphmlz_name}' already exists. Overwrite? (y/n): ").strip().lower()
             if overwrite != 'y':
-                print("Operation aborted to avoid overwriting the file.")
+                print("Input file saving operation aborted to avoid overwriting the file. Returning town object../")
                 return town
 
-        with zipfile.ZipFile("town_graph.graphmlz", "w", zipfile.ZIP_DEFLATED) as zf:
-            zf.write("town_graph.graphml", arcname="graph.graphml")
-        os.remove("town_graph.graphml")
+        with zipfile.ZipFile(graphmlz_name, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.write(graphml_name, arcname="graph.graphml")
+        os.remove(graphml_name) # Remove the unzipped file
 
         metadata = {
             "origin_point": [float(point[0]), float(point[1])],
@@ -253,9 +260,10 @@ class Town():
             "found_place_types": list(town.found_place_types),
             "accommodation_nodes": list(town.accommodation_node_ids),
         }
-        with open("town_graph_metadata.json", "w") as f:
+        with open(metadata_name, "w") as f:
             json.dump(metadata, f, indent=2)
 
+        # This attribute has to be assigned here since xml doesn't support writing list as attributes
         for node in town.town_graph.nodes:
             town.town_graph.nodes[node]['folks'] = []
 
