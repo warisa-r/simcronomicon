@@ -17,7 +17,6 @@ import osmnx as ox
 import simcronomicon as scon
 
 class TestTown(object):
-
     def setup_method(self):
         # Disable OSMnx cache for tests
         ox.settings.use_cache = False
@@ -36,6 +35,36 @@ class TestTown(object):
             shutil.rmtree(cache_dir)
         if os.path.exists("cache"):
             shutil.rmtree("cache")
+
+    def test_graphmlz_file_saved_and_overwrite_prompt(self):
+        import builtins
+
+        point_dom = 50.7753, 6.0839
+        town_params = scon.TownParameters(100, 10)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_prefix = "overwrite_test"
+            graphmlz_path = os.path.join(tmpdir, f"{file_prefix}.graphmlz")
+
+            # First save: file should be created
+            town = scon.Town.from_point(point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
+            assert os.path.exists(graphmlz_path), "GraphMLZ file was not saved in the specified directory"
+
+            # Second save: should prompt for overwrite
+            prompts = []
+            def fake_input(prompt):
+                prompts.append(prompt)
+                return "y"  # Simulate user typing 'y' to overwrite
+
+            # Patch input to simulate user confirmation
+            original_input = builtins.input
+            builtins.input = fake_input
+            try:
+                town2 = scon.Town.from_point(point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
+            finally:
+                builtins.input = original_input
+
+            # Check that the prompt was shown
+            assert any("already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown"
 
     def test_healthcare_presence_and_all_types(self):
         with tempfile.TemporaryDirectory() as tmpdir:
