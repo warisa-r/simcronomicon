@@ -81,6 +81,65 @@ class TestTown(object):
         euclidean_distance = np.sqrt((actual_x - x_proj)**2 + (actual_y - y_proj)**2)
         assert euclidean_distance < 50, f"Too far from SuperC (~{euclidean_distance:.2f} m)"    
 
+    def test_distance_to_landmarks_dom(self):
+        """
+        Test that the distance from the center of a large (2000m) DOM town to Theresienkirche and Hausarzt
+        is shorter than from a small (750m) DOM town, and that the distances do not deviate from expected values by more than 50m.
+        """
+        from scipy.spatial import KDTree
+
+        # Coordinates of landmarks
+        coords_theresienkirche = (50.77828, 6.078571)  # Theresienkirche
+        coords_hausarzt = (50.76943, 6.081437)         # Hausarzt
+
+        # Build two towns: one with 2000m, one with 750m
+        town_params_2000 = scon.TownParameters(100, 10)
+        town_2000 = scon.Town.from_point(self.point_dom, 2000, town_params_2000)
+        town_params_750 = scon.TownParameters(100, 10)
+        town_750 = scon.Town.from_point(self.point_dom, 750, town_params_750)
+
+        # Helper to get node nearest to a coordinate
+        def get_nearest_node(town, coords):
+            df = town.df_places
+            coords_arr = df[["lat", "lon"]].to_numpy()
+            kdtree = KDTree(coords_arr)
+            node_ids = df["node_id"].to_numpy()
+            _, idx = kdtree.query(coords)
+            return int(node_ids[idx])
+
+        node_theresienkirche_2000 = get_nearest_node(town_2000, coords_theresienkirche)
+        node_hausarzt_2000 = get_nearest_node(town_2000, coords_hausarzt)
+        node_theresienkirche_750 = get_nearest_node(town_750, coords_theresienkirche)
+        node_hausarzt_750 = get_nearest_node(town_750, coords_hausarzt)
+
+        # Helper to get shortest path distance between two nodes
+        def get_shortest_path_length(town, node_a, node_b):
+            G = town.town_graph
+            assert nx.has_path(G, node_a, node_b), \
+                "A path between Super C and the destinations (Theresienkirche/ Hausarzt) isn't found!"
+            return nx.shortest_path_length(G, node_a, node_b, weight="weight")
+
+        # Expected distances (meters)
+        expected_theresienkirche = 335
+        expected_hausarzt = 1245
+        tolerance = 50
+
+        # Calculate distances
+        dist_theresienkirche_2000 = get_shortest_path_length(town_2000, town_2000.center_node, node_theresienkirche_2000)
+        dist_theresienkirche_750 = get_shortest_path_length(town_750, town_750.center_node, node_theresienkirche_750)
+        dist_hausarzt_2000 = get_shortest_path_length(town_2000, town_2000.center_node, node_hausarzt_2000)
+        dist_hausarzt_750 = get_shortest_path_length(town_750, town_750.center_node, node_hausarzt_750)
+
+        # Assert that 2000m town gives shorter or equal distances than 750m town
+        # since with more streets included, a shorter or equal path is expected to be found.
+        assert dist_theresienkirche_2000 <= dist_theresienkirche_750, "Distance to Theresienkirche should be shorter in 2000m town"
+        assert dist_hausarzt_2000 <= dist_hausarzt_750, "Distance to Hausarzt should be shorter in 2000m town"
+
+        # Assert that distances do not deviate from expected values by more than 50m
+        assert abs(dist_theresienkirche_2000 - expected_theresienkirche) < tolerance, \
+            f"Distance to Theresienkirche deviates by more than {tolerance}m (got {dist_theresienkirche_2000:.2f}m)"
+        assert abs(dist_hausarzt_2000 - expected_hausarzt) < tolerance, \
+            f"Distance to Hausarzt deviates by more than {tolerance}m (got {dist_hausarzt_2000:.2f}m)"
     @classmethod
     def teardown_class(cls):
         for prefix in ["dom", "uniklinik"]:

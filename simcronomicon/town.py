@@ -2,6 +2,8 @@ import json
 import osmnx as ox
 from itertools import combinations
 from tqdm import tqdm
+from scipy.spatial import KDTree
+import numpy as np
 import zipfile
 import os
 import tempfile
@@ -138,9 +140,23 @@ class Town():
         POI = buildings[buildings.geometry.geom_type == 'Point']
 
         print("[5/10] Matching building centroids to nearest road nodes...")
-        POI['nearest_node'] = POI.geometry.apply(
-            lambda geom: ox.distance.nearest_nodes(G_projected, geom.x, geom.y)
-        )
+        # Get projected coordinates of road nodes
+        node_xy = {
+            node: (data['x'], data['y'])
+            for node, data in G_projected.nodes(data=True)
+        }
+        node_ids = list(node_xy.keys())
+        node_coords = np.array([node_xy[n] for n in node_ids])
+
+        # Build KDTree for fast nearest-neighbor queries
+        tree = KDTree(node_coords)
+
+        # Get POI coords
+        poi_coords = np.array([(geom.x, geom.y) for geom in POI.geometry])
+
+        # Query nearest road node for each POI
+        _, nearest_indices = tree.query(poi_coords)
+        POI['nearest_node'] = [node_ids[i] for i in nearest_indices]
 
         print("[6/10] Classifying buildings...")
         POI['place_type'] = POI.apply(classify_place_func, axis=1)
@@ -155,7 +171,8 @@ class Town():
         G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
         print("[9/10] Building town graph...")
-        # Step 1: Convert G_projected to igraph
+        # We use igraph here for fast distance computation between nodes. The rest of the simulation uses NetworkX for its flexible attribute handling.
+        # Convert G_projected to igraph
         projected_nodes = list(G_projected.nodes)
         node_idx_map = {node: idx for idx, node in enumerate(projected_nodes)}
 
@@ -173,17 +190,17 @@ class Town():
         g_ig.add_edges(edges)
         g_ig.es["weight"] = weights
 
-        # Step 2: Filtered nodes for shortest path computation
+        # Filtered nodes for shortest path computation
         filtered_nodes = list(G_filtered.nodes)
         filtered_indices = [node_idx_map[n] for n in filtered_nodes]
 
-        # Step 3: Compute all-pairs shortest paths among filtered nodes
+        # Compute all-pairs shortest paths among filtered nodes
         print("Computing shortest paths between filtered nodes...")
         dist_matrix = g_ig.shortest_paths_dijkstra(
             source=filtered_indices, target=filtered_indices, weights=g_ig.es["weight"]
         )
 
-        # Step 4: Build final NetworkX town graph using filtered nodes and shortest paths
+        # Build final NetworkX town graph using filtered nodes and shortest paths
         town.town_graph = nx.Graph()
         id_map = {old_id: new_id for new_id, old_id in enumerate(filtered_nodes)}
         town.accommodation_node_ids = []

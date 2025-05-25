@@ -90,19 +90,21 @@ class Simulation:
                 for node in self.town.town_graph.nodes:
                     node_place_type = self.town.town_graph.nodes[node]['place_type']
                     if node_place_type in person.priority_place_type:
-                        try:
-                            dist = nx.shortest_path_length(
-                                self.town.town_graph, person.address, node, weight='length')
-                        except nx.NetworkXNoPath:
+                        if self.town.town_graph.has_edge(person.address, node):
+                            dist = self.town.town_graph[person.address][node]['weight']
+                        else:
                             continue
                         if dist < min_dist:
                             min_dist = dist
                             chosen_node = node
                             chosen_place_type = node_place_type
 
-                candidates = [chosen_node]
-                # Remove the visited place type from the priority list
-                person.priority_place_type.remove(chosen_place_type)
+                # If there exists a precomputed shortest path from the current location to this place,
+                # move agent to the prioritized place and remove that place from the priority list.
+                if chosen_node and chosen_place_type:
+                    candidates = [chosen_node]
+                    # Remove the visited place type from the priority list
+                    person.priority_place_type.remove(chosen_place_type)
 
             if candidates:
                 new_node = rd.choice(candidates)
