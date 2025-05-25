@@ -140,7 +140,10 @@ def plot_status_summary_from_csv(file_path, status_type=None):
         ylabel="Density")
 
 
-def _load_node_info_from_graphmlz(town_graph_path, epsg_code, return_place_type=False):
+def _load_node_info_from_graphmlz(
+        town_graph_path,
+        epsg_code,
+        return_place_type=False):
     with tempfile.TemporaryDirectory() as tmpdirname:
         with zipfile.ZipFile(town_graph_path, 'r') as zf:
             zf.extractall(tmpdirname)
@@ -148,7 +151,8 @@ def _load_node_info_from_graphmlz(town_graph_path, epsg_code, return_place_type=
             G = nx.read_graphml(graphml_path)
             G = nx.relabel_nodes(G, lambda x: int(x))
 
-    transformer = Transformer.from_crs(f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
+    transformer = Transformer.from_crs(
+        f"EPSG:{epsg_code}", "EPSG:4326", always_xy=True)
 
     node_positions = {}
     node_place_types = {} if return_place_type else None
@@ -170,6 +174,7 @@ def _load_node_info_from_graphmlz(town_graph_path, epsg_code, return_place_type=
     if return_place_type:
         return node_positions, node_place_types
     return node_positions
+
 
 def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     """
@@ -217,6 +222,7 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     )
     fig.update_traces(marker=dict(size=9, opacity=0.8))
     fig.show()
+
 
 def visualize_folks_on_map_from_sim(
         output_hdf5_path,

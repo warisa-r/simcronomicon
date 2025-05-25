@@ -5,6 +5,21 @@ import random as rd
 
 class SEIQRDVModelParameters(AbstractModelParameters):
     def __init__(self, max_energy, beta, alpha, gamma, delta, lam, rho, kappa):
+        for name, value in zip(
+            ['beta', 'alpha', 'gamma', 'delta', 'lam', 'rho', 'kappa'],
+            [beta, alpha, gamma, delta, lam, rho, kappa]
+        ):
+            if name in ['beta', 'kappa', 'alpha']:
+                if not isinstance(
+                        value, (float, int)) or not (
+                        0 <= value <= 1):
+                    raise TypeError(
+                        f"{name} must be a float between 0 and 1!")
+            else:
+                if not isinstance(value, int) or value <= 0:
+                    raise TypeError(
+                        f"{name} must be a positive integer since it is a value that described duration, got {value}")
+
         super().__init__(max_energy)
 
         # Adapted from https://www.mdpi.com/2227-7390/9/6/636

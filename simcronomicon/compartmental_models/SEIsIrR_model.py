@@ -49,7 +49,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
             float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
 
         if not isinstance(mem_span, int) or mem_span <= 1:
-            raise ValueError(
+            raise TypeError(
                 f"mem_span must be an integer greater than 1, got {mem_span}")
 
         # Store some parameters so that they can be recalled as simulation

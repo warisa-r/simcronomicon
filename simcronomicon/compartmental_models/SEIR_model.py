@@ -5,6 +5,20 @@ import random as rd
 
 class SEIRModelParameters(AbstractModelParameters):
     def __init__(self, max_energy, beta, sigma, gamma, xi):
+        # Check types and ranges
+        for name, value in zip(
+            ['beta', 'sigma', 'gamma', 'xi'],
+            [beta, sigma, gamma, xi]
+        ):
+            if name == 'beta':
+                if not isinstance(value, (float, int)) or not (0 < value < 1):
+                    raise TypeError(
+                        "beta must be a float between 0 and 1 (exclusive)!")
+            else:
+                if not isinstance(value, int) or value <= 0:
+                    raise TypeError(
+                        f"{name} must be a positive integer since it is a value that described duration, got {value}")
+
         super().__init__(max_energy)
 
         self.beta = beta  # Transimssion probability

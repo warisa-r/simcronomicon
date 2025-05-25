@@ -4,6 +4,8 @@ from .step_event import StepEvent, EventType
 
 class AbstractModelParameters():
     def __init__(self, max_energy):
+        assert isinstance(
+            max_energy, int) and max_energy > 0, "max_energy must be a positive integer!"
         self.max_energy = max_energy
 
     def to_metadata_dict(self):

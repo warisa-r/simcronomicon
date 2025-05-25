@@ -74,12 +74,13 @@ class Simulation:
                 # Get the nodes where the shortest path length is less than or
                 # equal to the possible travel distance
                 candidates = [
-                                neighbor for neighbor in self.town.town_graph.nodes
-                                if neighbor != current_node
-                                and self.town.town_graph[current_node].get(neighbor)  # check if an edge exists
-                                and self.town.town_graph[current_node][neighbor]['weight'] <= step_event.max_distance
-                                and self.town.town_graph.nodes[neighbor]['place_type'] in step_event.place_types
-                            ]
+                    neighbor for neighbor in self.town.town_graph.nodes
+                    if neighbor != current_node
+                    # check if an edge exists
+                    and self.town.town_graph[current_node].get(neighbor)
+                    and self.town.town_graph[current_node][neighbor]['weight'] <= step_event.max_distance
+                    and self.town.town_graph.nodes[neighbor]['place_type'] in step_event.place_types
+                ]
             else:
                 # If the agent has prioritized place types to go to
                 # Find the closest node with one of those place types,
@@ -100,7 +101,8 @@ class Simulation:
                             chosen_place_type = node_place_type
 
                 # If there exists a precomputed shortest path from the current location to this place,
-                # move agent to the prioritized place and remove that place from the priority list.
+                # move agent to the prioritized place and remove that place
+                # from the priority list.
                 if chosen_node and chosen_place_type:
                     candidates = [chosen_node]
                     # Remove the visited place type from the priority list

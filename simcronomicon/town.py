@@ -77,15 +77,15 @@ class Town():
 
     @classmethod
     def from_point(
-            cls,
-            point,
-            dist,
-            town_params,
-            classify_place_func=classify_place,
-            all_place_types=None,
-            file_prefix="town_graph",
-            save_dir="."       
-        ):
+        cls,
+        point,
+        dist,
+        town_params,
+        classify_place_func=classify_place,
+        all_place_types=None,
+        file_prefix="town_graph",
+        save_dir="."
+    ):
 
         import igraph as ig
         from tqdm import tqdm
@@ -119,9 +119,11 @@ class Town():
 
         print("[2/10] Calculating EPSG code...")
         if not isinstance(point, (list, tuple)) or len(point) != 2:
-            raise ValueError("`point` must be a list or tuple in the format [latitude, longitude].")
+            raise ValueError(
+                "`point` must be a list or tuple in the format [latitude, longitude].")
         if not (-90 <= point[0] <= 90 and -180 <= point[1] <= 180):
-            raise ValueError("`point` values must represent valid latitude and longitude coordinates.")
+            raise ValueError(
+                "`point` values must represent valid latitude and longitude coordinates.")
         utm_zone = int((point[1] + 180) / 6) + 1
         hemisphere = 'north' if point[0] >= 0 else 'south'
         epsg_code = f"326{utm_zone}" if hemisphere == 'north' else f"327{utm_zone}"
@@ -200,12 +202,16 @@ class Town():
         # Compute all-pairs shortest paths among filtered nodes
         print("Computing shortest paths between filtered nodes...")
         dist_matrix = g_ig.distances(
-            source=filtered_indices, target=filtered_indices, weights=g_ig.es["weight"]
-        )
+            source=filtered_indices,
+            target=filtered_indices,
+            weights=g_ig.es["weight"])
 
-        # Build final NetworkX town graph using filtered nodes and shortest paths
+        # Build final NetworkX town graph using filtered nodes and shortest
+        # paths
         town.town_graph = nx.Graph()
-        id_map = {old_id: new_id for new_id, old_id in enumerate(filtered_nodes)}
+        id_map = {
+            old_id: new_id for new_id,
+            old_id in enumerate(filtered_nodes)}
         town.accommodation_node_ids = []
 
         for old_id, new_id in id_map.items():
@@ -228,8 +234,8 @@ class Town():
                 dist = dist_matrix[i][j]
                 if dist != float("inf"):
                     town.town_graph.add_edge(id_map[filtered_nodes[i]],
-                                            id_map[filtered_nodes[j]],
-                                            weight=dist)
+                                             id_map[filtered_nodes[j]],
+                                             weight=dist)
 
         town.found_place_types = set(
             nx.get_node_attributes(
@@ -243,14 +249,16 @@ class Town():
 
         nx.write_graphml_lxml(town.town_graph, graphml_name)
         if os.path.exists(graphmlz_name):
-            overwrite = input(f"The file '{graphmlz_name}' already exists. Overwrite? (y/n): ").strip().lower()
+            overwrite = input(
+                f"The file '{graphmlz_name}' already exists. Overwrite? (y/n): ").strip().lower()
             if overwrite != 'y':
-                print("Input file saving operation aborted to avoid overwriting the file. Returning town object../")
+                print(
+                    "Input file saving operation aborted to avoid overwriting the file. Returning town object../")
                 return town
 
         with zipfile.ZipFile(graphmlz_name, "w", zipfile.ZIP_DEFLATED) as zf:
             zf.write(graphml_name, arcname="graph.graphml")
-        os.remove(graphml_name) # Remove the unzipped file
+        os.remove(graphml_name)  # Remove the unzipped file
 
         metadata = {
             "origin_point": [float(point[0]), float(point[1])],
@@ -263,7 +271,8 @@ class Town():
         with open(metadata_name, "w") as f:
             json.dump(metadata, f, indent=2)
 
-        # This attribute has to be assigned here since xml doesn't support writing list as attributes
+        # This attribute has to be assigned here since xml doesn't support
+        # writing list as attributes
         for node in town.town_graph.nodes:
             town.town_graph.nodes[node]['folks'] = []
 
