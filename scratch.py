@@ -15,7 +15,7 @@ town = scon.Town.from_files(
 
 
 
-#scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
+scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
 
 #model_params = scon.SEIsIrRModelParameters(4 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
 #model = scon.SEIsIrRModel(model_params)
