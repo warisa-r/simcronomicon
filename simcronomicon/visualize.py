@@ -180,6 +180,9 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     """
     Visualize nodes from town_graph.graphmlz with their place_type using Plotly + OSM.
     """
+    assert town_graph_path.endswith(".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
+    assert town_metadata_path.endswith(".json"), f"Expected a .json file for town_metadata_path, got {town_metadata_path}"
+
     with open(town_metadata_path, "r") as f:
         metadata = json.load(f)
     epsg_code = metadata["epsg_code"]
@@ -228,6 +231,9 @@ def visualize_folks_on_map_from_sim(
         output_hdf5_path,
         town_graph_path,
         time_interval=None):
+    assert output_hdf5_path.endswith(".h5"), f"Expected a .h5 file for output_hdf5_path, got {output_hdf5_path}"
+    assert town_graph_path.endswith(".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
+
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:
         town_metadata_json_bytes = h5["metadata/town_metadata"][()]
