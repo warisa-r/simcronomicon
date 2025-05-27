@@ -1,2 +1,2 @@
-from .status_summary_plot import plot_status_summary_from_hdf5
+from .plot_status_summary import plot_status_summary_from_hdf5
 from .visualize_map import visualize_folks_on_map_from_sim, visualize_place_types_from_graphml
