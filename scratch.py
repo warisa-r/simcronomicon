@@ -15,15 +15,15 @@ town = scon.Town.from_files(
 
 
 
-scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
+#scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
 
 #model_params = scon.SEIsIrRModelParameters(4 , 0.7, 0.7, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
 #model = scon.SEIsIrRModel(model_params)
 #model_params = scon.SEIRModelParameters(max_energy=5, beta= 0.4, sigma= 6, gamma=5, xi = 200)
 #model = scon.SEIRModel(model_params)
-#model_params = scon.SEIQRDVModelParameters(2, 0.6, 0.05, 5, 2, 3, 4, 0.3)
-#model = scon.SEIQRDVModel(model_params)
-#sim = scon.Simulation(town, model, 1000)
-#sim.run(True)
+model_params = scon.SEIQRDVModelParameters(2, 0.6, 0.05, 5, 2, 3, 4, 0.3, 100)
+model = scon.SEIQRDVModel(model_params)
+sim = scon.Simulation(town, model, 1000)
+sim.run(True)
 scon.plot_status_summary_from_hdf5("simulation_output.h5")
 scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)

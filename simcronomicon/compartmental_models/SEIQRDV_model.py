@@ -4,10 +4,10 @@ import random as rd
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):
-    def __init__(self, max_energy, beta, alpha, gamma, delta, lam, rho, kappa):
+    def __init__(self, max_energy, beta, alpha, gamma, delta, lam, rho, kappa, hospital_capacity = float('inf')):
         for name, value in zip(
-            ['beta', 'alpha', 'gamma', 'delta', 'lam', 'rho', 'kappa'],
-            [beta, alpha, gamma, delta, lam, rho, kappa]
+            ['beta', 'alpha', 'gamma', 'delta', 'lam', 'rho', 'kappa', 'hospital_capacity'],
+            [beta, alpha, gamma, delta, lam, rho, kappa, hospital_capacity]
         ):
             if name in ['beta', 'kappa', 'alpha']:
                 if not isinstance(
@@ -18,7 +18,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
             else:
                 if not isinstance(value, int) or value <= 0:
                     raise TypeError(
-                        f"{name} must be a positive integer since it is a value that described duration, got {value}")
+                        f"{name} must be a positive integer, got {value}")
 
         super().__init__(max_energy)
 
@@ -31,6 +31,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
         self.lam = lam  # Average day until recovery
         self.rho = rho  # Average day until death
         self.kappa = kappa  # Disease mortality rate
+        self.hospital_capacity = hospital_capacity # Average number of people a healthcare facility can contain
 
     def to_metadata_dict(self):
         return {
@@ -41,7 +42,8 @@ class SEIQRDVModelParameters(AbstractModelParameters):
             'delta': self.delta,
             'lam': self.lam,
             'rho': self.rho,
-            'kappa': self.kappa
+            'kappa': self.kappa,
+            'hospital_capacity':self.hospital_capacity
         }
 
 
@@ -70,7 +72,7 @@ class FolkSEIQRDV(Folk):
             self.convert('E', status_dict_t)
 
         if current_place_type == 'healthcare_facility':
-            if self.status == 'S' and self.want_vaccine:
+            if self.status == 'S' and self.want_vaccine and len(folks_here) < model_params.hospital_capacity:
                 self.convert('V', status_dict_t)
                 self.want_vaccine = False
 
