@@ -17,6 +17,27 @@ class Simulation:
             timesteps,
             seed=True,
             seed_value=5710):
+        """
+        Initialize a Simulation instance.
+
+        Parameters
+        ----------
+        town : Town
+            The Town object representing the simulation environment.
+        compartmental_model : AbstractCompartmentalModel
+            The compartmental model instance (e.g., SEIRModel) to use for the simulation.
+        timesteps : int
+            Number of timesteps to run the simulation.
+        seed : bool, optional
+            Whether to set the random seed for reproducibility (default: True).
+        seed_value : int, optional
+            The value to use for the random seed (default: 5710).
+
+        Raises
+        ------
+        ValueError
+            If required place types for the model are missing in the town data of the given spatial area.
+        """
         self.folks = []
         self.status_dicts = []
         self.town = town
@@ -44,7 +65,7 @@ class Simulation:
 
         self.status_dicts.append(status_dict_t0)
 
-    def reset_population_home(self):
+    def _reset_population_home(self):
         # Simple list -> Shallow copy
         self.active_node_indices = self.household_node_indices.copy()
 
@@ -60,7 +81,7 @@ class Simulation:
             self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(
                 self.folks[i])
 
-    def disperse_for_event(self, step_event):
+    def _disperse_for_event(self, step_event):
         for person in self.folks:
             if person.movement_restricted or person.alive == False or person.energy == 0:
                 continue  # Skip if the agent cannot act on this event
@@ -137,9 +158,9 @@ class Simulation:
                     # interaction here is possible
                     self.active_node_indices.add(new_node)
 
-    def execute_event(self, step_event):
+    def _execute_event(self, step_event):
         if step_event.event_type == EventType.SEND_HOME:
-            self.reset_population_home()
+            self._reset_population_home()
             for i in range(self.num_pop):
                 if not self.folks[i].alive:
                     continue
@@ -150,7 +171,7 @@ class Simulation:
                     self.folks[i], None, None, self.status_dicts[-1], self.model_params, rd.random())
         elif step_event.event_type == EventType.DISPERSE:
             # Move people through the town first
-            self.disperse_for_event(step_event)
+            self._disperse_for_event(step_event)
             for node in self.active_node_indices:  # Only iterate through active nodes
                 # A person whose movement is restricted can stil be interact with other people who come to their location
                 # e.g. delivery service comes into contact with people are
@@ -166,7 +187,7 @@ class Simulation:
                                            self.model_params,
                                            rd.random())
 
-    def step(self, save_result):
+    def _step(self, save_result):
         current_timestep = self.current_timestep + 1
         status_row = None
         indiv_folk_rows = []
@@ -177,7 +198,7 @@ class Simulation:
             self.status_dicts[-1]['timestep'] = current_timestep
             self.status_dicts[-1]['current_event'] = step_event.name
 
-            self.execute_event(step_event)
+            self._execute_event(step_event)
 
             if save_result:
                 # Record the latest summary
@@ -200,16 +221,29 @@ class Simulation:
 
     def run(self, save_result=False, hdf5_path="simulation_output.h5"):
         """
-        The output hierarchical structure is the following
+        Run the simulation for the specified number of timesteps.
+
+        If save_result is True, results are saved to an HDF5 file with the following structure:
+
         simulation_output.h5
-        ├── metadata
-        │   └── simulation_metadata         (JSON-encoded metadata)
-        │   └── town_metadata               (bytes, JSON-encoded metadata)
-        │
-        ├── status_summary
-        │   └── summary                     (dataset: structured array with timestep, current_event, and statuses)
-        ├── individual_logs
-        │   └── log                         (dataset: structured array with timestep, event, folk_id, status, address)
+    ├── metadata
+    │   ├── simulation_metadata   (JSON-encoded simulation metadata)
+    │   └── town_metadata         (JSON-encoded town metadata)
+    ├── status_summary
+    │   └── summary               (dataset: structured array with timestep, current_event, and statuses)
+    └── individual_logs
+        └── log                   (dataset: structured array with timestep, event, folk_id, status, address)
+
+        Parameters
+        ----------
+        save_result : bool
+            Whether to save the simulation results to an HDF5 file.
+        hdf5_path : str
+            Path to the output HDF5 file.
+
+        Returns
+        -------
+        None
         """
 
         if save_result:
@@ -276,7 +310,7 @@ class Simulation:
 
                 # Run simulation
                 for i in range(1, self.timesteps + 1):
-                    status_row, indiv_rows = self.step(save_result=True)
+                    status_row, indiv_rows = self._step(save_result=True)
 
                     # Collect status row
                     row = tuple([
@@ -315,7 +349,7 @@ class Simulation:
 
         else:
             for i in range(1, self.timesteps + 1):
-                self.step(False)
+                self._step(False)
                 print("Step has been run", i)
                 print("Status:",
                       {k: v for k,

@@ -4,6 +4,14 @@ from .step_event import StepEvent, EventType
 
 class AbstractModelParameters():
     def __init__(self, max_energy):
+        """
+        Initialize model parameters.
+
+        Parameters
+        ----------
+        max_energy : int
+            The maximum energy for an agent. This number limits the maximum number of events an agent can attend in a day.
+        """
         assert isinstance(
             max_energy, int) and max_energy > 0, "max_energy must be a positive integer!"
         self.max_energy = max_energy
@@ -15,6 +23,21 @@ class AbstractModelParameters():
 
 class Folk:
     def __init__(self, id, home_address, max_energy, status):
+        """
+        Initialize a Folk agent.
+
+        Parameters
+        ----------
+        id : int
+            Unique identifier for the agent.
+        home_address : int
+            Node index of the agent's home. After performing all the events in a day, the agent will return to this address.
+        max_energy : int
+            Maximum social energy. This number limits the maximum number of events an agent can attend in a day.
+            The agent can wake up with any random integer number of energy between 0 and max_energy. 
+        status : str
+            Initial status of the agent.
+        """
         self.id = id
         self.home_address = home_address
         self.address = self.home_address
@@ -27,6 +50,16 @@ class Folk:
         self.priority_place_type = []
 
     def convert(self, new_stat, status_dict_t):
+        """
+        Change the agent's status and update the status counts.
+
+        Parameters
+        ----------
+        new_stat : str
+            The new status to assign.
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+        """
         assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
         status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
@@ -35,10 +68,23 @@ class Folk:
 
     def inverse_bernoulli(self, contact_possibility, conversion_prob):
         """
-        This function that determines the probability of status transition is adapted from section 2.2 of
+        Calculate the probability of status transition given contact possibility and conversion probability.
+        This function is adapted from section 2.2 of
         Eden, M., Castonguay, R., Munkhbat, B., Balasubramanian, H., & Gopalappa, C. (2021).
         Agent-based evolving network modeling: A new simulation method for modeling low prevalence infectious diseases.
         Health Care Management Science, 24, 623–639. https://link.springer.com/article/10.1007/s10729-021-09558-0
+
+        Parameters
+        ----------
+        contact_possibility : int
+            Number of possible contacts.
+        conversion_prob : float
+            Probability of conversion per contact.
+
+        Returns
+        -------
+        float
+            Probability of at least one successful conversion.
         """
         if contact_possibility == 0:
             return 0
@@ -46,19 +92,22 @@ class Folk:
             return 1 - (1 - conversion_prob)**(contact_possibility)
 
     def sleep(self):
+        """
+        Reset the agent's energy and increment the status streak (called at the end of a day).
+        """
         self.status_step_streak += 1
         self.energy = rd.randint(0, self.max_energy)  # Reset social energy
 
-    def __repr__(self):
-        return f"Person live at {
-            self.home_address}, currently at {
-            self.address}, Social Energy={
-            self.energy}, Status={
-                self.status}"
-
-
 class AbstractCompartmentalModel():
     def __init__(self, model_params):
+        """
+        Initialize the abstract compartmental model.
+
+        Parameters
+        ----------
+        model_params : AbstractModelParameters
+            Model parameters object.
+        """
         self.model_params = model_params
         # This is an important check and it will ONLY work when you define
         # some of the attributes before calling the abstract level constructor
@@ -91,8 +140,24 @@ class AbstractCompartmentalModel():
         self.step_events.append(end_day)
 
     def create_folk(self, *args, **kwargs):
+        """
+        Create a new Folk agent using the model's folk_class.
+
+        Returns
+        -------
+        Folk
+            A new Folk agent instance of a given folk_class.
+        """
         return self.folk_class(*args, **kwargs)
 
     def initialize_sim_population(self):
+        """
+        Initialize the simulation population.
+
+        Raises
+        ------
+        NotImplementedError
+            This method must be implemented by subclasses.
+        """
         raise NotImplementedError(
             "Subclasses must implement to_initialize_sim_population()")

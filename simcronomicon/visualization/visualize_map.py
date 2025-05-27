@@ -51,7 +51,19 @@ def _load_node_info_from_graphmlz(
 
 def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     """
-    Visualize nodes from town_graph.graphmlz with their place_type using Plotly + OSM.
+    Visualize nodes from a .graphmlz town graph with their classified place_type using Plotly and OpenStreetMap.
+
+    Parameters
+    ----------
+    town_graph_path : str
+        Path to the .graphmlz file containing the town graph.
+    town_metadata_path : str
+        Path to the .json file containing town metadata (must include 'epsg_code').
+
+    Returns
+    -------
+    None
+        Displays an interactive Plotly map of nodes colored by place type.
     """
     assert town_graph_path.endswith(".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
     assert town_metadata_path.endswith(".json"), f"Expected a .json file for town_metadata_path, got {town_metadata_path}"
@@ -104,6 +116,23 @@ def visualize_folks_on_map_from_sim(
         output_hdf5_path,
         town_graph_path,
         time_interval=None):
+    """
+    Visualize the movement and status of agents over time on a map using simulation output.
+
+    Parameters
+    ----------
+    output_hdf5_path : str
+        Path to the HDF5 file containing simulation results.
+    town_graph_path : str
+        Path to the .graphmlz file containing the town graph.
+    time_interval : tuple or list of int, optional
+        (start, end) timestep range to visualize. If None, visualize all timesteps.
+
+    Returns
+    -------
+    None
+        Displays an animated Plotly map showing agent locations and statuses over time.
+    """
     assert output_hdf5_path.endswith(".h5"), f"Expected a .h5 file for output_hdf5_path, got {output_hdf5_path}"
     assert town_graph_path.endswith(".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
 

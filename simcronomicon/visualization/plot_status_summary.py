@@ -44,6 +44,35 @@ def _plot_status_summary_data(
 
 
 def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
+    """
+    Plot the normalized status summary (density) over time from a simulation HDF5 output file.
+
+    This function reads the simulation status summary from the specified HDF5 file,
+    normalizes each status by the total population, and plots the density of each status
+    (or a subset of statuses) over simulation timesteps.
+
+    Parameters
+    ----------
+    output_hdf5_path : str
+        Path to the HDF5 file containing simulation results.
+    status_type : str or list of str or None, optional
+        If None (default), plot all status types.
+        If str, plot only the specified status type.
+        If list of str, plot only the specified status types.
+
+    Raises
+    ------
+    ValueError
+        If the HDF5 file contains no status data or if the total population is zero.
+        If an invalid status_type is provided.
+    TypeError
+        If status_type is not None, str, or list of str.
+
+    Returns
+    -------
+    None
+        Displays a matplotlib plot of the status densities over time.
+    """
     with h5py.File(output_hdf5_path, "r") as h5file:
         status_ds = h5file["status_summary/summary"]
         if len(status_ds) == 0:
