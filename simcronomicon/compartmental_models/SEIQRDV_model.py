@@ -57,11 +57,46 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
 class FolkSEIQRDV(Folk):
     def __init__(self, id, home_address, max_energy, status):
+        """
+        Initialize a FolkSEIQRDV agent with 2 more attributes than the standard Folk.
+        The first one being will_die which plays a role in determining if the infected agent
+        will pass away or not. The second one, want_vaccine, signifies the agent's will to
+        get vaccinated. An agent with this attribute == True will try to get vaccinated at
+        their nearest healthcare facility.
+
+        Parameters
+        ----------
+        id : int
+            Unique identifier for the agent.
+        home_address : int
+            Node index of the agent's home.
+        max_energy : int
+            Maximum social energy.
+        status : str
+            Initial status of the agent.
+        """
         super().__init__(id, home_address, max_energy, status)
         self.will_die = False
         self.want_vaccine = False
 
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
+        """
+        Calculate the probability of status transition given contact with specific statuses.
+
+        Parameters
+        ----------
+        folks_here : list of Folk
+            List of Folk agents present at the same node.
+        conversion_prob : float
+            Probability of conversion per contact.
+        stats : list of str
+            List of statuses to consider as infectious.
+
+        Returns
+        -------
+        float
+            Probability of at least one successful conversion.
+        """
         num_contact = len(
             [folk for folk in folks_here if folk != self and folk.status in stats])
         return super().inverse_bernoulli(num_contact, conversion_prob)
@@ -73,6 +108,36 @@ class FolkSEIQRDV(Folk):
             status_dict_t,
             model_params,
             dice):
+        """
+        Perform interaction with other agents in the area and the environment for this agent.
+
+        ## Transition Rules
+        - If the agent is Susceptible ('S'):
+            - If the agent comes into contact with at least one Infectious ('I') agent at the same node,
+            the probability of becoming Exposed ('E') is calculated using the inverse Bernoulli formula with
+            the transmission probability (`beta`). If this probability exceeds the random value `dice`,
+            the agent transitions to Exposed ('E').
+        - If the agent is Susceptible ('S'), wants a vaccine, and is at a healthcare facility:
+            - If the number of agents at the facility wanting a vaccine is less than the hospital capacity,
+            the agent transitions to Vaccinated ('V') and `want_vaccine` is set to False.
+
+        Parameters
+        ----------
+        folks_here : list of Folk
+            List of Folk agents present at the same node.
+        current_place_type : str
+            The type of place where the interaction occurs.
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+        model_params : SEIQRDVModelParameters
+            Model parameters for the simulation.
+        dice : float
+            Random float for stochastic transitions.
+
+        Returns
+        -------
+        None
+        """
         # When a susceptible person comes into contact with an infectious person,
         # they have a likelihood to become exposed to the disease
         if self.status == 'S' and self.inverse_bernoulli(
@@ -91,6 +156,42 @@ class FolkSEIQRDV(Folk):
             status_dict_t,
             model_params,
             dice):
+        """
+        Perform end-of-day updates for this agent.
+
+        Handles transitions for quarantine, recovery, death, infection, and vaccination planning.
+
+        ## Transition Rules
+        - If the agent is in Quarantine ('Q'):
+            - If `will_die` is True and the agent has been in quarantine for `rho` days,
+            the agent transitions to Dead ('D') and is marked as not alive.
+            - If `will_die` is False and the agent has been in quarantine for `lam` days,
+            the agent transitions to Recovered ('R') and their movement is restricted.
+        - If the agent is Exposed ('E') and has been exposed for `gamma` days,
+        they transition to Infectious ('I').
+        - If the agent is Infectious ('I') and has been infectious for `delta` days, their symptoms get confirmed and they
+        must quarantine. They transition to Quarantine ('Q'), their movement is restricted, and with probability `kappa` 
+        they are marked to die (`will_die = True`).
+        - If the agent is Susceptible ('S') and a random draw is less than `alpha`,
+        they plan to get vaccinated by adding 'healthcare_facility' to their priority places and setting `want_vaccine` to True.
+
+        Parameters
+        ----------
+        folks_here : list of Folk
+            *Just a placeholder here.* List of Folk agents present at the same node.
+        current_place_type : str
+            *Just a placeholder here.* The type of place where the agent is sleeping.
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+        model_params : SEIQRDVModelParameters
+            Model parameters for the simulation.
+        dice : float
+            Random float for stochastic transitions.
+
+        Returns
+        -------
+        None
+        """
         super().sleep()
         if self.status == 'Q':
             if self.will_die:
@@ -176,6 +277,32 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         return folks, household_node_indices, status_dict_t0
     
     def update_population(self, folks, town, household_node_indices, status_dict_t):
+        """
+        Update the simulation population at the end of each day.
+
+        This function performs two main operations:
+        1. **Natural Deaths:** Iterates through all currently alive agents and, with probability `mu` (the natural death rate), transitions them to the 'D' (Dead) status and marks them as not alive.
+        2. **Population Growth:** Calculates the number of possible new agents to add based on the current alive population and the parameter `lam_cap` (birth/migration rate). For each new agent:
+            - Randomly selects an accommodation node as their home.
+            - Randomly assigns a status from all possible statuses except 'D' (Dead) and 'Q' (Quarantine).
+            - Adds the new agent to the simulation, updates the status count, and tracks their household node.
+
+        Parameters
+        ----------
+        folks : list of Folk
+            The current list of Folk agent objects in the simulation.
+        town : Town
+            The Town object representing the simulation environment.
+        household_node_indices : set
+            Set of node indices where households are tracked.
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+
+        Returns
+        -------
+        int
+            The updated total number of agents in the simulation after deaths and births/migration.
+        """
         num_current_pop = len(folks)
         folks_alive = [folk for folk in folks if folk.alive]
         num_current_folks = len(folks_alive)
