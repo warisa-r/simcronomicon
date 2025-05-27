@@ -161,3 +161,26 @@ class AbstractCompartmentalModel():
         """
         raise NotImplementedError(
             "Subclasses must implement to_initialize_sim_population()")
+    
+    def update_population(self, folks, town, household_node_indices, status_dict_t):
+        """
+        Update the simulation population (e.g., add or remove agents).
+
+        This method is called at the end of each day. By default, it does nothing.
+        Subclasses can override this method to implement population growth, death, or migration.
+
+        Parameters
+        ----------
+        folks : list of Folk
+            The current list of Folk agent objects in the simulation.
+        town : Town
+            The Town object representing the simulation environment.
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+
+        Returns
+        -------
+        int
+            An updated number of overall population
+        """
+        return len(folks)

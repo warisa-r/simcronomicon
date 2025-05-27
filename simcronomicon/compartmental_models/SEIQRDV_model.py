@@ -4,17 +4,21 @@ import random as rd
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):
-    def __init__(self, max_energy, beta, alpha, gamma, delta, lam, rho, kappa, hospital_capacity = float('inf')):
+    def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity = float('inf')):
         for name, value in zip(
-            ['beta', 'alpha', 'gamma', 'delta', 'lam', 'rho', 'kappa', 'hospital_capacity'],
-            [beta, alpha, gamma, delta, lam, rho, kappa, hospital_capacity]
+            ['lam_cap', 'beta', 'alpha', 'gamma', 'delta', 'lam', 'rho', 'kappa', 'mu', 'hospital_capacity'],
+            [lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity]
         ):
-            if name in ['beta', 'kappa', 'alpha']:
+            if name in ['lam_cap','beta', 'kappa', 'alpha', 'mu']:
                 if not isinstance(
                         value, (float, int)) or not (
                         0 <= value <= 1):
                     raise TypeError(
                         f"{name} must be a float between 0 and 1!")
+            elif name == 'hospital_capacity':
+                if not isinstance(value, int) and value != float('inf'):
+                    raise TypeError(
+                        f"{name} must be a positive integer or a value of infinity, got {value}")
             else:
                 if not isinstance(value, int) or value <= 0:
                     raise TypeError(
@@ -24,6 +28,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
         # Adapted from https://www.mdpi.com/2227-7390/9/6/636
 
+        self.lam_cap = lam_cap # Rate of new population due to birth or migration etc.
         self.beta = beta  # Transimssion probability
         self.alpha = alpha  # Vaccination rate
         self.gamma = gamma  # Average latent time
@@ -31,11 +36,13 @@ class SEIQRDVModelParameters(AbstractModelParameters):
         self.lam = lam  # Average day until recovery
         self.rho = rho  # Average day until death
         self.kappa = kappa  # Disease mortality rate
+        self.mu = mu # Natural back ground death rate
         self.hospital_capacity = hospital_capacity # Average number of people a healthcare facility can contain
 
     def to_metadata_dict(self):
         return {
             'max_energy': self.max_energy,
+            'lam_cap':self.lam_cap,
             'beta': self.beta,
             'alpha': self.alpha,
             'gamma': self.gamma,
@@ -43,6 +50,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
             'lam': self.lam,
             'rho': self.rho,
             'kappa': self.kappa,
+            'mu': self.mu,
             'hospital_capacity':self.hospital_capacity
         }
 
@@ -72,7 +80,7 @@ class FolkSEIQRDV(Folk):
             self.convert('E', status_dict_t)
 
         if current_place_type == 'healthcare_facility':
-            if self.status == 'S' and self.want_vaccine and len(folks_here) < model_params.hospital_capacity:
+            if self.status == 'S' and self.want_vaccine and len([folk for folk in folks_here if folk.want_vaccine]) < model_params.hospital_capacity:
                 self.convert('V', status_dict_t)
                 self.want_vaccine = False
 
@@ -166,3 +174,35 @@ class SEIQRDVModel(AbstractCompartmentalModel):
             'D': 0,
             'V': 0}
         return folks, household_node_indices, status_dict_t0
+    
+    def update_population(self, folks, town, household_node_indices, status_dict_t):
+        num_current_pop = len(folks)
+        folks_alive = [folk for folk in folks if folk.alive]
+        num_current_folks = len(folks_alive)
+
+        # Account for death by natural causes here
+        for folk in folks_alive:
+            if rd.random() < self.model_params.mu:
+                folk.convert('D', status_dict_t)
+                folk.alive = False
+        
+        num_possible_new_folks = num_current_folks * self.model_params.lam_cap
+        if num_possible_new_folks > 1:
+            num_possible_new_folks = round(num_possible_new_folks)
+            for i in range(num_possible_new_folks):
+                node = rd.choice(town.accommodation_node_ids)
+                stat = rd.choice([s for s in self.all_statuses if s not in ('D', 'Q')])
+                folk = self.create_folk(
+                    num_current_pop + i, node, self.model_params.max_energy, stat)
+                
+                status_dict_t[stat] += 1
+                folks.append(folk)
+                # Account for which folks live where in the graph as well
+                town.town_graph.nodes[node]['folks'].append(folk)
+
+                # Track which node has a 'family' living in it
+                if len(town.town_graph.nodes[node]['folks']) == 2:
+                    print("household node new:", node)
+                    household_node_indices.add(node) # Add operation and set() data structure ensures that there is no duplicate
+
+        return len(folks)

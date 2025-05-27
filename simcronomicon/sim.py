@@ -66,9 +66,6 @@ class Simulation:
         self.status_dicts.append(status_dict_t0)
 
     def _reset_population_home(self):
-        # Simple list -> Shallow copy
-        self.active_node_indices = self.household_node_indices.copy()
-
         for i in range(len(self.town.town_graph.nodes)
                        ):  # Reset every house to empty first
             self.town.town_graph.nodes[i]['folks'] = []
@@ -80,6 +77,10 @@ class Simulation:
             self.folks[i].address = self.folks[i].home_address
             self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(
                 self.folks[i])
+            
+        self.num_pop = self.model.update_population(self.folks, self.town, self.household_node_indices, self.status_dicts[-1])
+        # Simple list -> Shallow copy
+        self.active_node_indices = self.household_node_indices.copy()
 
     def _disperse_for_event(self, step_event):
         for person in self.folks:
