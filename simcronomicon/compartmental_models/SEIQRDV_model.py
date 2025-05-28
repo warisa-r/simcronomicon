@@ -329,7 +329,6 @@ class SEIQRDVModel(AbstractCompartmentalModel):
 
                 # Track which node has a 'family' living in it
                 if len(town.town_graph.nodes[node]['folks']) == 2:
-                    print("household node new:", node)
                     household_node_indices.add(node) # Add operation and set() data structure ensures that there is no duplicate
 
         return len(folks)
