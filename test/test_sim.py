@@ -76,3 +76,5 @@ class TestSimulationInitializationGeneralized:
             town_params=town_params
         )
         model.initialize_sim_population(town)
+
+#TODO: test that every model run and that certain time step print exactly the number of status from what I approximate before

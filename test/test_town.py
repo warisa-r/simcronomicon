@@ -74,8 +74,8 @@ class TestTown(object):
         test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
         test_metadata = "test/test_data/aachen_dom_500m_metadata.json"
         town_params = scon.TownParameters(100, 10)
-        # Set spreader_initial_nodes to include a non-existent node (10000)
-        town_params.spreader_initial_nodes = [1, 10000]
+        # Set spreader_initial_nodes to include a non-existent node (350)
+        town_params.spreader_initial_nodes = [1, 350]
         point_dom = 50.7753, 6.0839
 
         # from_point should raise AssertionError
