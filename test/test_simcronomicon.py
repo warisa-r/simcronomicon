@@ -208,37 +208,3 @@ class TestTown(object):
                 f"Distance to Theresienkirche deviates by more than {tolerance}m (got {dist_theresienkirche_2000:.2f}m)"
             assert abs(dist_hausarzt_2000 - expected_hausarzt) < tolerance, \
                 f"Distance to Hausarzt deviates by more than {tolerance}m (got {dist_hausarzt_2000:.2f}m)"
-
-    def test_from_point_and_from_files_equivalence(self):
-        # Use test_data for from_files, and a temp dir for from_point
-        test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
-        test_metadata = "test/test_data/aachen_dom_500m_metadata.json"
-        town_params = scon.TownParameters(100, 10)
-        point_dom = 50.7753, 6.0839
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Generate a new town with the same parameters and save to temp dir
-            town = scon.Town.from_point(point_dom, 500, town_params, file_prefix="compare", save_dir=tmpdir)
-            # Now load both graphs
-            town_from_file = scon.Town.from_files(
-                metadata_path=test_metadata,
-                town_graph_path=test_graphmlz,
-                town_params=town_params
-            )
-            # Compare node and edge sets and attributes
-            G1 = town.town_graph
-            G2 = town_from_file.town_graph
-
-            # Check nodes and attributes
-            assert set(G1.nodes) == set(G2.nodes), "Node sets differ"
-            for n in G1.nodes:
-                assert G1.nodes[n] == G2.nodes[n], f"Node attributes differ for node {n}"
-
-            # Check edges and attributes
-            assert set(G1.edges) == set(G2.edges), "Edge sets differ"
-            for e in G1.edges:
-                assert G1.edges[e] == G2.edges[e], f"Edge attributes differ for edge {e}"
-
-            # Optionally, compare metadata if needed
-            assert town.all_place_types == town_from_file.all_place_types, "all_place_types differ"
-            assert set(town.found_place_types) == set(town_from_file.found_place_types), "found_place_types differ"

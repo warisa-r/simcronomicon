@@ -242,6 +242,15 @@ class Town():
             nx.get_node_attributes(
                 town.town_graph,
                 'place_type').values())
+        
+        # Assert that all spreader_initial_nodes exist in the town graph
+        assert all(
+            node in town.town_graph.nodes
+            for node in town.town_params.spreader_initial_nodes
+        ), (
+            f"Some spreader_initial_nodes do not exist in the town graph: "
+            f"{[node for node in town.town_params.spreader_initial_nodes if node not in town.town_graph.nodes]}"
+        )
 
         print("[10/10] Saving a compressed graph and metadata...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
@@ -276,15 +285,6 @@ class Town():
         # writing list as attributes
         for node in town.town_graph.nodes:
             town.town_graph.nodes[node]['folks'] = []
-
-        # Assert that all spreader_initial_nodes exist in the town graph
-        assert all(
-            node in town.town_graph.nodes
-            for node in town.town_params.spreader_initial_nodes
-        ), (
-            f"Some spreader_initial_nodes do not exist in the town graph: "
-            f"{[node for node in town.town_params.spreader_initial_nodes if node not in town.town_graph.nodes]}"
-        )
 
         print("Town graph successfully built and saved!")
         return town
