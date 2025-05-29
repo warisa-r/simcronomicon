@@ -2,7 +2,15 @@ from enum import Enum
 import numpy as np
 
 def log_normal_probabilities(distances, mu=0, sigma=1):
-    """Return probabilities inversely proportional to log-normal PDF of distances."""
+    """
+    Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
+    the human mobility pattern in this follow literature and its predecessor:
+    Faisal, S., Bertelle, C., & George, L. E. (2016). Human Mobility Patterns Modelling using CDRs. 
+    International Journal of UbiComp (IJU), 7(1), 13–19. https://doi.org/10.5121/iju.2016.7102
+
+    Note: CDRs are call detail records. These include the position of the cell towers the subscribers are closest to at the
+    moment.
+    """
     distances = np.array(distances)
     # Avoid log(0) and negative/zero distances
     distances = np.clip(distances, 1e-6, None)

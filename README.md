@@ -15,6 +15,6 @@ Features
 --------
 
 * TODO
-- Consider gaussian distribution for some uniform random distribution
+- Model input should also be step_events
 - Mutation
 - Give a node where the spreader lives (start initial cond)
