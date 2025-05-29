@@ -1,5 +1,15 @@
 from enum import Enum
+import numpy as np
 
+def log_normal_probabilities(distances, mu=0, sigma=1):
+    """Return probabilities inversely proportional to log-normal PDF of distances."""
+    distances = np.array(distances)
+    # Avoid log(0) and negative/zero distances
+    distances = np.clip(distances, 1e-6, None)
+    probs = 1 / (distances * sigma * np.sqrt(2 * np.pi)) * np.exp(- (np.log(distances) - mu) ** 2 / (2 * sigma ** 2))
+    probs = np.nan_to_num(probs, nan=0.0, posinf=0.0, neginf=0.0)
+    probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
+    return probs
 
 class EventType(Enum):
     """
@@ -14,7 +24,6 @@ class EventType(Enum):
     SEND_HOME = "send_home"
     DISPERSE = "disperse"
 
-
 class StepEvent:
     def __init__(
             self,
@@ -22,7 +31,8 @@ class StepEvent:
             folk_action,
             event_type=EventType.SEND_HOME,
             max_distance=0,
-            place_types=[]):
+            place_types=[],
+            probability_func=None):
         """
         Initialize a StepEvent. A StepEvent is an instance that defines an agents' activities in a day.
         This means that one day can have multiple StepEvent defined!
@@ -42,6 +52,10 @@ class StepEvent:
             Maximum distance in meters for the event (default: 0).
         place_types : list, optional
             List of place types relevant for the event (default: []).
+        probability_func : callable, optional
+            Function that takes a list of distances and returns a list of probabilities of those distances based on the probability
+            function you want to use to model human mobility.
+            If None, uniform probability is used.
 
         Examples
         --------
@@ -57,6 +71,6 @@ class StepEvent:
         self.max_distance = max_distance  # in meters
         self.place_types = place_types
         self.event_type = event_type
-        # MUST ALWAYS BE A FUNCTION OF 4 ARGUMENTS (folks_here, status_dict_t,
-        # model_params, dice)
         self.folk_action = folk_action
+        self.probability_func = probability_func
+        assert not (event_type == EventType.SEND_HOME and probability_func != None), "You cannot define a mobility probability function for an event that does not disperse people" 

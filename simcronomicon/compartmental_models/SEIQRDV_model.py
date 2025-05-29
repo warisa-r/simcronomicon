@@ -1,5 +1,5 @@
 from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
-from .step_event import StepEvent, EventType
+from .step_event import *
 import random as rd
 
 
@@ -238,7 +238,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
                     'commercial',
                     'workplace',
                     'education',
-                    'religious'])]
+                    'religious'], log_normal_probabilities)]
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):

@@ -58,6 +58,7 @@ class Simulation:
 
         if seed:
             rd.seed(seed_value)
+            np.random.seed(seed_value)
 
         self.folks, self.household_node_indices, status_dict_t0 = self.model.initialize_sim_population(
             town)
@@ -131,7 +132,15 @@ class Simulation:
                     person.priority_place_type.remove(chosen_place_type)
 
             if candidates:
-                new_node = rd.choice(candidates)
+                if step_event.probability_func is not None:
+                    distances = [
+                        self.town.town_graph[current_node][neighbor]['weight']
+                        for neighbor in candidates
+                    ]
+                    probs = step_event.probability_func(distances)
+                    new_node = np.random.choice(candidates, p=probs)
+                else:
+                    new_node = rd.choice(candidates)
 
                 # Track the number of folks at current node to see if this node
                 # becomes inactive later on
