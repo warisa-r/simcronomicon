@@ -196,37 +196,46 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
+        num_init_spreader_nodes = len(town.town_params.spreader_initial_nodes)
+        assert town.num_init_spreader > num_init_spreader_nodes, "There cannot be more locations of the initial spreaders than the number of initial spreaders"
+
         num_pop = town.town_params.num_pop
         num_init_spreader = town.town_params.num_init_spreader
 
         folks = []
         household_node_indices = set()
 
-        num_Is = round(self.model_params.literacy * num_pop)
-        num_Ir = num_pop - num_Is
+        num_init_spreader_rd = num_init_spreader - num_init_spreader_nodes
+        num_IsIr = num_pop - num_init_spreader
 
-        # Spreaders often originated from Ir type of folks first
-        num_Ir -= num_init_spreader
-        if num_Ir < 0:  # Then some Is folks can become spreader too
-            num_Is += num_Ir
-            num_Ir = 0
+        # Divide remaining population between Is and Ir based on literacy
+        num_Is = round(self.model_params.literacy * num_IsIr)
+        num_Ir = num_IsIr - num_Is
 
-        for i in range(num_pop):
+        assignments = []
+
+        # Assign initial spreaders to S
+        for i in range(num_init_spreader_rd):
             node = rd.choice(town.accommodation_node_ids)
-            if i < num_init_spreader:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'S')
-            elif i >= num_init_spreader and i < num_init_spreader + num_Is:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'Is')
-            else:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'Ir')
-            folks.append(folk)
-            # Account for which folks live where in the graph as well
-            town.town_graph.nodes[node]['folks'].append(folk)
+            assignments.append((node, 'S'))
 
-            # Track which node has a 'family' living in it
+        # Assign the rest as Is and Ir
+        for i in range(num_Is):
+            node = rd.choice(town.accommodation_node_ids)
+            assignments.append((node, 'Is'))
+        for i in range(num_Ir):
+            node = rd.choice(town.accommodation_node_ids)
+            assignments.append((node, 'Ir'))
+
+        # Assign initial spreaders to specified nodes
+        for node in town.town_params.spreader_initial_nodes:
+            assignments.append((node, 'S'))
+
+        # Create folks and update graph/node info
+        for i, (node, status) in enumerate(assignments):
+            folk = self.create_folk(i, node, self.model_params.max_energy, status)
+            folks.append(folk)
+            town.town_graph.nodes[node]['folks'].append(folk)
             if len(town.town_graph.nodes[node]['folks']) == 2:
                 household_node_indices.add(node)
 
@@ -237,5 +246,6 @@ class SEIsIrRModel(AbstractCompartmentalModel):
             'E': 0,
             'Is': num_Is,
             'Ir': num_Ir,
-            'R': 0}
+            'R': 0
+        }
         return folks, household_node_indices, status_dict_t0

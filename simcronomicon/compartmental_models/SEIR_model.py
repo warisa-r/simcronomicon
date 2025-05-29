@@ -101,33 +101,46 @@ class SEIRModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
+        num_init_spreader_nodes = len(town.town_params.spreader_initial_nodes)
+        assert town.num_init_spreader > num_init_spreader_nodes, "There cannot be more locations of the initial spreaders than the number of initial spreaders"
+
         num_pop = town.town_params.num_pop
-        num_init_spreader = town.town_params.num_init_spreader
+        num_init_spreader_rd = town.town_params.num_init_spreader - num_init_spreader_nodes
 
         folks = []
         household_node_indices = set()
 
-        for i in range(num_pop):
-            node = rd.choice(town.accommodation_node_ids)
-            if i < num_init_spreader:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'I')
-            else:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'S')
-            folks.append(folk)
-            # Account for which folks live where in the graph as well
-            town.town_graph.nodes[node]['folks'].append(folk)
+        # Prepare a list of (node, status) for all folks to be created
+        assignments = []
 
-            # Track which node has a 'family' living in it
+        # Randomly assign initial spreaders (not on specified nodes)
+        for i in range(num_init_spreader_rd):
+            node = rd.choice(town.accommodation_node_ids)
+            assignments.append((node, 'I'))
+
+        # Assign the rest as susceptible
+        for i in range(num_pop - town.town_params.num_init_spreader):
+            node = rd.choice(town.accommodation_node_ids)
+            assignments.append((node, 'S'))
+
+        # Assign initial spreaders to specified nodes
+        for node in town.town_params.spreader_initial_nodes:
+            assignments.append((node, 'I'))
+
+        # Create folks and update graph/node info
+        for i, (node, status) in enumerate(assignments):
+            folk = self.create_folk(i, node, self.model_params.max_energy, status)
+            folks.append(folk)
+            town.town_graph.nodes[node]['folks'].append(folk)
             if len(town.town_graph.nodes[node]['folks']) == 2:
                 household_node_indices.add(node)
 
         status_dict_t0 = {
             'current_event': None,
             'timestep': 0,
-            'S': num_pop - num_init_spreader,
+            'S': num_pop - town.town_params.num_init_spreader,
             'E': 0,
-            'I': num_init_spreader,
-            'R': 0}
+            'I': town.town_params.num_init_spreader,
+            'R': 0
+        }
         return folks, household_node_indices, status_dict_t0

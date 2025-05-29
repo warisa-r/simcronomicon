@@ -150,7 +150,7 @@ class AbstractCompartmentalModel():
         """
         return self.folk_class(*args, **kwargs)
 
-    def initialize_sim_population(self):
+    def initialize_sim_population(self, spreader_initial_nodes = []):
         """
         Initialize the simulation population.
 

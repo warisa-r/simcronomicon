@@ -65,9 +65,10 @@ def classify_place(row):
 
 
 class TownParameters():
-    def __init__(self, num_pop, num_init_spreader):
+    def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes = []):
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
+        self.spreader_initial_nodes = spreader_initial_nodes
 
 
 class Town():
@@ -276,6 +277,15 @@ class Town():
         for node in town.town_graph.nodes:
             town.town_graph.nodes[node]['folks'] = []
 
+        # Assert that all spreader_initial_nodes exist in the town graph
+        assert all(
+            node in town.town_graph.nodes
+            for node in town.town_params.spreader_initial_nodes
+        ), (
+            f"Some spreader_initial_nodes do not exist in the town graph: "
+            f"{[node for node in town.town_params.spreader_initial_nodes if node not in town.town_graph.nodes]}"
+        )
+
         print("Town graph successfully built and saved!")
         return town
 
@@ -312,6 +322,15 @@ class Town():
         for i in town.town_graph.nodes:
             if "folks" not in town.town_graph.nodes[i]:
                 town.town_graph.nodes[i]["folks"] = []
+
+        # Assert that all spreader_initial_nodes exist in the town graph
+        assert all(
+            node in town.town_graph.nodes
+            for node in town.town_params.spreader_initial_nodes
+        ), (
+            f"Some spreader_initial_nodes do not exist in the town graph: "
+            f"{[node for node in town.town_params.spreader_initial_nodes if node not in town.town_graph.nodes]}"
+        )
 
         print("Town graph successfully built from input files!")
         return town

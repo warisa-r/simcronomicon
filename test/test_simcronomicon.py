@@ -66,6 +66,30 @@ class TestTown(object):
             # Check that the prompt was shown
             assert any("already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown"
 
+    def test_spreader_initial_nodes_assertion_error(self):
+        """
+        Edge case: Both from_point and from_files should raise an AssertionError
+        if town_params.spreader_initial_nodes contains nodes not in the graph.
+        """
+        test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
+        test_metadata = "test/test_data/aachen_dom_500m_metadata.json"
+        town_params = scon.TownParameters(100, 10)
+        # Set spreader_initial_nodes to include a non-existent node (10000)
+        town_params.spreader_initial_nodes = [1, 10000]
+        point_dom = 50.7753, 6.0839
+
+        # from_point should raise AssertionError
+        with pytest.raises(AssertionError):
+            scon.Town.from_point(point_dom, 500, town_params)
+
+        # from_files should raise AssertionError
+        with pytest.raises(AssertionError):
+            scon.Town.from_files(
+                metadata_path=test_metadata,
+                town_graph_path=test_graphmlz,
+                town_params=town_params
+        )
+
     def test_healthcare_presence_and_all_types(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             point_dom = 50.7753, 6.0839
