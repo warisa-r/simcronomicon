@@ -242,25 +242,27 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
-        num_pop = town.town_params.num_pop
-        num_init_spreader = town.town_params.num_init_spreader
+        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super()._initialize_sim_population(town)
 
-        folks = []
-        household_node_indices = set()
-
-        for i in range(num_pop):
+        # Randomly assign initial spreaders (not on specified nodes)
+        for i in range(num_init_spreader_rd):
             node = rd.choice(town.accommodation_node_ids)
-            if i < num_init_spreader:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'I')
-            else:
-                folk = self.create_folk(
-                    i, node, self.model_params.max_energy, 'S')
-            folks.append(folk)
-            # Account for which folks live where in the graph as well
-            town.town_graph.nodes[node]['folks'].append(folk)
+            assignments.append((node, 'I'))
 
-            # Track which node has a 'family' living in it
+        # Assign the rest as susceptible
+        for i in range(num_pop - num_init_spreader):
+            node = rd.choice(town.accommodation_node_ids)
+            assignments.append((node, 'S'))
+
+        # Assign initial spreaders to specified nodes
+        for node in town.town_params.spreader_initial_nodes:
+            assignments.append((node, 'I'))
+
+        # Create folks and update graph/node info
+        for i, (node, status) in enumerate(assignments):
+            folk = self.create_folk(i, node, self.model_params.max_energy, status)
+            folks.append(folk)
+            town.town_graph.nodes[node]['folks'].append(folk)
             if len(town.town_graph.nodes[node]['folks']) == 2:
                 household_node_indices.add(node)
 
@@ -273,7 +275,8 @@ class SEIQRDVModel(AbstractCompartmentalModel):
             'I': num_init_spreader,
             'R': 0,
             'D': 0,
-            'V': 0}
+            'V': 0
+        }
         return folks, household_node_indices, status_dict_t0
     
     def update_population(self, folks, town, household_node_indices, status_dict_t):

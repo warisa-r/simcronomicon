@@ -1,5 +1,5 @@
 """
-Tests for `simcronomicon` module.
+Tests for `simcronomicon.town` module.
 """
 import pytest
 import os

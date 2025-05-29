@@ -196,34 +196,24 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
-        num_init_spreader_nodes = len(town.town_params.spreader_initial_nodes)
-        assert town.num_init_spreader > num_init_spreader_nodes, "There cannot be more locations of the initial spreaders than the number of initial spreaders"
+        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super()._initialize_sim_population(town)
 
-        num_pop = town.town_params.num_pop
-        num_init_spreader = town.town_params.num_init_spreader
-
-        folks = []
-        household_node_indices = set()
-
-        num_init_spreader_rd = num_init_spreader - num_init_spreader_nodes
         num_IsIr = num_pop - num_init_spreader
 
         # Divide remaining population between Is and Ir based on literacy
         num_Is = round(self.model_params.literacy * num_IsIr)
         num_Ir = num_IsIr - num_Is
 
-        assignments = []
-
-        # Assign initial spreaders to S
-        for i in range(num_init_spreader_rd):
+        # Randomly assign initial spreaders (not on specified nodes)
+        for _ in range(num_init_spreader_rd):
             node = rd.choice(town.accommodation_node_ids)
             assignments.append((node, 'S'))
 
         # Assign the rest as Is and Ir
-        for i in range(num_Is):
+        for _ in range(num_Is):
             node = rd.choice(town.accommodation_node_ids)
             assignments.append((node, 'Is'))
-        for i in range(num_Ir):
+        for _ in range(num_Ir):
             node = rd.choice(town.accommodation_node_ids)
             assignments.append((node, 'Ir'))
 

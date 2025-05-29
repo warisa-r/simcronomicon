@@ -150,17 +150,20 @@ class AbstractCompartmentalModel():
         """
         return self.folk_class(*args, **kwargs)
 
-    def initialize_sim_population(self, spreader_initial_nodes = []):
-        """
-        Initialize the simulation population.
+    def _initialize_sim_population(self, town):
+        num_init_spreader_nodes = len(town.town_params.spreader_initial_nodes)
+        assert town.town_params.num_init_spreader >= num_init_spreader_nodes, \
+            "There cannot be more locations of the initial spreaders than the number of initial spreaders"
 
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement to_initialize_sim_population()")
+        num_init_spreader = town.town_params.num_init_spreader
+        num_pop = town.town_params.num_pop
+        num_init_spreader_rd = num_init_spreader - num_init_spreader_nodes
+
+        folks = []
+        household_node_indices = set()
+        assignments = []
+
+        return num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments
     
     def update_population(self, folks, town, household_node_indices, status_dict_t):
         """
