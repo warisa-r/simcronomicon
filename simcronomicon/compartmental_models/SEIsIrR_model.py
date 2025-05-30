@@ -170,29 +170,13 @@ class FolkSEIsIrR(Folk):
 
 
 class SEIsIrRModel(AbstractCompartmentalModel):
-    def __init__(self, model_params):
+    def __init__(self, model_params, step_events = None):
         self.folk_class = FolkSEIsIrR
         self.all_statuses = (['S', 'E', 'Ir', 'Is', 'R'])
         self.infected_statuses = 'S'
         self.required_place_types = set(
             ['workplace', 'education', 'religious'])
-        self.step_events = [
-            StepEvent(
-                "greet_neighbors",
-                self.folk_class.interact,
-                EventType.DISPERSE,
-                5000,
-                ['accommodation']),
-            StepEvent(
-                "chore",
-                self.folk_class.interact,
-                EventType.DISPERSE,
-                19000,
-                [
-                    'commercial',
-                    'workplace',
-                    'education',
-                    'religious'])]
+        self.step_events = step_events
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):

@@ -216,29 +216,13 @@ class FolkSEIQRDV(Folk):
 
 
 class SEIQRDVModel(AbstractCompartmentalModel):
-    def __init__(self, model_params):
+    def __init__(self, model_params, step_events = None):
         self.folk_class = FolkSEIQRDV
         self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D', 'V'])
         self.infected_statuses = ['I', 'E', 'Q']
         self.required_place_types = set(
-            ['healthcare_facility', 'workplace', 'education', 'religious'])
-        self.step_events = [
-            StepEvent(
-                "greet_neighbors",
-                self.folk_class.interact,
-                EventType.DISPERSE,
-                5000,
-                ['accommodation']),
-            StepEvent(
-                "chore",
-                self.folk_class.interact,
-                EventType.DISPERSE,
-                19000,
-                [
-                    'commercial',
-                    'workplace',
-                    'education',
-                    'religious'], log_normal_probabilities)]
+            ['healthcare_facility'])
+        self.step_events = step_events
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):

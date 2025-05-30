@@ -109,13 +109,40 @@ class AbstractCompartmentalModel():
             Model parameters object.
         """
         self.model_params = model_params
+
+        # If step_events is not set, use default events
+        if not hasattr(self, "step_events") or self.step_events is None:
+            self.step_events = [
+                StepEvent(
+                    "greet_neighbors",
+                    self.folk_class.interact,
+                    EventType.DISPERSE,
+                    5000,
+                    ['accommodation']),
+                StepEvent(
+                    "chore",
+                    self.folk_class.interact,
+                    EventType.DISPERSE,
+                    19000,
+                    [
+                        'commercial'])
+            ]
+        else:
+            # Check that step_events is a StepEvent or list of StepEvent objects
+            if isinstance(self.step_events, StepEvent):
+                self.step_events = [self.step_events]
+            elif isinstance(self.step_events, list):
+                if not all(isinstance(ev, StepEvent) for ev in self.step_events):
+                    raise TypeError("step_events must be a StepEvent or a list of StepEvent objects")
+            else:
+                raise TypeError("step_events must be a StepEvent or a list of StepEvent objects")
+        
         # This is an important check and it will ONLY work when you define
         # some of the attributes before calling the abstract level constructor
         # See SEIsIrR for an example of how to write a constructor.
         required_attrs = {
             'infected_statuses': "Subclasses must define 'infected_statuses'.",
-            'all_statuses': "Subclasses must define 'all_statuses' with at least 3 statuses.",
-            'step_events': "Subclasses must define 'step_events' with at least one event."}
+            'all_statuses': "Subclasses must define 'all_statuses' with at least 3 statuses."}
 
         for attr, message in required_attrs.items():
             if not hasattr(self, attr):
@@ -130,10 +157,6 @@ class AbstractCompartmentalModel():
         if len(self.all_statuses) < 3:
             raise ValueError(
                 "A compartmental model must consist of at least 3 different statuses.")
-
-        if len(self.step_events) < 1:
-            raise ValueError(
-                "A series of events that agents cannot be an empty set.")
 
         # Append end_day event to the existing day events given by the user
         end_day = StepEvent("end_day", self.folk_class.sleep)
