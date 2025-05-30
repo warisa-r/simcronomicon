@@ -174,8 +174,6 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         self.folk_class = FolkSEIsIrR
         self.all_statuses = (['S', 'E', 'Ir', 'Is', 'R'])
         self.infected_statuses = 'S'
-        self.required_place_types = set(
-            ['workplace', 'education', 'religious'])
         self.step_events = step_events
         super().__init__(model_params)
 

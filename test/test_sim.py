@@ -77,4 +77,82 @@ class TestSimulationInitializationGeneralized:
         )
         model.initialize_sim_population(town)
 
-#TODO: test that every model run and that certain time step print exactly the number of status from what I approximate before
+class TestSimulationStatusSummary:
+    @classmethod
+    def setup_class(cls):
+        # (model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status_dict)
+        cls.model_matrix = [
+            (
+                scon.SEIRModel,
+                scon.SEIRModelParameters,
+                scon.FolkSEIR,
+                dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200),
+                "test/test_data/aachen_dom_500m_metadata.json",
+                "test/test_data/aachen_dom_500m.graphmlz",
+                {"S": 0, "E": 0, "I": 0, "R": 100}
+            ),
+            (
+                scon.SEIsIrRModel,
+                scon.SEIsIrRModelParameters,
+                scon.FolkSEIsIrR,
+                dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
+                "test/test_data/aachen_dom_500m_metadata.json",
+                "test/test_data/aachen_dom_500m.graphmlz",
+                {"S": 0, "E": 0, "Is": 45, "Ir": 43, "R": 12}
+            ),
+            (
+                scon.SEIQRDVModel,
+                scon.SEIQRDVModelParameters,
+                scon.FolkSEIQRDV,
+                dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
+                "test/test_data/uniklinik_500m_metadata.json",
+                "test/test_data/uniklinik_500m.graphmlz",
+                {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 17, "D": 67, "V": 16}
+            ),
+        ]
+
+    @pytest.mark.parametrize("model_idx", [0, 1, 2])
+    def test_status_summary_last_step(self, model_idx):
+        """
+        Test that the status summary at the last timestep matches the expected values.
+        """
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status = self.model_matrix[model_idx]
+        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town = scon.Town.from_files(
+            metadata_path=metadata_path,
+            town_graph_path=graphmlz_path,
+            town_params=town_params
+        )
+        # Use the correct folk_class for each model's step_events
+        step_events = [
+            scon.StepEvent(
+                "greet_neighbors",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                5000,
+                ['accommodation']),
+            scon.StepEvent(
+                "chore",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                19000,
+                [
+                    'commercial',
+                    'workplace',
+                    'education',
+                    'religious'
+                ],
+                scon.log_normal_probabilities)
+        ]
+        model_params = model_params_class(**extra_params)
+        model = model_class(model_params, step_events=step_events)
+        sim = scon.Simulation(town, model, timesteps=50, seed=True, seed_value=123)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            h5_path = os.path.join(tmpdir, "out.h5")
+            sim.run(save_result=True, hdf5_path=h5_path)
+            with h5py.File(h5_path, "r") as h5file:
+                summary = h5file["status_summary/summary"][:]
+                last_step = summary[-1]
+                print(last_step)
+                for status, expected_value in expected_status.items():
+                    assert last_step[status] == expected_value, f"{status} mismatch: got {last_step[status]}, expected {expected_value}"

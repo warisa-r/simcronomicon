@@ -136,6 +136,16 @@ class AbstractCompartmentalModel():
                     raise TypeError("step_events must be a StepEvent or a list of StepEvent objects")
             else:
                 raise TypeError("step_events must be a StepEvent or a list of StepEvent objects")
+            
+            for event in self.step_events:
+                if not callable(event.folk_action):
+                    raise TypeError(f"folk_action in StepEvent '{event.name}' must be callable")
+                # Print folk_class and the class of event.folk_action for debugging
+                # Check if the function is a method of self.folk_class
+                if not any(event.folk_action is func for name, func in vars(self.folk_class).items() if callable(func)):
+                    raise TypeError(
+                        f"folk_action in StepEvent '{event.name}' must be a method of the folk_class '{self.folk_class.__name__}'"
+                    )
         
         # This is an important check and it will ONLY work when you define
         # some of the attributes before calling the abstract level constructor

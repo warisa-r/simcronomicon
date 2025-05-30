@@ -16,7 +16,7 @@ import osmnx as ox
 
 import simcronomicon as scon
 
-class TestTown(object):
+class TestTown:
     def setup_method(self):
         # Disable OSMnx cache for tests
         ox.settings.use_cache = False
