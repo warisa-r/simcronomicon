@@ -43,7 +43,10 @@ class FolkSEIR(Folk):
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
         num_contact = len(
             [folk for folk in folks_here if folk != self and folk.status in stats])
-        return super().inverse_bernoulli(num_contact, conversion_prob)
+        # beta * I / N is the non-linear term that defines conversion
+        # This inverse bernoulli function is an interpretation of the term
+        # in agent-based modeling
+        return super().inverse_bernoulli(num_contact, conversion_prob / len(folks_here))
 
     def interact(
             self,
@@ -105,8 +108,8 @@ class SEIRModel(AbstractCompartmentalModel):
         for i, (node, status) in enumerate(assignments):
             folk = self.create_folk(i, node, self.model_params.max_energy, status)
             folks.append(folk)
-            town.town_graph.nodes[node]['folks'].append(folk)
-            if len(town.town_graph.nodes[node]['folks']) == 2:
+            town.town_graph.nodes[node]["folks"].append(folk)
+            if len(town.town_graph.nodes[node]["folks"]) == 2:
                 household_node_indices.add(node)
 
         status_dict_t0 = {

@@ -67,16 +67,12 @@ class Simulation:
         self.status_dicts.append(status_dict_t0)
 
     def _reset_population_home(self):
-        for i in range(len(self.town.town_graph.nodes)
-                       ):  # Reset every house to empty first
-            self.town.town_graph.nodes[i]['folks'] = []
-
         # Reset every person's current address to their home address
         # And reset the town graph
         # In addition, send everyone to sleep as well
         for i in range(self.num_pop):
             self.folks[i].address = self.folks[i].home_address
-            self.town.town_graph.nodes[self.folks[i].home_address]['folks'].append(
+            self.town.town_graph.nodes[self.folks[i].home_address]["folks"].append(
                 self.folks[i])
             
         self.num_pop = self.model.update_population(self.folks, self.town, self.household_node_indices, self.status_dicts[-1])
@@ -85,92 +81,79 @@ class Simulation:
 
     def _disperse_for_event(self, step_event):
         for person in self.folks:
-            if person.movement_restricted or person.alive == False or person.energy == 0:
-                continue  # Skip if the agent cannot act on this event
-            current_node = person.address
-            # Get the shortest path lengths from current_node to all other
-            # nodes, considering edge weights
+            if person.movement_restricted == False and person.alive or person.energy > 0:
+                current_node = person.address
+                # Get the shortest path lengths from current_node to all other
+                # nodes, considering edge weights
 
-            if person.priority_place_type == []:
-                # If this agent doesn't have a place that they prioritize to go to, send them on their normal schedule
-                # like everybody else in the town.
-                # Get the nodes where the shortest path length is less than or
-                # equal to the possible travel distance
-                candidates = [
-                    neighbor for neighbor in self.town.town_graph.nodes
-                    if neighbor != current_node
-                    # check if an edge exists
-                    and self.town.town_graph[current_node].get(neighbor)
-                    and self.town.town_graph[current_node][neighbor]['weight'] <= step_event.max_distance
-                    and self.town.town_graph.nodes[neighbor]['place_type'] in step_event.place_types
-                ]
-            else:
-                # If the agent has prioritized place types to go to
-                # Find the closest node with one of those place types,
-                # regardless of max_distance
-                min_dist = float('inf')
-                chosen_node = None
-                chosen_place_type = None
-                for node in self.town.town_graph.nodes:
-                    node_place_type = self.town.town_graph.nodes[node]['place_type']
-                    if node_place_type in person.priority_place_type:
-                        if self.town.town_graph.has_edge(person.address, node):
-                            dist = self.town.town_graph[person.address][node]['weight']
-                        else:
-                            continue
-                        if dist < min_dist:
-                            min_dist = dist
-                            chosen_node = node
-                            chosen_place_type = node_place_type
-
-                # If there exists a precomputed shortest path from the current location to this place,
-                # move agent to the prioritized place and remove that place
-                # from the priority list.
-                if chosen_node and chosen_place_type:
-                    candidates = [chosen_node]
-                    # Remove the visited place type from the priority list
-                    person.priority_place_type.remove(chosen_place_type)
-
-            if candidates:
-                if step_event.probability_func is not None:
-                    distances = [
-                        self.town.town_graph[current_node][neighbor]['weight']
-                        for neighbor in candidates
+                if person.priority_place_type == []:
+                    # If this agent doesn't have a place that they prioritize to go to, send them on their normal schedule
+                    # like everybody else in the town.
+                    # Get the nodes where the shortest path length is less than or
+                    # equal to the possible travel distance
+                    candidates = [
+                        neighbor for neighbor in self.town.town_graph.nodes
+                        if neighbor != current_node
+                        # check if an edge exists
+                        and self.town.town_graph[current_node].get(neighbor)
+                        and self.town.town_graph[current_node][neighbor]['weight'] <= step_event.max_distance
+                        and self.town.town_graph.nodes[neighbor]['place_type'] in step_event.place_types
                     ]
-                    probs = step_event.probability_func(distances)
-                    new_node = np.random.choice(candidates, p=probs)
                 else:
-                    new_node = rd.choice(candidates)
+                    # If the agent has prioritized place types to go to
+                    # Find the closest node with one of those place types,
+                    # regardless of max_distance
+                    min_dist = float('inf')
+                    chosen_node = None
+                    chosen_place_type = None
+                    for node in self.town.town_graph.nodes:
+                        node_place_type = self.town.town_graph.nodes[node]['place_type']
+                        if node_place_type in person.priority_place_type:
+                            if self.town.town_graph.has_edge(person.address, node):
+                                dist = self.town.town_graph[person.address][node]['weight']
+                            else:
+                                continue
+                            if dist < min_dist:
+                                min_dist = dist
+                                chosen_node = node
+                                chosen_place_type = node_place_type
 
-                # Track the number of folks at current node to see if this node
-                # becomes inactive later on
-                num_folks_current_node = len(
-                    self.town.town_graph.nodes[current_node]['folks'])
-                # Remove the person from their old address
-                self.town.town_graph.nodes[current_node]['folks'].remove(
-                    person)
+                    # If there exists a precomputed shortest path from the current location to this place,
+                    # move agent to the prioritized place and remove that place
+                    # from the priority list.
+                    if chosen_node and chosen_place_type:
+                        candidates = [chosen_node]
+                        # Remove the visited place type from the priority list
+                        person.priority_place_type.remove(chosen_place_type)
 
-                num_folks_new_node = len(
-                    self.town.town_graph.nodes[new_node]['folks'])
-                # Add person to new node
-                self.town.town_graph.nodes[new_node]['folks'].append(person)
+                if candidates:
+                    if step_event.probability_func is not None:
+                        distances = [
+                            self.town.town_graph[current_node][neighbor]['weight']
+                            for neighbor in candidates
+                        ]
+                        probs = step_event.probability_func(distances)
+                        new_node = np.random.choice(candidates, p=probs)
+                    else:
+                        new_node = rd.choice(candidates)
                 # Update person's address
                 person.address = new_node
-
-                # Update active_node_indices
-                if len(self.town.town_graph.nodes[current_node]
-                       ['folks']) == 1 and num_folks_current_node == 2:
-                    # Node has become inactive after one person moves away
-                    self.active_node_indices.remove(current_node)
-                if len(
-                        self.town.town_graph.nodes[new_node]['folks']) == 2 and num_folks_new_node == 1:
-                    # One person just move in and make this node 'active' ->
-                    # interaction here is possible
-                    self.active_node_indices.add(new_node)
+            self.town.town_graph.nodes[person.address]["folks"].append(person)
+        # Reset active_node_indices and update consistently
+        self.active_node_indices = set()
+        for node in self.town.town_graph.nodes:
+            if len(self.town.town_graph.nodes[node]) >= 2:
+                self.active_node_indices.add(node)
 
     def _execute_event(self, step_event):
+        # Regardless of the type of events, there are always movements.
+        # To consistently update the list we have to
+        # reset every house to empty first and fill in the folks at the nodes
+        # after their address changes
+        for i in range(len(self.town.town_graph.nodes)
+                       ):
+            self.town.town_graph.nodes[i]["folks"] = []
         if step_event.event_type == EventType.SEND_HOME:
-            self._reset_population_home()
             for i in range(self.num_pop):
                 if not self.folks[i].alive:
                     continue
@@ -179,6 +162,8 @@ class Simulation:
                 # for time-sensitive transition while they do that
                 step_event.folk_action(
                     self.folks[i], None, None, self.status_dicts[-1], self.model_params, rd.random())
+            if step_event.name == "end_day":
+                self._reset_population_home()
         elif step_event.event_type == EventType.DISPERSE:
             # Move people through the town first
             self._disperse_for_event(step_event)
@@ -187,7 +172,7 @@ class Simulation:
                 # e.g. delivery service comes into contact with people are
                 # quarantined...
                 folks_here = [folk for folk in self.town.town_graph.nodes[node]
-                              ['folks'] if folk.alive and folk.energy > 0]
+                              ["folks"] if folk.alive and folk.energy > 0]
                 current_place_type = self.town.town_graph.nodes[node]['place_type']
                 for folk in folks_here:
                     step_event.folk_action(folk,
@@ -196,7 +181,6 @@ class Simulation:
                                            self.status_dicts[-1],
                                            self.model_params,
                                            rd.random())
-
     def _step(self, save_result):
         current_timestep = self.current_timestep + 1
         status_row = None

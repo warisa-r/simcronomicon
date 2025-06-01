@@ -97,9 +97,12 @@ class FolkSEIQRDV(Folk):
         float
             Probability of at least one successful conversion.
         """
+        # beta * I / N is the non-linear term that defines conversion
+        # This inverse bernoulli function is an interpretation of the term
+        # in agent-based modeling
         num_contact = len(
             [folk for folk in folks_here if folk != self and folk.status in stats])
-        return super().inverse_bernoulli(num_contact, conversion_prob)
+        return super().inverse_bernoulli(num_contact, conversion_prob / len(folks_here))
 
     def interact(
             self,
@@ -246,8 +249,8 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         for i, (node, status) in enumerate(assignments):
             folk = self.create_folk(i, node, self.model_params.max_energy, status)
             folks.append(folk)
-            town.town_graph.nodes[node]['folks'].append(folk)
-            if len(town.town_graph.nodes[node]['folks']) == 2:
+            town.town_graph.nodes[node]["folks"].append(folk)
+            if len(town.town_graph.nodes[node]["folks"]) == 2:
                 household_node_indices.add(node)
 
         status_dict_t0 = {
@@ -290,16 +293,15 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         int
             The updated total number of agents in the simulation after deaths and births/migration.
         """
+        
         num_current_pop = len(folks)
         folks_alive = [folk for folk in folks if folk.alive]
         num_current_folks = len(folks_alive)
-
         # Account for death by natural causes here
         for folk in folks_alive:
             if rd.random() < self.model_params.mu:
                 folk.convert('D', status_dict_t)
                 folk.alive = False
-        
         num_possible_new_folks = num_current_folks * self.model_params.lam_cap
         if num_possible_new_folks > 1:
             num_possible_new_folks = round(num_possible_new_folks)
@@ -312,10 +314,11 @@ class SEIQRDVModel(AbstractCompartmentalModel):
                 status_dict_t[stat] += 1
                 folks.append(folk)
                 # Account for which folks live where in the graph as well
-                town.town_graph.nodes[node]['folks'].append(folk)
+                town.town_graph.nodes[node]["folks"].append(folk)
 
                 # Track which node has a 'family' living in it
-                if len(town.town_graph.nodes[node]['folks']) == 2:
+                if len(town.town_graph.nodes[node]["folks"]) == 2:
                     household_node_indices.add(node) # Add operation and set() data structure ensures that there is no duplicate
 
+        
         return len(folks)

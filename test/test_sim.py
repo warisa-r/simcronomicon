@@ -77,7 +77,7 @@ class TestSimulationInitializationGeneralized:
         )
         model.initialize_sim_population(town)
 
-class TestSimulationStatusSummary:
+class TestSimulationUpdate:
     @classmethod
     def setup_class(cls):
         # (model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status_dict)
@@ -89,7 +89,150 @@ class TestSimulationStatusSummary:
                 dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200),
                 "test/test_data/aachen_dom_500m_metadata.json",
                 "test/test_data/aachen_dom_500m.graphmlz",
-                {"S": 0, "E": 0, "I": 0, "R": 100}
+            ),
+            (
+                scon.SEIsIrRModel,
+                scon.SEIsIrRModelParameters,
+                scon.FolkSEIsIrR,
+                dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
+                "test/test_data/aachen_dom_500m_metadata.json",
+                "test/test_data/aachen_dom_500m.graphmlz",
+            ),
+            (
+                scon.SEIQRDVModel,
+                scon.SEIQRDVModelParameters,
+                scon.FolkSEIQRDV,
+                dict(max_energy=5, lam_cap=0, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5, kappa=0.2, mu=0.1, hospital_capacity=100),
+                "test/test_data/uniklinik_500m_metadata.json",
+                "test/test_data/uniklinik_500m.graphmlz",
+            ),
+        ]
+
+    @pytest.mark.parametrize("model_idx", [0, 1, 2])
+    def test_population_conservation(self, model_idx):
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[model_idx]
+        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town = scon.Town.from_files(
+            metadata_path=metadata_path,
+            town_graph_path=graphmlz_path,
+            town_params=town_params
+        )
+        step_events = [
+            scon.StepEvent(
+                "greet_neighbors",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                5000,
+                ['accommodation']),
+            scon.StepEvent(
+                "chore",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                19000,
+                [
+                    'commercial',
+                    'workplace',
+                    'education',
+                    'religious'
+                ],
+                scon.log_normal_probabilities)
+        ]
+        model_params = model_params_class(**extra_params)
+        model = model_class(model_params, step_events=step_events)
+        sim = scon.Simulation(town, model, timesteps=5)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            h5_path = os.path.join(tmpdir, "pop_cons_test.h5")
+            sim.run(save_result=True, hdf5_path=h5_path)
+            with h5py.File(h5_path, "r") as h5file:
+                summary = h5file["status_summary/summary"][:]
+                # For each timestep, sum all status columns except 'timestep' and 'current_event'
+                for row in summary:
+                    # Only sum integer columns (statuses)
+                    total = sum(row[name] for name in row.dtype.names if name not in ("timestep", "current_event"))
+                    assert total == 100, f"Population not conserved at timestep {row['timestep']}: got {total}, expected 100"
+
+    def test_population_migration_and_death(self):
+        # Since SEIQRDV is the only class that truly update population status and size after each day has passed
+        # It is the representative model for testing the update_population functionality of the software
+        self.model_matrix[2][4] 
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[2]
+        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town = scon.Town.from_files(
+            metadata_path=metadata_path,
+            town_graph_path=graphmlz_path,
+            town_params=town_params
+        )
+        step_events = [
+            scon.StepEvent(
+                "greet_neighbors",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                5000,
+                ['accommodation']),
+            scon.StepEvent(
+                "chore",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                19000,
+                [
+                    'commercial',
+                    'workplace',
+                    'education',
+                    'religious'
+                ],
+                scon.log_normal_probabilities)
+        ]
+        params = dict(extra_params)
+        params['lam_cap'] = 1
+        params['mu'] = 0
+        model_params = model_params_class(**params)
+        model = model_class(model_params, step_events=step_events)
+        sim = scon.Simulation(town, model, timesteps=2)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            h5_path = os.path.join(tmpdir, "pop_migration_test.h5")
+            sim.run(save_result=True, hdf5_path=h5_path)
+            with h5py.File(h5_path, "r") as h5file:
+                summary = h5file["status_summary/summary"][:]
+                step1 = summary[-2]
+                step2 = summary[-1]
+                # Expect living population to double for the first step where nobody has died yet
+                total1 = sum(step1[name] for name in step1.dtype.names if name not in ("timestep", "current_event", "D"))
+                total2 = sum(step2[name] for name in step2.dtype.names if name not in ("timestep", "current_event", "D"))
+                assert total1 == 200, f"Population should be doubled at timestep {step1['timestep']}: got {total1}, expected 200"
+                assert total2 == total1 * 2, f"Population should be doubled at timestep {step2['timestep']}: got {total2}, expected {total1 * 2}"
+
+        params['lam_cap'] = 0
+        params['mu'] = 1
+        model_params = model_params_class(**params)
+        model = model_class(model_params, step_events=step_events)
+        sim = scon.Simulation(town, model, timesteps=1)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            h5_path = os.path.join(tmpdir, "pop_death_test.h5")
+            sim.run(save_result=True, hdf5_path=h5_path)
+            with h5py.File(h5_path, "r") as h5file:
+                summary = h5file["status_summary/summary"][:]
+                last_step = summary[-1]
+                # Expect living population to double for the first step where nobody has died yet
+                death_last = last_step["D"]
+                assert death_last == 100, f"Population should be all be dead at timestep {last_step['timestep']}: got {death_last}, expected 100"
+                other_statuses = ["S", "E", "I", "Q", "R", "V"]
+                for status in other_statuses:
+                    assert last_step[status] == 0, "Population of other statuses should be equal to 0"
+class TestSimulationResults:
+    @classmethod
+    def setup_class(cls):
+        # (model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status_dict)
+        cls.model_matrix = [
+            (
+                scon.SEIRModel,
+                scon.SEIRModelParameters,
+                scon.FolkSEIR,
+                dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200),
+                "test/test_data/aachen_dom_500m_metadata.json",
+                "test/test_data/aachen_dom_500m.graphmlz",
+                {"S": 68, "E": 0, "I": 0, "R": 32}
             ),
             (
                 scon.SEIsIrRModel,
@@ -107,9 +250,21 @@ class TestSimulationStatusSummary:
                 dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
                 "test/test_data/uniklinik_500m_metadata.json",
                 "test/test_data/uniklinik_500m.graphmlz",
-                {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 17, "D": 67, "V": 16}
+                {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 2, "D": 20, "V": 78}
             ),
         ]
+
+    def assert_h5_structure(self, h5_path):
+        # Ensure that the output file is properly saved
+        with h5py.File(h5_path, "r") as h5file:
+            assert "metadata" in h5file, "'metadata' group missing in HDF5 file"
+            assert "status_summary" in h5file, "'status_summary' group missing in HDF5 file"
+            assert "individual_logs" in h5file, "'individual_logs' group missing in HDF5 file"
+            assert "simulation_metadata" in h5file["metadata"], "'simulation_metadata' missing in metadata group"
+            assert "town_metadata" in h5file["metadata"], "'town_metadata' missing in metadata group"
+            assert "summary" in h5file["status_summary"], "'summary' missing in status_summary group"
+            assert "log" in h5file["individual_logs"], "'log' missing in individual_logs group"
+
 
     @pytest.mark.parametrize("model_idx", [0, 1, 2])
     def test_status_summary_last_step(self, model_idx):
@@ -150,9 +305,9 @@ class TestSimulationStatusSummary:
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
             sim.run(save_result=True, hdf5_path=h5_path)
+            self.assert_h5_structure(h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
-                print(last_step)
                 for status, expected_value in expected_status.items():
                     assert last_step[status] == expected_value, f"{status} mismatch: got {last_step[status]}, expected {expected_value}"

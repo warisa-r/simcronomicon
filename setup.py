@@ -8,6 +8,15 @@ try:
 except ImportError:
     from distutils.core import setup
 
+def parse_requirements(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+    # Remove comments and empty lines
+    reqs = [line.strip() for line in lines if line.strip() and not line.startswith('#')]
+    return reqs
+
+requirements = parse_requirements('requirements.txt')
+
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
@@ -34,8 +43,7 @@ setup(
     ],
     package_dir={'simcronomicon': 'simcronomicon'},
     include_package_data=True,
-    install_requires=[
-    ],
+    install_requires=requirements,
     license='MIT',
     zip_safe=False,
     keywords='simcronomicon',
@@ -44,11 +52,8 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
 )

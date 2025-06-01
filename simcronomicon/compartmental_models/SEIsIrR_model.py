@@ -207,8 +207,8 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         for i, (node, status) in enumerate(assignments):
             folk = self.create_folk(i, node, self.model_params.max_energy, status)
             folks.append(folk)
-            town.town_graph.nodes[node]['folks'].append(folk)
-            if len(town.town_graph.nodes[node]['folks']) == 2:
+            town.town_graph.nodes[node]["folks"].append(folk)
+            if len(town.town_graph.nodes[node]["folks"]) == 2:
                 household_node_indices.add(node)
 
         status_dict_t0 = {

@@ -61,6 +61,7 @@ class Folk:
             Dictionary tracking the count of each status at the current timestep.
         """
         assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
+        assert status_dict_t[self.status] > 0, f"Attempting to decrement {self.status} below zero!"
         status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
         self.status = new_stat
@@ -170,7 +171,11 @@ class AbstractCompartmentalModel():
 
         # Append end_day event to the existing day events given by the user
         end_day = StepEvent("end_day", self.folk_class.sleep)
-        self.step_events.append(end_day)
+        if not any(
+            isinstance(ev, StepEvent) and getattr(ev, "name", None) == "end_day"
+            for ev in self.step_events
+        ):
+            self.step_events.append(end_day)
 
     def create_folk(self, *args, **kwargs):
         """

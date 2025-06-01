@@ -15,6 +15,11 @@ Features
 --------
 
 * TODO
-- Model input should also be step_events
-- Mutation
-- Give a node where the spreader lives (start initial cond)
+- Write a script that also does the ODE system comparison
+- Update the test
+- Allow turning off of quarantine in SEIQRDV system
+- Parameter comparison and "meta" of it all. Optimizing parameter.
+- Result analysis module 
+    - identify peak infection time. peak length. https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data
+    - identify overall infection probability if you live in a node
+    - identify disease cluster at "peaks". DBSCAN?

@@ -284,7 +284,7 @@ class Town():
         # This attribute has to be assigned here since xml doesn't support
         # writing list as attributes
         for node in town.town_graph.nodes:
-            town.town_graph.nodes[node]['folks'] = []
+            town.town_graph.nodes[node]["folks"] = []
 
         print("Town graph successfully built and saved!")
         return town
