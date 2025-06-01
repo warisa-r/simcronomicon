@@ -1,3 +1,8 @@
+from pyproj import Transformer
+import networkx as nx
+import pandas as pd
+from itertools import product
+import warnings
 import os
 import zipfile
 import tempfile
@@ -7,11 +12,6 @@ import plotly.express as px
 import plotly.io as pio
 pio.renderers.default = "browser"
 
-import warnings
-from itertools import product
-import pandas as pd
-import networkx as nx
-from pyproj import Transformer
 
 def _load_node_info_from_graphmlz(
         town_graph_path,
@@ -65,8 +65,10 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     None
         Displays an interactive Plotly map of nodes colored by place type.
     """
-    assert town_graph_path.endswith(".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
-    assert town_metadata_path.endswith(".json"), f"Expected a .json file for town_metadata_path, got {town_metadata_path}"
+    assert town_graph_path.endswith(
+        ".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
+    assert town_metadata_path.endswith(
+        ".json"), f"Expected a .json file for town_metadata_path, got {town_metadata_path}"
 
     with open(town_metadata_path, "r") as f:
         metadata = json.load(f)
@@ -133,8 +135,10 @@ def visualize_folks_on_map_from_sim(
     None
         Displays an animated Plotly map showing agent locations and statuses over time.
     """
-    assert output_hdf5_path.endswith(".h5"), f"Expected a .h5 file for output_hdf5_path, got {output_hdf5_path}"
-    assert town_graph_path.endswith(".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
+    assert output_hdf5_path.endswith(
+        ".h5"), f"Expected a .h5 file for output_hdf5_path, got {output_hdf5_path}"
+    assert town_graph_path.endswith(
+        ".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
 
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:

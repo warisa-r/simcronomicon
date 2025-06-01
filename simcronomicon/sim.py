@@ -74,8 +74,9 @@ class Simulation:
             self.folks[i].address = self.folks[i].home_address
             self.town.town_graph.nodes[self.folks[i].home_address]["folks"].append(
                 self.folks[i])
-            
-        self.num_pop = self.model.update_population(self.folks, self.town, self.household_node_indices, self.status_dicts[-1])
+
+        self.num_pop = self.model.update_population(
+            self.folks, self.town, self.household_node_indices, self.status_dicts[-1])
         # Simple list -> Shallow copy
         self.active_node_indices = self.household_node_indices.copy()
 
@@ -181,6 +182,7 @@ class Simulation:
                                            self.status_dicts[-1],
                                            self.model_params,
                                            rd.random())
+
     def _step(self, save_result):
         current_timestep = self.current_timestep + 1
         status_row = None

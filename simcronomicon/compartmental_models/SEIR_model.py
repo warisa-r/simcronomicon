@@ -78,7 +78,7 @@ class FolkSEIR(Folk):
 
 
 class SEIRModel(AbstractCompartmentalModel):
-    def __init__(self, model_params, step_events = None):
+    def __init__(self, model_params, step_events=None):
         self.folk_class = FolkSEIR
         self.all_statuses = (['S', 'E', 'I', 'R'])
         self.infected_statuses = ['I', 'E']
@@ -88,7 +88,8 @@ class SEIRModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
-        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super()._initialize_sim_population(town)
+        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
+        )._initialize_sim_population(town)
 
         # Randomly assign initial spreaders (not on specified nodes)
         for i in range(num_init_spreader_rd):
@@ -106,7 +107,8 @@ class SEIRModel(AbstractCompartmentalModel):
 
         # Create folks and update graph/node info
         for i, (node, status) in enumerate(assignments):
-            folk = self.create_folk(i, node, self.model_params.max_energy, status)
+            folk = self.create_folk(
+                i, node, self.model_params.max_energy, status)
             folks.append(folk)
             town.town_graph.nodes[node]["folks"].append(folk)
             if len(town.town_graph.nodes[node]["folks"]) == 2:

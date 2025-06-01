@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 
+
 def log_normal_probabilities(distances, mu=0, sigma=1):
     """
     Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
@@ -14,10 +15,12 @@ def log_normal_probabilities(distances, mu=0, sigma=1):
     distances = np.array(distances)
     # Avoid log(0) and negative/zero distances
     distances = np.clip(distances, 1e-6, None)
-    probs = 1 / (distances * sigma * np.sqrt(2 * np.pi)) * np.exp(- (np.log(distances) - mu) ** 2 / (2 * sigma ** 2))
+    probs = 1 / (distances * sigma * np.sqrt(2 * np.pi)) * \
+        np.exp(- (np.log(distances) - mu) ** 2 / (2 * sigma ** 2))
     probs = np.nan_to_num(probs, nan=0.0, posinf=0.0, neginf=0.0)
     probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
     return probs
+
 
 class EventType(Enum):
     """
@@ -31,6 +34,7 @@ class EventType(Enum):
     """
     SEND_HOME = "send_home"
     DISPERSE = "disperse"
+
 
 class StepEvent:
     def __init__(
@@ -81,4 +85,5 @@ class StepEvent:
         self.event_type = event_type
         self.folk_action = folk_action
         self.probability_func = probability_func
-        assert not (event_type == EventType.SEND_HOME and probability_func != None), "You cannot define a mobility probability function for an event that does not disperse people" 
+        assert not (event_type == EventType.SEND_HOME and probability_func !=
+                    None), "You cannot define a mobility probability function for an event that does not disperse people"

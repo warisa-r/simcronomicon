@@ -8,13 +8,17 @@ import h5py
 import tempfile
 import os
 
+
 class TestSimulationInitializationGeneralized:
     @classmethod
     def setup_class(cls):
         cls.model_matrix = [
-            (scon.SEIRModel, scon.SEIRModelParameters, b'I', dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200), "test/test_data/aachen_dom_500m_metadata.json", "test/test_data/aachen_dom_500m.graphmlz"),
-            (scon.SEIsIrRModel, scon.SEIsIrRModelParameters, b'S', dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10), "test/test_data/aachen_dom_500m_metadata.json", "test/test_data/aachen_dom_500m.graphmlz"),
-            (scon.SEIQRDVModel, scon.SEIQRDVModelParameters, b'I', dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100), "test/test_data/uniklinik_500m_metadata.json", "test/test_data/uniklinik_500m.graphmlz"),
+            (scon.SEIRModel, scon.SEIRModelParameters, b'I', dict(max_energy=5, beta=0.4, sigma=6, gamma=5,
+             xi=200), "test/test_data/aachen_dom_500m_metadata.json", "test/test_data/aachen_dom_500m.graphmlz"),
+            (scon.SEIsIrRModel, scon.SEIsIrRModelParameters, b'S', dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5,
+             mu=0.5, eta1=0.5, eta2=0.5, mem_span=10), "test/test_data/aachen_dom_500m_metadata.json", "test/test_data/aachen_dom_500m.graphmlz"),
+            (scon.SEIQRDVModel, scon.SEIQRDVModelParameters, b'I', dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5,
+             kappa=0.2, mu=0.01, hospital_capacity=100), "test/test_data/uniklinik_500m_metadata.json", "test/test_data/uniklinik_500m.graphmlz"),
         ]
 
     @pytest.mark.parametrize("model_idx", [0, 1, 2])
@@ -23,7 +27,8 @@ class TestSimulationInitializationGeneralized:
         Test that all initial spreaders are placed at the specified nodes (using the HDF5 log).
         Handles the case where nodes can be repeated (multiple spreaders at the same node).
         """
-        model_class, model_params_class, spreader_status, extra_params, metadata_path, graphmlz_path = self.model_matrix[model_idx]
+        model_class, model_params_class, spreader_status, extra_params, metadata_path, graphmlz_path = self.model_matrix[
+            model_idx]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         town = scon.Town.from_files(
             metadata_path=metadata_path,
@@ -40,7 +45,8 @@ class TestSimulationInitializationGeneralized:
             sim.run(save_result=True, hdf5_path=h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
-                spreaders = [row for row in log if row['timestep'] == 0 and row['status'] == spreader_status]
+                spreaders = [row for row in log if row['timestep']
+                             == 0 and row['status'] == spreader_status]
                 num_spreaders = len(spreaders)
                 assert num_spreaders == town_params.num_init_spreader
                 spreader_addresses = [row['address'] for row in spreaders]
@@ -52,7 +58,8 @@ class TestSimulationInitializationGeneralized:
         Test assertion error when the number of initial spreader nodes is greater than num_init_spreader,
         and when num_init_spreader is more than the number of given nodes (should pass).
         """
-        model_class, model_params_class, _, extra_params, metadata_path, graphmlz_path = self.model_matrix[model_idx]
+        model_class, model_params_class, _, extra_params, metadata_path, graphmlz_path = self.model_matrix[
+            model_idx]
         # Case 1: More initial spreader nodes than num_init_spreader (should raise)
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=2)
         town_params.spreader_initial_nodes = [1, 2, 3]
@@ -77,6 +84,7 @@ class TestSimulationInitializationGeneralized:
         )
         model.initialize_sim_population(town)
 
+
 class TestSimulationUpdate:
     @classmethod
     def setup_class(cls):
@@ -94,7 +102,8 @@ class TestSimulationUpdate:
                 scon.SEIsIrRModel,
                 scon.SEIsIrRModelParameters,
                 scon.FolkSEIsIrR,
-                dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
+                dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5,
+                     phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
                 "test/test_data/aachen_dom_500m_metadata.json",
                 "test/test_data/aachen_dom_500m.graphmlz",
             ),
@@ -102,7 +111,8 @@ class TestSimulationUpdate:
                 scon.SEIQRDVModel,
                 scon.SEIQRDVModelParameters,
                 scon.FolkSEIQRDV,
-                dict(max_energy=5, lam_cap=0, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5, kappa=0.2, mu=0.1, hospital_capacity=100),
+                dict(max_energy=5, lam_cap=0, beta=0.4, alpha=0.5, gamma=3,
+                     delta=2, lam=4, rho=5, kappa=0.2, mu=0.1, hospital_capacity=100),
                 "test/test_data/uniklinik_500m_metadata.json",
                 "test/test_data/uniklinik_500m.graphmlz",
             ),
@@ -110,7 +120,8 @@ class TestSimulationUpdate:
 
     @pytest.mark.parametrize("model_idx", [0, 1, 2])
     def test_population_conservation(self, model_idx):
-        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[model_idx]
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[
+            model_idx]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         town = scon.Town.from_files(
             metadata_path=metadata_path,
@@ -148,14 +159,16 @@ class TestSimulationUpdate:
                 # For each timestep, sum all status columns except 'timestep' and 'current_event'
                 for row in summary:
                     # Only sum integer columns (statuses)
-                    total = sum(row[name] for name in row.dtype.names if name not in ("timestep", "current_event"))
+                    total = sum(row[name] for name in row.dtype.names if name not in (
+                        "timestep", "current_event"))
                     assert total == 100, f"Population not conserved at timestep {row['timestep']}: got {total}, expected 100"
 
     def test_population_migration_and_death(self):
         # Since SEIQRDV is the only class that truly update population status and size after each day has passed
         # It is the representative model for testing the update_population functionality of the software
-        self.model_matrix[2][4] 
-        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[2]
+        self.model_matrix[2][4]
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[
+            2]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         town = scon.Town.from_files(
             metadata_path=metadata_path,
@@ -197,10 +210,13 @@ class TestSimulationUpdate:
                 step1 = summary[-2]
                 step2 = summary[-1]
                 # Expect living population to double for the first step where nobody has died yet
-                total1 = sum(step1[name] for name in step1.dtype.names if name not in ("timestep", "current_event", "D"))
-                total2 = sum(step2[name] for name in step2.dtype.names if name not in ("timestep", "current_event", "D"))
+                total1 = sum(step1[name] for name in step1.dtype.names if name not in (
+                    "timestep", "current_event", "D"))
+                total2 = sum(step2[name] for name in step2.dtype.names if name not in (
+                    "timestep", "current_event", "D"))
                 assert total1 == 200, f"Population should be doubled at timestep {step1['timestep']}: got {total1}, expected 200"
-                assert total2 == total1 * 2, f"Population should be doubled at timestep {step2['timestep']}: got {total2}, expected {total1 * 2}"
+                assert total2 == total1 * \
+                    2, f"Population should be doubled at timestep {step2['timestep']}: got {total2}, expected {total1 * 2}"
 
         params['lam_cap'] = 0
         params['mu'] = 1
@@ -220,6 +236,8 @@ class TestSimulationUpdate:
                 other_statuses = ["S", "E", "I", "Q", "R", "V"]
                 for status in other_statuses:
                     assert last_step[status] == 0, "Population of other statuses should be equal to 0"
+
+
 class TestSimulationResults:
     @classmethod
     def setup_class(cls):
@@ -238,7 +256,8 @@ class TestSimulationResults:
                 scon.SEIsIrRModel,
                 scon.SEIsIrRModelParameters,
                 scon.FolkSEIsIrR,
-                dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
+                dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5,
+                     phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
                 "test/test_data/aachen_dom_500m_metadata.json",
                 "test/test_data/aachen_dom_500m.graphmlz",
                 {"S": 0, "E": 0, "Is": 45, "Ir": 43, "R": 12}
@@ -247,7 +266,8 @@ class TestSimulationResults:
                 scon.SEIQRDVModel,
                 scon.SEIQRDVModelParameters,
                 scon.FolkSEIQRDV,
-                dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3, delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
+                dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3,
+                     delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
                 "test/test_data/uniklinik_500m_metadata.json",
                 "test/test_data/uniklinik_500m.graphmlz",
                 {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 2, "D": 20, "V": 78}
@@ -265,13 +285,13 @@ class TestSimulationResults:
             assert "summary" in h5file["status_summary"], "'summary' missing in status_summary group"
             assert "log" in h5file["individual_logs"], "'log' missing in individual_logs group"
 
-
     @pytest.mark.parametrize("model_idx", [0, 1, 2])
     def test_status_summary_last_step(self, model_idx):
         """
         Test that the status summary at the last timestep matches the expected values.
         """
-        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status = self.model_matrix[model_idx]
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status = self.model_matrix[
+            model_idx]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         town = scon.Town.from_files(
             metadata_path=metadata_path,
@@ -301,7 +321,8 @@ class TestSimulationResults:
         ]
         model_params = model_params_class(**extra_params)
         model = model_class(model_params, step_events=step_events)
-        sim = scon.Simulation(town, model, timesteps=50, seed=True, seed_value=123)
+        sim = scon.Simulation(town, model, timesteps=50,
+                              seed=True, seed_value=123)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
             sim.run(save_result=True, hdf5_path=h5_path)

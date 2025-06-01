@@ -4,17 +4,20 @@ from scipy.integrate import solve_ivp
 import tempfile
 import os
 
+
 class TestSEIRModel:
     def test_seir_abm_vs_ode_error(self):
         # ODE solution
-        model_params = scon.SEIRModelParameters(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200)
+        model_params = scon.SEIRModelParameters(
+            max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200)
+
         def rhs_func(t, y):
             S, E, I, R = y
             N = S + E + I + R
             rhs = np.zeros(4)
             rhs[0] = -model_params.beta * S * I / N + 1/model_params.xi * R
             rhs[1] = model_params.beta * S * I / N - 1 / model_params.sigma * E
-            rhs[2] = 1/model_params.sigma * E  - 1/model_params.gamma * I
+            rhs[2] = 1/model_params.sigma * E - 1/model_params.gamma * I
             rhs[3] = 1/model_params.gamma * I - 1/model_params.xi * R
             return rhs
 

@@ -99,6 +99,7 @@ class Folk:
         self.status_step_streak += 1
         self.energy = rd.randint(0, self.max_energy)  # Reset social energy
 
+
 class AbstractCompartmentalModel():
     def __init__(self, model_params):
         """
@@ -134,20 +135,23 @@ class AbstractCompartmentalModel():
                 self.step_events = [self.step_events]
             elif isinstance(self.step_events, list):
                 if not all(isinstance(ev, StepEvent) for ev in self.step_events):
-                    raise TypeError("step_events must be a StepEvent or a list of StepEvent objects")
+                    raise TypeError(
+                        "step_events must be a StepEvent or a list of StepEvent objects")
             else:
-                raise TypeError("step_events must be a StepEvent or a list of StepEvent objects")
-            
+                raise TypeError(
+                    "step_events must be a StepEvent or a list of StepEvent objects")
+
             for event in self.step_events:
                 if not callable(event.folk_action):
-                    raise TypeError(f"folk_action in StepEvent '{event.name}' must be callable")
+                    raise TypeError(
+                        f"folk_action in StepEvent '{event.name}' must be callable")
                 # Print folk_class and the class of event.folk_action for debugging
                 # Check if the function is a method of self.folk_class
                 if not any(event.folk_action is func for name, func in vars(self.folk_class).items() if callable(func)):
                     raise TypeError(
                         f"folk_action in StepEvent '{event.name}' must be a method of the folk_class '{self.folk_class.__name__}'"
                     )
-        
+
         # This is an important check and it will ONLY work when you define
         # some of the attributes before calling the abstract level constructor
         # See SEIsIrR for an example of how to write a constructor.
@@ -172,7 +176,8 @@ class AbstractCompartmentalModel():
         # Append end_day event to the existing day events given by the user
         end_day = StepEvent("end_day", self.folk_class.sleep)
         if not any(
-            isinstance(ev, StepEvent) and getattr(ev, "name", None) == "end_day"
+            isinstance(ev, StepEvent) and getattr(
+                ev, "name", None) == "end_day"
             for ev in self.step_events
         ):
             self.step_events.append(end_day)
@@ -202,7 +207,7 @@ class AbstractCompartmentalModel():
         assignments = []
 
         return num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments
-    
+
     def update_population(self, folks, town, household_node_indices, status_dict_t):
         """
         Update the simulation population (e.g., add or remove agents).

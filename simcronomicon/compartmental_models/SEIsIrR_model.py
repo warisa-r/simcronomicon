@@ -57,6 +57,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         self.alpha = alpha
         self.gamma = gamma
         self.mu = mu
+        self.lam = lam
         gamma_alpha_lam = gamma * alpha * lam
 
         # We use number 2 to signify transition that happens because of
@@ -74,6 +75,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         return {
             'max_energy': self.max_energy,
             'literacy': self.literacy,
+            'lam': self.lam,
             'alpha': self.alpha,
             'gamma': self.gamma,
             'phi': self.E2R,
@@ -92,15 +94,7 @@ class FolkSEIsIrR(Folk):
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
         num_contact = len(
             [folk for folk in folks_here if folk != self and folk.status in stats])
-
-        if num_contact == 0:
-            contact_possibility = 0
-        elif num_contact >= self.energy:
-            contact_possibility = self.energy
-        else:
-            contact_possibility = self.energy * num_contact / self.max_energy
-
-        return super().inverse_bernoulli(contact_possibility, conversion_prob)
+        return super().inverse_bernoulli(num_contact, conversion_prob * self.energy / self.max_energy)
 
     def interact(
             self,
@@ -170,7 +164,7 @@ class FolkSEIsIrR(Folk):
 
 
 class SEIsIrRModel(AbstractCompartmentalModel):
-    def __init__(self, model_params, step_events = None):
+    def __init__(self, model_params, step_events=None):
         self.folk_class = FolkSEIsIrR
         self.all_statuses = (['S', 'E', 'Ir', 'Is', 'R'])
         self.infected_statuses = 'S'
@@ -178,7 +172,8 @@ class SEIsIrRModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
-        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super()._initialize_sim_population(town)
+        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
+        )._initialize_sim_population(town)
 
         num_IsIr = num_pop - num_init_spreader
 
@@ -205,7 +200,8 @@ class SEIsIrRModel(AbstractCompartmentalModel):
 
         # Create folks and update graph/node info
         for i, (node, status) in enumerate(assignments):
-            folk = self.create_folk(i, node, self.model_params.max_energy, status)
+            folk = self.create_folk(
+                i, node, self.model_params.max_energy, status)
             folks.append(folk)
             town.town_graph.nodes[node]["folks"].append(folk)
             if len(town.town_graph.nodes[node]["folks"]) == 2:

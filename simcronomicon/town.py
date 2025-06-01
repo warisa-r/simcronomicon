@@ -65,7 +65,7 @@ def classify_place(row):
 
 
 class TownParameters():
-    def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes = []):
+    def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes=[]):
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
         self.spreader_initial_nodes = spreader_initial_nodes
@@ -242,7 +242,7 @@ class Town():
             nx.get_node_attributes(
                 town.town_graph,
                 'place_type').values())
-        
+
         # Assert that all spreader_initial_nodes exist in the town graph
         assert all(
             node in town.town_graph.nodes

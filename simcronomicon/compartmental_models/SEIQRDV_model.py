@@ -4,12 +4,14 @@ import random as rd
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):
-    def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity = float('inf')):
+    def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity=float('inf')):
         for name, value in zip(
-            ['lam_cap', 'beta', 'alpha', 'gamma', 'delta', 'lam', 'rho', 'kappa', 'mu', 'hospital_capacity'],
-            [lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity]
+            ['lam_cap', 'beta', 'alpha', 'gamma', 'delta', 'lam',
+                'rho', 'kappa', 'mu', 'hospital_capacity'],
+            [lam_cap, beta, alpha, gamma, delta, lam,
+                rho, kappa, mu, hospital_capacity]
         ):
-            if name in ['lam_cap','beta', 'kappa', 'alpha', 'mu']:
+            if name in ['lam_cap', 'beta', 'kappa', 'alpha', 'mu']:
                 if not isinstance(
                         value, (float, int)) or not (
                         0 <= value <= 1):
@@ -28,7 +30,8 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
         # Adapted from https://www.mdpi.com/2227-7390/9/6/636
 
-        self.lam_cap = lam_cap # Rate of new population due to birth or migration etc.
+        # Rate of new population due to birth or migration etc.
+        self.lam_cap = lam_cap
         self.beta = beta  # Transimssion probability
         self.alpha = alpha  # Vaccination rate
         self.gamma = gamma  # Average latent time
@@ -36,13 +39,14 @@ class SEIQRDVModelParameters(AbstractModelParameters):
         self.lam = lam  # Average day until recovery
         self.rho = rho  # Average day until death
         self.kappa = kappa  # Disease mortality rate
-        self.mu = mu # Natural back ground death rate
-        self.hospital_capacity = hospital_capacity # Average number of people a healthcare facility can contain
+        self.mu = mu  # Natural back ground death rate
+        # Average number of people a healthcare facility can contain
+        self.hospital_capacity = hospital_capacity
 
     def to_metadata_dict(self):
         return {
             'max_energy': self.max_energy,
-            'lam_cap':self.lam_cap,
+            'lam_cap': self.lam_cap,
             'beta': self.beta,
             'alpha': self.alpha,
             'gamma': self.gamma,
@@ -51,7 +55,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
             'rho': self.rho,
             'kappa': self.kappa,
             'mu': self.mu,
-            'hospital_capacity':self.hospital_capacity
+            'hospital_capacity': self.hospital_capacity
         }
 
 
@@ -219,7 +223,7 @@ class FolkSEIQRDV(Folk):
 
 
 class SEIQRDVModel(AbstractCompartmentalModel):
-    def __init__(self, model_params, step_events = None):
+    def __init__(self, model_params, step_events=None):
         self.folk_class = FolkSEIQRDV
         self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D', 'V'])
         self.infected_statuses = ['I', 'E', 'Q']
@@ -229,7 +233,8 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
-        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super()._initialize_sim_population(town)
+        num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
+        )._initialize_sim_population(town)
 
         # Randomly assign initial spreaders (not on specified nodes)
         for i in range(num_init_spreader_rd):
@@ -247,7 +252,8 @@ class SEIQRDVModel(AbstractCompartmentalModel):
 
         # Create folks and update graph/node info
         for i, (node, status) in enumerate(assignments):
-            folk = self.create_folk(i, node, self.model_params.max_energy, status)
+            folk = self.create_folk(
+                i, node, self.model_params.max_energy, status)
             folks.append(folk)
             town.town_graph.nodes[node]["folks"].append(folk)
             if len(town.town_graph.nodes[node]["folks"]) == 2:
@@ -265,7 +271,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
             'V': 0
         }
         return folks, household_node_indices, status_dict_t0
-    
+
     def update_population(self, folks, town, household_node_indices, status_dict_t):
         """
         Update the simulation population at the end of each day.
@@ -293,7 +299,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         int
             The updated total number of agents in the simulation after deaths and births/migration.
         """
-        
+
         num_current_pop = len(folks)
         folks_alive = [folk for folk in folks if folk.alive]
         num_current_folks = len(folks_alive)
@@ -307,10 +313,11 @@ class SEIQRDVModel(AbstractCompartmentalModel):
             num_possible_new_folks = round(num_possible_new_folks)
             for i in range(num_possible_new_folks):
                 node = rd.choice(town.accommodation_node_ids)
-                stat = rd.choice([s for s in self.all_statuses if s not in ('D', 'Q')])
+                stat = rd.choice(
+                    [s for s in self.all_statuses if s not in ('D', 'Q')])
                 folk = self.create_folk(
                     num_current_pop + i, node, self.model_params.max_energy, stat)
-                
+
                 status_dict_t[stat] += 1
                 folks.append(folk)
                 # Account for which folks live where in the graph as well
@@ -318,7 +325,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
 
                 # Track which node has a 'family' living in it
                 if len(town.town_graph.nodes[node]["folks"]) == 2:
-                    household_node_indices.add(node) # Add operation and set() data structure ensures that there is no duplicate
+                    # Add operation and set() data structure ensures that there is no duplicate
+                    household_node_indices.add(node)
 
-        
         return len(folks)
