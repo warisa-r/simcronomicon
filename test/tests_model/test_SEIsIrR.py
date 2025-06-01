@@ -92,7 +92,7 @@ class TestSEIsIrRModel:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")
             sim.run(save_result=True, hdf5_path=h5_path)
 
-            # --- Extract ABM results ---
+            # Extract ABM results
             import h5py
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
@@ -102,7 +102,7 @@ class TestSEIsIrRModel:
                 abm_Ir = summary['Ir'] / total_pop
                 abm_R = summary['R'] / total_pop
 
-            # Normalized, align and compare
+            # Normalize, align and compare
             ode_S = sol.y[0] / 10
             ode_E = sol.y[1] / 10
             ode_Is = sol.y[2] / 10

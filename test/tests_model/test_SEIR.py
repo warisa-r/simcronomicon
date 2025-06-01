@@ -69,7 +69,7 @@ class TestSEIRModel:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")
             sim.run(save_result=True, hdf5_path=h5_path)
 
-            # --- Extract ABM results ---
+            # Extract ABM results
             import h5py
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]

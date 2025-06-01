@@ -82,7 +82,7 @@ class Simulation:
 
     def _disperse_for_event(self, step_event):
         for person in self.folks:
-            if person.movement_restricted == False and person.alive or person.energy > 0:
+            if person.movement_restricted == False and person.alive and person.energy > 0:
                 current_node = person.address
                 # Get the shortest path lengths from current_node to all other
                 # nodes, considering edge weights
@@ -140,6 +140,8 @@ class Simulation:
                 # Update person's address
                 person.address = new_node
             self.town.town_graph.nodes[person.address]["folks"].append(person)
+
+            
         # Reset active_node_indices and update consistently
         self.active_node_indices = set()
         for node in self.town.town_graph.nodes:

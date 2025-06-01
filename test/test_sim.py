@@ -240,6 +240,7 @@ class TestSimulationUpdate:
 
 class TestSimulationResults:
     @classmethod
+    #TODO: Update these numbers as things changed
     def setup_class(cls):
         # (model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path, expected_status_dict)
         cls.model_matrix = [

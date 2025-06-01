@@ -60,6 +60,8 @@ class FolkSEIR(Folk):
         if self.status == 'S' and self.inverse_bernoulli(
                 folks_here, model_params.beta, ['I']) > dice:
             self.convert('E', status_dict_t)
+            
+        self.energy -= 1
 
     def sleep(
             self,

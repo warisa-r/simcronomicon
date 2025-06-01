@@ -152,9 +152,13 @@ class FolkSEIQRDV(Folk):
             self.convert('E', status_dict_t)
 
         if current_place_type == 'healthcare_facility':
-            if self.status == 'S' and self.want_vaccine and len([folk for folk in folks_here if folk.want_vaccine]) < model_params.hospital_capacity:
-                self.convert('V', status_dict_t)
-                self.want_vaccine = False
+            # Vaccine is only effective for susceptible people but anyone who wants it can queue up
+            want_vaccine_list = [folk for folk in folks_here if folk.want_vaccine]
+            if self in want_vaccine_list and self.status == 'S':
+                idx = want_vaccine_list.index(self)
+                if idx < model_params.hospital_capacity:
+                    self.convert('V', status_dict_t)
+        
 
     def sleep(
             self,
@@ -220,6 +224,15 @@ class FolkSEIQRDV(Folk):
             # A person has a likelyhood alpha to plane to get vaccinated
             self.priority_place_type.append('healthcare_facility')
             self.want_vaccine = True
+        elif self.status == 'V':
+        # We set self.want_vaccine = False here (in sleep) instead of immediately in interact
+        # because if we set it in interact (right after conversion), it would change the order of the want_vaccine_list
+        # while we are still looping through folks at the healthcare facility in the same event.
+        # This could cause some agents to be skipped or processed incorrectly, since the list of agents wanting a vaccine
+        # would be modified during iteration. By deferring the reset of want_vaccine to the end-of-day (sleep),
+        # we ensure that all agents who wanted a vaccine at the start of the event are considered for vaccination,
+        # and the event logic remains consistent and fair.
+            self.want_vaccine = False 
 
 
 class SEIQRDVModel(AbstractCompartmentalModel):
