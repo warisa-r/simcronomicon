@@ -267,6 +267,9 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         for i, (node, status) in enumerate(assignments):
             folk = self.create_folk(
                 i, node, self.model_params.max_energy, status)
+            if status == 'S' and rd.random() < self.model_params.alpha:
+                folk.priority_place_type.append('healthcare_facility')
+                folk.want_vaccine = True
             folks.append(folk)
             town.town_graph.nodes[node]["folks"].append(folk)
             if len(town.town_graph.nodes[node]["folks"]) == 2:

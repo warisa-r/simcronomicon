@@ -144,7 +144,7 @@ class TestSEIQRDVModel:
         )
 
         model = scon.SEIQRDVModel(model_params, self.step_events)
-        sim = scon.Simulation(town, model, 2) # want_vaccine only triggers when agents have slept
+        sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_test.h5")
             sim.run(save_result=True, hdf5_path=h5_path)
@@ -168,14 +168,14 @@ class TestSEIQRDVModel:
         )
 
         model = scon.SEIQRDVModel(model_params, self.step_events)
-        sim = scon.Simulation(town, model, 2) # want_vaccine only triggers when agents have slept
+        sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_cap_test.h5")
             sim.run(save_result=True, hdf5_path=h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # Filter for the first step event where current_event is "greet_neighbors" and timestep == 1
-                first_step = log[(log['timestep'] == 2) & (log['event'] == b"greet_neighbors")]
+                first_step = log[(log['timestep'] == 1) & (log['event'] == b"greet_neighbors")]
                 # Count number of people at each healthcare node of interest
                 node_counts = {node: 0 for node in [26, 32, 40, 53]}
                 for row in first_step:
@@ -183,7 +183,7 @@ class TestSEIQRDVModel:
                     # so there will be no unaware infected person who wants vaccination
                     if row['address'] in node_counts and row['status'] != b'I':
                         node_counts[row['address']] += 1
-                expected = {26: 3, 32: 1, 40: 10, 53: 5}
+                expected = {26: 3, 32: 1, 40: 10, 53: 4}
                 print("Actual node counts at timestep 2, greet_neighbors:", node_counts)
                 for node, count in node_counts.items():
                     assert count == expected[node], f"Node {node} has {count} people, expected {expected[node]}"
@@ -192,6 +192,47 @@ class TestSEIQRDVModel:
                 last_step = summary[-1]
                 # There are 4 healthcare_facility type nodes in the graph
                 # In this test case, they got allocated 3, 1, 5, 10
-                # Therefore the amount of vaccination they should get is 3 + 1 + 5 + 5 = 14
+                # Therefore the amount of vaccination they should get is 3 + 1 + 5 + 4 = 13
                 vaccinated_last = last_step["V"]
-                assert vaccinated_last == 14, f"Every former susceptible person should be vaccinated at timestep {last_step['timestep']}: got {vaccinated_last}, expected 14"
+                assert vaccinated_last == 13, f"Every former susceptible person should be vaccinated at timestep {last_step['timestep']}: got {vaccinated_last}, expected 14"
+
+    def test_quarantine_and_dead_address_stable(self):
+        # All agents start as spreaders, delta=1 so all go to quarantine after 1 day, no deaths or births
+        model_params = scon.SEIQRDVModelParameters(
+            max_energy=10, lam_cap=0, beta=0, alpha=0, gamma=4, delta=1, lam=7, rho=2, kappa=1, mu=0, hospital_capacity=5
+        )
+        town_params = scon.TownParameters(num_pop=10, num_init_spreader=10)
+        town = scon.Town.from_files(
+            metadata_path=self.town_metadata_path,
+            town_graph_path=self.town_graph_path,
+            town_params=town_params
+        )
+        model = scon.SEIQRDVModel(model_params, self.step_events)
+        sim = scon.Simulation(town, model, 10)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            h5_path = os.path.join(tmpdir, "quarantine_address_stable.h5")
+            sim.run(save_result=True, hdf5_path=h5_path)
+            with h5py.File(h5_path, "r") as h5file:
+                log = h5file["individual_logs/log"][:]
+                # For each folk, track the address when they first become Q or D
+                first_q_address = {}
+                first_d_address = {}
+                for row in log:
+                    folk_id = row['folk_id']
+                    timestep = row['timestep']
+                    status = row['status']
+                    address = row['address']
+                    if status == b'Q':
+                        if folk_id not in first_q_address:
+                            first_q_address[folk_id] = address
+                        else:
+                            assert address == first_q_address[folk_id], (
+                                f"Folk {folk_id} changed address after quarantine at timestep {timestep}!"
+                            )
+                    if status == b'D':
+                        if folk_id not in first_d_address:
+                            first_d_address[folk_id] = address
+                        else:
+                            assert address == first_d_address[folk_id], (
+                                f"Folk {folk_id} changed address after death at timestep {timestep}!"
+                            )

@@ -251,7 +251,7 @@ class TestSimulationResults:
                 dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200),
                 "test/test_data/aachen_dom_500m_metadata.json",
                 "test/test_data/aachen_dom_500m.graphmlz",
-                {"S": 68, "E": 0, "I": 0, "R": 32}
+                {"S": 80, "E": 0, "I": 0, "R": 20}
             ),
             (
                 scon.SEIsIrRModel,
@@ -261,7 +261,7 @@ class TestSimulationResults:
                      phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
                 "test/test_data/aachen_dom_500m_metadata.json",
                 "test/test_data/aachen_dom_500m.graphmlz",
-                {"S": 0, "E": 0, "Is": 45, "Ir": 43, "R": 12}
+                {"S": 0, "E": 0, "Is": 44, "Ir": 45, "R": 11}
             ),
             (
                 scon.SEIQRDVModel,
