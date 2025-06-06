@@ -75,8 +75,8 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         ):
             if not isinstance(value, (float, int)):
                 raise TypeError(
-                    f"{name} must be a float or int, got {
-                        type(value).__name__}")
+                    f"{name} must be a float or int, got {type(value).__name__}"
+                )
 
         # Cast to float
         gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(
