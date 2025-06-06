@@ -6,6 +6,7 @@ omit =
     */test/*
     */tests/*
     */examples/*
+    setup.py
 
 [report]
 exclude_lines =
