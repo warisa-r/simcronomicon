@@ -54,10 +54,6 @@ class TestSimulationInitializationGeneralized:
 
     @pytest.mark.parametrize("model_idx", [0, 1, 2])
     def test_spreader_initial_nodes_assertion(self, model_idx):
-        """
-        Test assertion error when the number of initial spreader nodes is greater than num_init_spreader,
-        and when num_init_spreader is more than the number of given nodes (should pass).
-        """
         model_class, model_params_class, _, extra_params, metadata_path, graphmlz_path = self.model_matrix[
             model_idx]
         # Case 1: More initial spreader nodes than num_init_spreader (should raise)
@@ -84,6 +80,81 @@ class TestSimulationInitializationGeneralized:
         )
         model.initialize_sim_population(town)
 
+class TestStepEventFunctionality:
+    @classmethod
+    def setup_class(cls):
+        # (model_class, folk_class, model_params, metadata_path, graphmlz_path)
+        cls.model_matrix = [
+            (
+                scon.SEIRModel,
+                scon.SEIRModelParameters,
+                scon.FolkSEIR,
+                dict(max_energy=3, beta=0.4, sigma=2, gamma=2, xi=5),
+                "test/test_data/aachen_dom_500m_metadata.json",
+                "test/test_data/aachen_dom_500m.graphmlz",
+            ),
+            (
+                scon.SEIsIrRModel,
+                scon.SEIsIrRModelParameters,
+                scon.FolkSEIsIrR,
+                dict(max_energy=3, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5,
+                     phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
+                "test/test_data/aachen_dom_500m_metadata.json",
+                "test/test_data/aachen_dom_500m.graphmlz",
+            ),
+            # SEIQRDV is omitted here because its priority place logic is different (see comment below)
+        ]
+
+    @pytest.mark.parametrize("model_idx", [0, 1])
+    def test_disperse_and_end_day_events(self, model_idx):
+        model_class, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = self.model_matrix[model_idx]
+        model_params = model_params_class(**extra_params)
+        town_params = scon.TownParameters(num_pop=5, num_init_spreader=1)
+        town = scon.Town.from_files(
+            metadata_path=metadata_path,
+            town_graph_path=graphmlz_path,
+            town_params=town_params
+        )
+        step_events = [
+            scon.StepEvent(
+                "go_to_work",
+                folk_class.interact,
+                scon.EventType.DISPERSE,
+                10000,
+                ['workplace']
+            ),
+            scon.StepEvent(
+                "end_day",
+                folk_class.sleep,
+                scon.EventType.SEND_HOME
+            )
+        ]
+        model = model_class(model_params, step_events=step_events)
+        sim = scon.Simulation(town, model, timesteps=1)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            h5_path = os.path.join(tmpdir, "stepevent_test.h5")
+            sim.run(save_result=True, hdf5_path=h5_path)
+            with h5py.File(h5_path, "r") as h5file:
+                log = h5file["individual_logs/log"][:]
+                # Check 'go_to_work' event
+                go_to_work_rows = log[(log['timestep'] == 1) & (log['event'] == b"go_to_work")]
+                for row in go_to_work_rows:
+                    folk_id = row['folk_id']
+                    address = row['address']
+                    home_addr = next(folk.home_address for folk in sim.folks if folk.id == folk_id)
+                    place_type = town.town_graph.nodes[address]['place_type']
+                    assert address == home_addr or place_type == 'workplace', \
+                        f"Folk {folk_id} at address {address} (type {place_type}) is not at home or workplace during go_to_work"
+                # Check 'end_day' event
+                end_day_rows = log[(log['timestep'] == 1) & (log['event'] == b"end_day")]
+                for row in end_day_rows:
+                    folk_id = row['folk_id']
+                    address = row['address']
+                    home_addr = next(folk.home_address for folk in sim.folks if folk.id == folk_id)
+                    assert address == home_addr, f"Folk {folk_id} not at home at end_day (address {address}, home {home_addr})"
+
+# For SEIQRDV, the functionality of priority place is tested in its own dedicated tests,
+# since agents may prioritize 'healthcare_facility' and bypass typical destinations like 'workplace'.
 
 class TestSimulationUpdate:
     @classmethod

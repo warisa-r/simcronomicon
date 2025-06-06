@@ -6,7 +6,7 @@ The implementation is based on:
 
 Chen, X., & Wang, N. (2020).
 Rumor spreading model considering rumor credibility, correlation and crowd classification based on personality.
-*Scientific Reports*, 10, 5887. https://doi.org/10.1038/s41598-020-62687-5
+*Scientific Reports*, 10, 5887. https://doi.org/10.1038/s41598-020-62585-9
 """
 
 from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
@@ -15,6 +15,39 @@ import random as rd
 
 
 class SEIsIrRModelParameters(AbstractModelParameters):
+    """
+    Model parameters for the SEIsIrR rumor spreading model.
+
+    Parameters
+    ----------
+    max_energy : int
+        Maximum energy for each agent.
+    literacy : float
+        Fraction of the population that is literate (0 <= literacy <= 1, affects Is/Ir split).
+    gamma : float
+        Fraction representing how credible the rumor is (0 <= gamma <= 1).
+    alpha : float
+        Fraction representing how relevant the rumor is to a human's life (0 <= alpha <= 1).
+    lam : float
+        Rumor spreading probability (0 <= lam <= 1).
+    phi : float
+        Stifling probability parameter for E to R transition (0 <= phi <= 1).
+    theta : float
+        Probability parameter for E to S transition (0 <= theta <= 1).
+    mu : float
+        The spreading desire ratio of individuals in class Is to individuals in class Ir (0 <= mu <= 1).
+    eta1 : float
+        Probability parameter for S to R transition (0 <= eta1 <= 1).
+    eta2 : float
+        Probability parameter for forgetting (S to R) in sleep (0 <= eta2 <= 1).
+    mem_span : int, optional
+        Memory span for forgetting mechanism (default: 10).
+
+    Raises
+    ------
+    TypeError
+        If any parameter is not of the correct type or out of valid range.
+    """
     def __init__(
             self,
             max_energy,

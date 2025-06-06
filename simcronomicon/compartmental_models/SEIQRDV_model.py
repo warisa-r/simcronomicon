@@ -4,6 +4,40 @@ import random as rd
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):
+    """
+    Model parameters for the SEIQRDV compartmental model.
+
+    Parameters
+    ----------
+    max_energy : int
+        Maximum energy for each agent.
+    lam_cap : float
+        Rate of new population due to birth or migration (0 <= lam_cap <= 1).
+    beta : float
+        Transmission probability (0 <= beta <= 1).
+    alpha : float
+        Vaccination rate (0 <= alpha <= 1).
+    gamma : int
+        Average latent time (days).
+    delta : int
+        Average days until the infected case is confirmed and quarantined.
+    lam : int
+        Average days until recovery for quarantined agents.
+    rho : int
+        Average days until death for quarantined agents.
+    kappa : float
+        Disease mortality rate (0 <= kappa <= 1).
+    mu : float
+        Natural background death rate (0 <= mu <= 1).
+    hospital_capacity : int or float
+        Average number of people a healthcare facility can vaccinate per event.
+        Should be a positive integer or float('inf') for unlimited capacity.
+
+    Raises
+    ------
+    TypeError
+        If any parameter is not of the correct type or out of valid range.
+    """
     def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity=float('inf')):
         for name, value in zip(
             ['lam_cap', 'beta', 'alpha', 'gamma', 'delta', 'lam',
@@ -60,6 +94,25 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
 
 class FolkSEIQRDV(Folk):
+    """
+    Agent class for the SEIQRDV model.
+
+    Attributes
+    ----------
+    will_die : bool
+        Whether the agent is destined to die if quarantined (set during transition to 'Q').
+    want_vaccine : bool
+        Whether the agent wants to get vaccinated and will seek a healthcare facility.
+
+    Methods
+    -------
+    inverse_bernoulli(folks_here, conversion_prob, stats)
+        Calculates the probability of status transition given contact with specific statuses.
+    interact(folks_here, current_place_type, status_dict_t, model_params, dice)
+        Handles agent interactions and possible state transitions (exposure, vaccination).
+    sleep(folks_here, current_place_type, status_dict_t, model_params, dice)
+        Handles end-of-day transitions (progression, quarantine, death, recovery, vaccination planning).
+    """
     def __init__(self, id, home_address, max_energy, status):
         """
         Initialize a FolkSEIQRDV agent with 2 more attributes than the standard Folk.
@@ -236,6 +289,23 @@ class FolkSEIQRDV(Folk):
 
 
 class SEIQRDVModel(AbstractCompartmentalModel):
+    """
+    SEIQRDV compartmental model implementation.
+
+    Parameters
+    ----------
+    model_params : SEIQRDVModelParameters
+        Model parameters for the simulation.
+    step_events : list of StepEvent, optional
+        List of step events for the simulation.
+
+    Methods
+    -------
+    initialize_sim_population(town)
+        Initializes the simulation population and their assignments.
+    update_population(folks, town, household_node_indices, status_dict_t)
+        Updates the population at the end of each day (natural deaths and births/migration).
+    """
     def __init__(self, model_params, step_events=None):
         self.folk_class = FolkSEIQRDV
         self.all_statuses = (['S', 'E', 'I', 'Q', 'R', 'D', 'V'])

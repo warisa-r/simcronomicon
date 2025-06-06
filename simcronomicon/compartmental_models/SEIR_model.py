@@ -4,6 +4,27 @@ import random as rd
 
 
 class SEIRModelParameters(AbstractModelParameters):
+    """
+    Model parameters for the SEIR compartmental model.
+
+    Parameters
+    ----------
+    max_energy : int
+        Maximum energy for each agent.
+    beta : float
+        Transmission probability (0 < beta < 1).
+    sigma : int
+        Incubation duration (days).
+    gamma : int
+        Symptom duration (days).
+    xi : int
+        Immune duration (days).
+
+    Raises
+    ------
+    TypeError
+        If any parameter is not of the correct type or out of valid range.
+    """
     def __init__(self, max_energy, beta, sigma, gamma, xi):
         # Check types and ranges
         for name, value in zip(
