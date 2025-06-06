@@ -141,7 +141,6 @@ class Simulation:
                 person.address = new_node
             self.town.town_graph.nodes[person.address]["folks"].append(person)
 
-            
         # Reset active_node_indices and update consistently
         self.active_node_indices = set()
         for node in self.town.town_graph.nodes:

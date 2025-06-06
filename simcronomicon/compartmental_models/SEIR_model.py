@@ -25,6 +25,7 @@ class SEIRModelParameters(AbstractModelParameters):
     TypeError
         If any parameter is not of the correct type or out of valid range.
     """
+
     def __init__(self, max_energy, beta, sigma, gamma, xi):
         # Check types and ranges
         for name, value in zip(
@@ -81,7 +82,7 @@ class FolkSEIR(Folk):
         if self.status == 'S' and self.inverse_bernoulli(
                 folks_here, model_params.beta, ['I']) > dice:
             self.convert('E', status_dict_t)
-            
+
         self.energy -= 1
 
     def sleep(

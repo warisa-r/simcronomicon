@@ -48,6 +48,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
     TypeError
         If any parameter is not of the correct type or out of valid range.
     """
+
     def __init__(
             self,
             max_energy,
