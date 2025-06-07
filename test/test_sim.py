@@ -96,10 +96,6 @@ class TestStepEventFunctionality:
 # since agents may prioritize 'healthcare_facility' and bypass typical destinations like 'workplace'.
 
 class TestSimulationUpdate:
-    @classmethod
-    def setup_class(cls):
-        cls.model_keys = ["seir", "seisir", "seiqrdv"]
-
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
     def test_population_conservation(self, model_key):
         _, _, folk_class, _, _, _ = MODEL_MATRIX[model_key]
@@ -118,7 +114,7 @@ class TestSimulationUpdate:
     def test_population_migration_and_death(self):
         # Only SEIQRDV truly updates population size after each day
         model_key = "seiqrdv"
-        _, model_params_class, folk_class, extra_params, metadata_path, graphmlz_path = MODEL_MATRIX[model_key]
+        _, _, folk_class, extra_params, _, _ = MODEL_MATRIX[model_key]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         step_events = default_step_events(folk_class)
         # Test migration (lam_cap=1, mu=0)
@@ -154,23 +150,6 @@ class TestSimulationUpdate:
                     assert last_step[status] == 0, "Population of other statuses should be equal to 0"
 
 class TestSimulationResults:
-    @classmethod
-    def setup_class(cls):
-        cls.model_matrix = [
-            (
-                "seir",
-                {"S": 80, "E": 0, "I": 0, "R": 20}
-            ),
-            (
-                "seisir",
-                {"S": 0, "E": 0, "Is": 44, "Ir": 45, "R": 11}
-            ),
-            (
-                "seiqrdv",
-                {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 2, "D": 20, "V": 78}
-            ),
-        ]
-
     def assert_h5_structure(self, h5_path):
         with h5py.File(h5_path, "r") as h5file:
             assert "metadata" in h5file, "'metadata' group missing in HDF5 file"
@@ -182,8 +161,8 @@ class TestSimulationResults:
             assert "log" in h5file["individual_logs"], "'log' missing in individual_logs group"
 
     @pytest.mark.parametrize("model_key,expected_status", [
-        ("seir", {"S": 33, "E": 1, "I": 2, "R": 64}),
-        ("seisir", {"S": 0, "E": 0, "Is": 45, "Ir": 44, "R": 11}),
+        ("seir", {"S": 76, "E": 2, "I": 6, "R": 16}),
+        ("seisir", {"S": 0, "E": 0, "Is": 44, "Ir": 43, "R": 13}),
         ("seiqrdv", {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 3, "D": 19, "V": 78}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):

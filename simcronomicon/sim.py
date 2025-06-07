@@ -184,7 +184,7 @@ class Simulation:
                                            self.model_params,
                                            rd.random())
 
-    def _step(self, save_result):
+    def _step(self):
         current_timestep = self.current_timestep + 1
         status_row = None
         indiv_folk_rows = []
@@ -197,30 +197,27 @@ class Simulation:
 
             self._execute_event(step_event)
 
-            if save_result:
-                # Record the latest summary
-                status_row = self.status_dicts[-1].copy()
+            # Record the latest summary
+            status_row = self.status_dicts[-1].copy()
 
-                # Record each individual's state
-                for folk in self.folks:
-                    indiv_folk_rows.append({
-                        'timestep': current_timestep,
-                        'event': step_event.name,
-                        'folk_id': folk.id,
-                        'status': folk.status,
-                        'address': folk.address
-                    })
+            # Record each individual's state
+            for folk in self.folks:
+                indiv_folk_rows.append({
+                    'timestep': current_timestep,
+                    'event': step_event.name,
+                    'folk_id': folk.id,
+                    'status': folk.status,
+                    'address': folk.address
+                })
         self.current_timestep = current_timestep
 
-        if save_result:
-            return status_row, indiv_folk_rows
-        return None, None
+        return status_row, indiv_folk_rows
 
     def run(self, hdf5_path="simulation_output.h5"):
         """
         Run the simulation for the specified number of timesteps.
 
-        If save_result is True, results are saved to an HDF5 file with the following structure:
+        The simulation results are saved to an HDF5 file with the following structure:
 
         simulation_output.h5
     ├── metadata
@@ -302,7 +299,7 @@ class Simulation:
 
             # Run simulation
             for i in range(1, self.timesteps + 1):
-                status_row, indiv_rows = self._step(save_result=True)
+                status_row, indiv_rows = self._step()
 
                 # Collect status row
                 row = tuple([

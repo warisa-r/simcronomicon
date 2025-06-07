@@ -5,7 +5,7 @@ MODEL_MATRIX = {
         scon.SEIRModel,
         scon.SEIRModelParameters,
         scon.FolkSEIR,
-        dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200),
+        dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=20),
         "test/test_data/aachen_dom_500m_metadata.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
@@ -13,7 +13,7 @@ MODEL_MATRIX = {
         scon.SEIsIrRModel,
         scon.SEIsIrRModelParameters,
         scon.FolkSEIsIrR,
-        dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.5, phi=0.5, theta=0.5, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
+        dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.9, phi=0.5, theta=0.8, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
         "test/test_data/aachen_dom_500m_metadata.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),

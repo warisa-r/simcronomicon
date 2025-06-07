@@ -37,7 +37,7 @@ class TestTown:
         if os.path.exists("cache"):
             shutil.rmtree("cache")
 
-    def test_classify_place_func_validation(self):
+    def test_town_invalid_inputs(self):
         point_dom = (50.7753, 6.0839)
         town_params = scon.TownParameters(100, 10)
 
@@ -65,6 +65,24 @@ class TestTown:
                 point_dom, 500, town_params,
                 classify_place_func=dummy_classify,
                 all_place_types=["workplace", "education"]
+            )
+
+        # Edge Case 1: point is not a tuple/list
+        with pytest.raises(ValueError):
+            scon.Town.from_point(
+                "not_a_tuple", 500, town_params
+            )
+
+        # Edge Case 2: point is not valid lat/lon
+        with pytest.raises(ValueError):
+            scon.Town.from_point(
+                (200, 500), 500, town_params
+            )
+
+        # Edge Case 3: dist=0 triggers "No relevant nodes remain after filtering. The resulting town graph would be empty."
+        with pytest.raises(ValueError):
+            scon.Town.from_point(
+                point_dom, 0, town_params
             )
 
     def test_graphmlz_file_saved_and_overwrite_prompt_and_abort(self):
