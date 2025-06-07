@@ -10,7 +10,21 @@ import h5py
 import json
 import plotly.express as px
 import plotly.io as pio
-pio.renderers.default = "browser"
+from IPython import get_ipython
+
+def _set_plotly_renderer():
+    try:
+        # Check if running in a Jupyter notebook
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            pio.renderers.default = "notebook"
+        else:
+            pio.renderers.default = "browser"
+    except NameError:
+        # Not running in IPython/Jupyter
+        pio.renderers.default = "browser"
+
+_set_plotly_renderer()
 
 
 def _load_node_info_from_graphmlz(
