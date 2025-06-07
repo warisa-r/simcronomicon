@@ -79,11 +79,10 @@ class TestTown:
                 (200, 500), 500, town_params
             )
 
-        # Edge Case 3: dist=0 triggers "No relevant nodes remain after filtering. The resulting town graph would be empty."
+        # Edge Case 3: "No relevant nodes remain after filtering. The resulting town graph would be empty."
         with pytest.raises(ValueError):
-            scon.Town.from_point(
-                point_dom, 0, town_params
-            )
+            # Use point a bit further off from Dom and decrease the radius to trigger this error
+            scon.Town.from_point((50.7853, 6.0839), 100, town_params)
 
     def test_graphmlz_file_saved_and_overwrite_prompt_and_abort(self):
         import builtins
