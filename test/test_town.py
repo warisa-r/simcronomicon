@@ -15,7 +15,10 @@ import networkx as nx
 import osmnx as ox
 
 import simcronomicon as scon
-
+from test.test_helper import (
+    POINT_DOM, POINT_UNIKLINIK, COORDS_THERESIENKIRCHE, COORDS_HAUSARZT, COORDS_SUPERC,
+    get_nearest_node, get_shortest_path_length, DEFAULT_TOWN_PARAMS
+)
 
 class TestTown:
     def setup_method(self):
@@ -38,13 +41,10 @@ class TestTown:
             shutil.rmtree("cache")
 
     def test_town_invalid_inputs(self):
-        point_dom = (50.7753, 6.0839)
-        town_params = scon.TownParameters(100, 10)
-
         # Case 1: classify_place_func is not a function
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match="`classify_place_func` must be a function."):
             scon.Town.from_point(
-                point_dom, 500, town_params,
+                POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
                 classify_place_func="not_a_function",
                 all_place_types=["accommodation", "workplace"]
             )
@@ -52,50 +52,47 @@ class TestTown:
         # Case 2: custom classify_place_func but all_place_types is None
         def dummy_classify(row):
             return "workplace"
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="If you pass a custom `classify_place_func`, you must also provide `all_place_types`."):
             scon.Town.from_point(
-                point_dom, 500, town_params,
+                POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
                 classify_place_func=dummy_classify,
                 all_place_types=None
             )
 
         # Case 3: custom classify_place_func but "accommodation" missing in all_place_types
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Your `all_place_types` must include 'accommodation' type buildings."):
             scon.Town.from_point(
-                point_dom, 500, town_params,
+                POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
                 classify_place_func=dummy_classify,
                 all_place_types=["workplace", "education"]
             )
 
         # Edge Case 1: point is not a tuple/list
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="`point` must be a list or tuple in the format \\[latitude, longitude\\]."):
             scon.Town.from_point(
-                "not_a_tuple", 500, town_params
+                "not_a_tuple", 500, DEFAULT_TOWN_PARAMS
             )
 
         # Edge Case 2: point is not valid lat/lon
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="`point` values must represent valid latitude and longitude coordinates."):
             scon.Town.from_point(
-                (200, 500), 500, town_params
+                (200, 500), 500, DEFAULT_TOWN_PARAMS
             )
 
         # Edge Case 3: "No relevant nodes remain after filtering. The resulting town graph would be empty."
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="No relevant nodes remain after filtering. The resulting town graph would be empty."):
             # Use point a bit further off from Dom and decrease the radius to trigger this error
-            scon.Town.from_point((50.7853, 6.0839), 100, town_params)
+            scon.Town.from_point((50.7853, 6.0839), 100, DEFAULT_TOWN_PARAMS)
 
     def test_graphmlz_file_saved_and_overwrite_prompt_and_abort(self):
         import builtins
-
-        point_dom = 50.7753, 6.0839
-        town_params = scon.TownParameters(100, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             file_prefix = "overwrite_test"
             graphmlz_path = os.path.join(tmpdir, f"{file_prefix}.graphmlz")
 
             # First save: file should be created
             town = scon.Town.from_point(
-                point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
+                POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
             assert os.path.exists(
                 graphmlz_path), "GraphMLZ file was not saved in the specified directory"
 
@@ -112,7 +109,7 @@ class TestTown:
             builtins.input = fake_input_yes
             try:
                 town2 = scon.Town.from_point(
-                    point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
+                    POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
             finally:
                 builtins.input = original_input
 
@@ -135,7 +132,7 @@ class TestTown:
             builtins.print = fake_print
             try:
                 town3 = scon.Town.from_point(
-                    point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
+                    POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
             finally:
                 builtins.input = original_input
                 builtins.print = original_print
@@ -145,39 +142,31 @@ class TestTown:
             assert isinstance(town3, scon.Town), "Town object was not returned after abort"
 
     def test_spreader_initial_nodes_assertion_error(self):
-        """
-        Edge case: Both from_point and from_files should raise an AssertionError
-        if town_params.spreader_initial_nodes contains nodes not in the graph.
-        """
         test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
         test_metadata = "test/test_data/aachen_dom_500m_metadata.json"
-        town_params = scon.TownParameters(100, 10)
-        # Set spreader_initial_nodes to include a non-existent node (350)
-        town_params.spreader_initial_nodes = [1, 350]
-        point_dom = 50.7753, 6.0839
 
-        # from_point should raise AssertionError
-        with pytest.raises(AssertionError):
-            scon.Town.from_point(point_dom, 500, town_params)
+        # Set spreader_initial_nodes to include non-existent nodes (350, 750)
+        town_params_spreader = scon.TownParameters(100, 4, [1, 350, 750])
 
-        # from_files should raise AssertionError
-        with pytest.raises(AssertionError):
+        expected_error_msg = "Some spreader_initial_nodes do not exist in the town graph: \\[350, 750\\]"
+        # from_point should raise ValueError
+        with pytest.raises(ValueError, match=expected_error_msg):
+            scon.Town.from_point(POINT_DOM, 500, town_params_spreader)
+
+        # from_files should raise ValueError
+        with pytest.raises(ValueError, match=expected_error_msg):
             scon.Town.from_files(
                 metadata_path=test_metadata,
                 town_graph_path=test_graphmlz,
-                town_params=town_params
+                town_params=town_params_spreader
             )
 
     def test_healthcare_presence_and_all_types(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            point_dom = 50.7753, 6.0839
-            point_uniklinik = 50.77583, 6.045277
-            town_params = scon.TownParameters(100, 10)
-
             town_dom = scon.Town.from_point(
-                point_dom, 500, town_params, file_prefix="dom", save_dir=tmpdir)
+                POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix="dom", save_dir=tmpdir)
             town_uniklinik = scon.Town.from_point(
-                point_uniklinik, 500, town_params, file_prefix="uniklinik", save_dir=tmpdir)
+                POINT_UNIKLINIK, 500, DEFAULT_TOWN_PARAMS, file_prefix="uniklinik", save_dir=tmpdir)
 
             assert 'healthcare_facility' not in town_dom.found_place_types, \
                 "Expected the area within 0.5km from Aachener Dom to have no healthcare_facility."
@@ -189,11 +178,8 @@ class TestTown:
 
     def test_superc_is_classified_as_education(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            superc_latlon = (50.77828, 6.078571)
-            point_dom = 50.7753, 6.0839
-            town_params = scon.TownParameters(100, 10)
             town = scon.Town.from_point(
-                point_dom, 750, town_params, file_prefix="dom_750m", save_dir=tmpdir)
+                POINT_DOM, 750, DEFAULT_TOWN_PARAMS, file_prefix="dom_750m", save_dir=tmpdir)
 
             # Project lat/lon to same CRS as town graph
             wgs84 = pyproj.CRS("EPSG:4326")
@@ -201,7 +187,7 @@ class TestTown:
             transformer = pyproj.Transformer.from_crs(
                 wgs84, target_crs, always_xy=True)
             x_proj, y_proj = transformer.transform(
-                superc_latlon[1], superc_latlon[0])
+                COORDS_SUPERC[1], COORDS_SUPERC[0])
 
             # Find closest node by Euclidean distance in CRS
             min_dist = float("inf")
@@ -228,59 +214,23 @@ class TestTown:
             assert euclidean_distance < 50, f"Too far from SuperC (~{euclidean_distance:.2f} m)"
 
     def test_distance_to_landmarks_dom(self):
-
-        # Coordinates of landmarks
-        coords_theresienkirche = (50.77809, 6.081859)  # Theresienkirche
-        coords_hausarzt = (50.76943, 6.081437)         # Hausarzt
-        coords_superC = (50.77828, 6.078571)           # SuperC
-        point_dom = 50.7753, 6.0839
-
-        town_params_2000 = scon.TownParameters(100, 10)
-        town_params_750 = scon.TownParameters(100, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             # We have to construct with from_point since we always want to make sure that
             # our algorithm of shortest path construction works with the most recent
             # open street map information
             town_2000 = scon.Town.from_point(
-                point_dom, 2000, town_params_2000, file_prefix="dom_2000m", save_dir=tmpdir)
+                POINT_DOM, 2000, DEFAULT_TOWN_PARAMS, file_prefix="dom_2000m", save_dir=tmpdir)
             town_750 = scon.Town.from_point(
-                point_dom, 750, town_params_750, file_prefix="dom_750m", save_dir=tmpdir)
-
-            # Helper to get node nearest to a coordinate
-            def get_nearest_node(town, coords):
-                lat, lon = coords
-                # Transform lat/lon to projected x/y coordinates
-                transformer = Transformer.from_crs(
-                    "EPSG:4326", f"EPSG:{town.epsg_code}", always_xy=True)
-                x, y = transformer.transform(lon, lat)
-
-                # Find the closest node in the graph using Euclidean distance
-                min_dist = float("inf")
-                closest_node = None
-                for node, data in town.town_graph.nodes(data=True):
-                    dx = float(data["x"]) - x
-                    dy = float(data["y"]) - y
-                    dist = dx ** 2 + dy ** 2  # squared distance
-                    if dist < min_dist:
-                        min_dist = dist
-                        closest_node = node
-                return closest_node
-            # Helper to get shortest path distance between two nodes
-
-            def get_shortest_path_length(town, node_a, node_b):
-                G = town.town_graph
-                assert nx.has_path(G, node_a, node_b), \
-                    "A path between Super C and the destinations (Theresienkirche/ Hausarzt) isn't found!"
-                return nx.shortest_path_length(G, node_a, node_b, weight="weight")
+                POINT_DOM, 750, DEFAULT_TOWN_PARAMS, file_prefix="dom_750m", save_dir=tmpdir)
 
             node_theresienkirche_2000 = get_nearest_node(
-                town_2000, coords_theresienkirche)
-            node_hausarzt_2000 = get_nearest_node(town_2000, coords_hausarzt)
-            node_superC_2000 = get_nearest_node(town_2000, coords_superC)
+                town_2000, COORDS_THERESIENKIRCHE)
+            node_hausarzt_2000 = get_nearest_node(town_2000, COORDS_HAUSARZT)
+            node_superC_2000 = get_nearest_node(town_2000, COORDS_SUPERC)
             node_theresienkirche_750 = get_nearest_node(
-                town_750, coords_theresienkirche)
-            node_hausarzt_750 = get_nearest_node(town_750, coords_hausarzt)
-            node_superC_750 = get_nearest_node(town_750, coords_superC)
+                town_750, COORDS_THERESIENKIRCHE)
+            node_hausarzt_750 = get_nearest_node(town_750, COORDS_HAUSARZT)
+            node_superC_750 = get_nearest_node(town_750, COORDS_SUPERC)
 
             # Expected distances (meters)
             expected_theresienkirche = 335

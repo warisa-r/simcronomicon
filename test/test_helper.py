@@ -1,4 +1,38 @@
 import simcronomicon as scon
+from pyproj import Transformer
+
+# Common coordinates
+POINT_DOM = (50.7753, 6.0839)
+POINT_UNIKLINIK = (50.77583, 6.045277)
+COORDS_THERESIENKIRCHE = (50.77809, 6.081859)
+COORDS_HAUSARZT = (50.76943, 6.081437)
+COORDS_SUPERC = (50.77828, 6.078571)
+
+# Default town parameters for `test_town.py`
+DEFAULT_TOWN_PARAMS = scon.TownParameters(100, 10)
+
+def get_nearest_node(town, coords):
+    lat, lon = coords
+    transformer = Transformer.from_crs(
+        "EPSG:4326", f"EPSG:{town.epsg_code}", always_xy=True)
+    x, y = transformer.transform(lon, lat)
+    min_dist = float("inf")
+    closest_node = None
+    for node, data in town.town_graph.nodes(data=True):
+        dx = float(data["x"]) - x
+        dy = float(data["y"]) - y
+        dist = dx ** 2 + dy ** 2
+        if dist < min_dist:
+            min_dist = dist
+            closest_node = node
+    return closest_node
+
+def get_shortest_path_length(town, node_a, node_b):
+    G = town.town_graph
+    import networkx as nx
+    assert nx.has_path(G, node_a, node_b), \
+        "A path between the nodes isn't found!"
+    return nx.shortest_path_length(G, node_a, node_b, weight="weight")
 
 MODEL_MATRIX = {
     "seir": (

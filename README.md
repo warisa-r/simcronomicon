@@ -1,6 +1,5 @@
 # Simcronomicon
 
-[![PyPI version](https://badge.fury.io/py/simcronomicon.png)](http://badge.fury.io/py/simcronomicon)
 [![codecov](https://codecov.io/gh/warisa-r/simcronomicon/graph/badge.svg?token=S13D4OWJ39)](https://codecov.io/gh/warisa-r/simcronomicon)
 [![CI](https://github.com/warisa-r/simcronomicon/actions/workflows/ci.yml/badge.svg)](https://github.com/warisa-r/simcronomicon/actions/workflows/ci.yml)
 

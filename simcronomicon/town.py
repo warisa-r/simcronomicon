@@ -59,6 +59,16 @@ class Town():
         # Default constructor for flexibility
         pass
 
+    def check_all_spreader_nodes_in_graph(self):
+        missing_nodes = [
+            node for node in self.town_params.spreader_initial_nodes
+            if node not in self.town_graph.nodes
+        ]
+        if missing_nodes:
+            raise ValueError(
+                f"Some spreader_initial_nodes do not exist in the town graph: {missing_nodes}"
+            )
+
     @classmethod
     def from_point(
         cls,
@@ -226,13 +236,7 @@ class Town():
                 'place_type').values())
 
         # Assert that all spreader_initial_nodes exist in the town graph
-        assert all(
-            node in town.town_graph.nodes
-            for node in town.town_params.spreader_initial_nodes
-        ), (
-            f"Some spreader_initial_nodes do not exist in the town graph: "
-            f"{[node for node in town.town_params.spreader_initial_nodes if node not in town.town_graph.nodes]}"
-        )
+        town.check_all_spreader_nodes_in_graph()
 
         print("[10/10] Saving a compressed graph and metadata...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
@@ -306,13 +310,7 @@ class Town():
                 town.town_graph.nodes[i]["folks"] = []
 
         # Assert that all spreader_initial_nodes exist in the town graph
-        assert all(
-            node in town.town_graph.nodes
-            for node in town.town_params.spreader_initial_nodes
-        ), (
-            f"Some spreader_initial_nodes do not exist in the town graph: "
-            f"{[node for node in town.town_params.spreader_initial_nodes if node not in town.town_graph.nodes]}"
-        )
+        town.check_all_spreader_nodes_in_graph()
 
         print("Town graph successfully built from input files!")
         return town
