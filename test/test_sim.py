@@ -12,10 +12,6 @@ class TestSimulationInitializationGeneralized:
         ("seiqrdv", b'I'),
     ])
     def test_initial_spreaders_placement(self, model_key, spreader_status):
-        """
-        Test that all initial spreaders are placed at the specified nodes (using the HDF5 log).
-        Handles the case where nodes can be repeated (multiple spreaders at the same node).
-        """
         _, _, _, _, _, _ = MODEL_MATRIX[model_key]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         # Use first 5 accommodation nodes, repeated twice
@@ -54,6 +50,20 @@ class TestSimulationInitializationGeneralized:
         model = MODEL_MATRIX[model_key][0](model_params)
         town = scon.Town.from_files(metadata_path, graphmlz_path, town_params)
         model.initialize_sim_population(town)
+
+    @pytest.mark.parametrize("model_key", ["seiqrdv"])
+    def test_missing_required_place_type(self, model_key):
+        # Use test data that does NOT contain 'healthcare_facility' in found_place_types
+        metadata_path = "test/test_data/aachen_dom_500m_metadata.json"
+        graphmlz_path = "test/test_data/aachen_dom_500m.graphmlz"
+        town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
+        town = scon.Town.from_files(metadata_path, graphmlz_path, town_params)
+        model_params_class = MODEL_MATRIX[model_key][1]
+        model_params = model_params_class(**MODEL_MATRIX[model_key][3])
+        model = MODEL_MATRIX[model_key][0](model_params)
+        # Should raise ValueError due to missing 'healthcare_facility'
+        with pytest.raises(ValueError, match="Missing required place types"):
+            scon.Simulation(town, model, timesteps=1)
 
 class TestStepEventFunctionality:
     @pytest.mark.parametrize("model_key", ["seir", "seisir"])

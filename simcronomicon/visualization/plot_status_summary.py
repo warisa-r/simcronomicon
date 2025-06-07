@@ -27,7 +27,7 @@ def _plot_status_summary_data(
     else:
         raise TypeError(
             f"status_type must be None, str, or list of str, got {type(status_type).__name__}.")
-    
+
     # Plotting
     plt.figure(figsize=(10, 6))
     for key in keys_to_plot:

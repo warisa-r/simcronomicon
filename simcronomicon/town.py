@@ -47,7 +47,7 @@ def classify_place(row):
 
 
 class TownParameters():
-    #TODO: Throw error here when appropriate
+    # TODO: Throw error here when appropriate
     def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes=[]):
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
@@ -109,7 +109,8 @@ class Town():
             raise ValueError(
                 "`point` values must represent valid latitude and longitude coordinates.")
         utm_zone = int((point[1] + 180) / 6) + 1
-        epsg_code = int(f"326{utm_zone}" if point[0] >= 0 else f"327{utm_zone}")
+        epsg_code = int(
+            f"326{utm_zone}" if point[0] >= 0 else f"327{utm_zone}")
         town.epsg_code = epsg_code
 
         print("[3/10] Downloading OSM road network and building data...")
@@ -159,7 +160,8 @@ class Town():
         G_filtered = G_projected.subgraph(nodes_to_keep).copy()
 
         if len(G_filtered.nodes) == 0:
-            raise ValueError("No relevant nodes remain after filtering. The resulting town graph would be empty.")
+            raise ValueError(
+                "No relevant nodes remain after filtering. The resulting town graph would be empty.")
 
         print("[9/10] Building town graph...")
         # We use igraph here for fast distance computation between nodes. The rest of the simulation uses NetworkX for its flexible attribute handling.
@@ -203,7 +205,8 @@ class Town():
         for old_id, new_id in id_map.items():
             place_type = G_filtered.nodes[old_id].get("place_type")
             row = POI[POI['nearest_node'] == old_id]
-            x, y = (row.iloc[0].geometry.x, row.iloc[0].geometry.y) if not row.empty else (None, None)
+            x, y = (row.iloc[0].geometry.x, row.iloc[0].geometry.y) if not row.empty else (
+                None, None)
             if place_type == "accommodation":
                 town.accommodation_node_ids.append(new_id)
             town.town_graph.add_node(new_id, place_type=place_type, x=x, y=y)
