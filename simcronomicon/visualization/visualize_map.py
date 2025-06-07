@@ -255,7 +255,8 @@ def visualize_folks_on_map_from_sim(
         },
         size_max=20,
         zoom=13,
-        height=600
+        height=600,
+        hover_data={"size": True}
     )
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(title="Population status over time")

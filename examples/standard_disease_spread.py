@@ -37,6 +37,6 @@ model_params = scon.SEIRModelParameters(
     max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200)
 model = scon.SEIRModel(model_params, step_events)
 sim = scon.Simulation(town, model, 100)
-sim.run(save_result=True)
-scon.plot_status_summary_from_hdf5("simulation_output.h5")
+sim.run()
+#scon.plot_status_summary_from_hdf5("simulation_output.h5")
 scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)

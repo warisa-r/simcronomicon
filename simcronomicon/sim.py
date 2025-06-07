@@ -216,7 +216,7 @@ class Simulation:
             return status_row, indiv_folk_rows
         return None, None
 
-    def run(self, save_result=False, hdf5_path="simulation_output.h5"):
+    def run(self, hdf5_path="simulation_output.h5"):
         """
         Run the simulation for the specified number of timesteps.
 
@@ -233,8 +233,6 @@ class Simulation:
 
         Parameters
         ----------
-        save_result : bool
-            Whether to save the simulation results to an HDF5 file.
         hdf5_path : str
             Path to the output HDF5 file.
 
@@ -242,116 +240,101 @@ class Simulation:
         -------
         None
         """
+        with h5py.File(hdf5_path, "w") as h5file:
+            # Save simulation metadata
+            metadata_group = h5file.create_group("metadata")
 
-        if save_result:
+            # Write simulation metadata (without town)
+            sim_metadata = {
+                'all_statuses': self.model.all_statuses,
+                'model_parameters': self.model_params.to_metadata_dict(),
+                'num_locations': len(self.town.town_graph.nodes),
+                'max_timesteps': self.timesteps,
+                'population': self.num_pop,
+                'step_events': [
+                    {
+                        'name': event.name,
+                        'max_distance': event.max_distance,
+                        'place_types': event.place_types,
+                        'event_type': event.event_type.value,
+                        # TODO: If work add more
+                    } for event in self.step_events
+                ]
+            }
+            sim_metadata_json = json.dumps(sim_metadata)
+            metadata_group.create_dataset(
+                "simulation_metadata", data=np.bytes_(sim_metadata_json))
 
-            with h5py.File(hdf5_path, "w") as h5file:
-                # Save simulation metadata
-                metadata_group = h5file.create_group("metadata")
+            # Write town metadata separately
+            town_metadata = {
+                "origin_point": [
+                    float(
+                        self.town.point[0]),
+                    float(
+                        self.town.point[1])],
+                "dist": self.town.dist,
+                "epsg_code": self.town.epsg_code,
+                "accommodation_nodes": list(
+                    self.town.accommodation_node_ids)}
+            town_metadata_json = json.dumps(town_metadata)
+            metadata_group.create_dataset(
+                "town_metadata", data=np.bytes_(town_metadata_json))
 
-                # Write simulation metadata (without town)
-                sim_metadata = {
-                    'all_statuses': self.model.all_statuses,
-                    'model_parameters': self.model_params.to_metadata_dict(),
-                    'num_locations': len(self.town.town_graph.nodes),
-                    'max_timesteps': self.timesteps,
-                    'population': self.num_pop,
-                    'step_events': [
-                        {
-                            'name': event.name,
-                            'max_distance': event.max_distance,
-                            'place_types': event.place_types,
-                            'event_type': event.event_type.value,
-                            # TODO: If work add more
-                        } for event in self.step_events
-                    ]
-                }
-                sim_metadata_json = json.dumps(sim_metadata)
-                metadata_group.create_dataset(
-                    "simulation_metadata", data=np.bytes_(sim_metadata_json))
+            # Save initial status summary
+            status_group = h5file.create_group("status_summary")
+            status_dtype = [("timestep", 'i4'), ("current_event", 'S32')] + [
+                (status, 'i4') for status in self.model.all_statuses]
+            status_data = []
+            initial_status = self.status_dicts[-1]
+            row = tuple([initial_status.get("timestep", 0),
+                        bytes(str(initial_status.get("current_event", "")), 'utf-8')] +
+                        [initial_status[status] for status in self.model.all_statuses])
+            status_data.append(row)
 
-                # Write town metadata separately
-                town_metadata = {
-                    "origin_point": [
-                        float(
-                            self.town.point[0]),
-                        float(
-                            self.town.point[1])],
-                    "dist": self.town.dist,
-                    "epsg_code": self.town.epsg_code,
-                    "accommodation_nodes": list(
-                        self.town.accommodation_node_ids)}
-                town_metadata_json = json.dumps(town_metadata)
-                metadata_group.create_dataset(
-                    "town_metadata", data=np.bytes_(town_metadata_json))
+            # Save initial individual logs
+            indiv_group = h5file.create_group("individual_logs")
+            folk_dtype = [("timestep", 'i4'), ("event", 'S32'),
+                            ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
+            indiv_data = [
+                (0, b"", folk.id, bytes(folk.status, 'utf-8'), folk.address)
+                for folk in self.folks
+            ]
 
-                # Save initial status summary
-                status_group = h5file.create_group("status_summary")
-                status_dtype = [("timestep", 'i4'), ("current_event", 'S32')] + [
-                    (status, 'i4') for status in self.model.all_statuses]
-                status_data = []
-                initial_status = self.status_dicts[-1]
-                row = tuple([initial_status.get("timestep", 0),
-                            bytes(str(initial_status.get("current_event", "")), 'utf-8')] +
-                            [initial_status[status] for status in self.model.all_statuses])
+            # Run simulation
+            for i in range(1, self.timesteps + 1):
+                status_row, indiv_rows = self._step(save_result=True)
+
+                # Collect status row
+                row = tuple([
+                    status_row["timestep"],
+                    bytes(str(initial_status.get("current_event", "")), 'utf-8')
+                ] + [status_row[status] for status in self.model.all_statuses])
                 status_data.append(row)
 
-                # Save initial individual logs
-                indiv_group = h5file.create_group("individual_logs")
-                folk_dtype = [("timestep", 'i4'), ("event", 'S32'),
-                              ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
-                indiv_data = [
-                    (0, b"", folk.id, bytes(folk.status, 'utf-8'), folk.address)
-                    for folk in self.folks
-                ]
+                # Collect individual rows
+                for row in indiv_rows:
+                    indiv_data.append((
+                        row["timestep"],
+                        bytes(row["event"], 'utf-8'),
+                        row["folk_id"],
+                        bytes(row["status"], 'utf-8'),
+                        row["address"]
+                    ))
 
-                # Run simulation
-                for i in range(1, self.timesteps + 1):
-                    status_row, indiv_rows = self._step(save_result=True)
-
-                    # Collect status row
-                    row = tuple([
-                        status_row["timestep"],
-                        bytes(str(initial_status.get("current_event", "")), 'utf-8')
-                    ] + [status_row[status] for status in self.model.all_statuses])
-                    status_data.append(row)
-
-                    # Collect individual rows
-                    for row in indiv_rows:
-                        indiv_data.append((
-                            row["timestep"],
-                            bytes(row["event"], 'utf-8'),
-                            row["folk_id"],
-                            bytes(row["status"], 'utf-8'),
-                            row["address"]
-                        ))
-
-                    print("Step has been run", i)
-                    print(
-                        "Status:", {
-                            k: v for k, v in status_row.items() if k not in (
-                                'timestep', 'current_event')})
-
-                    if sum(status_row[status]
-                           for status in self.model.infected_statuses) == 0:
-                        break
-
-                # Store final datasets
-                status_group.create_dataset(
-                    "summary", data=np.array(
-                        status_data, dtype=status_dtype))
-                indiv_group.create_dataset(
-                    "log", data=np.array(
-                        indiv_data, dtype=folk_dtype))
-
-        else:
-            for i in range(1, self.timesteps + 1):
-                self._step(False)
                 print("Step has been run", i)
-                print("Status:",
-                      {k: v for k,
-                       v in self.status_dicts[-1].items() if k not in ('timestep',
-                                                                       'current_event')})
+                print(
+                    "Status:", {
+                        k: v for k, v in status_row.items() if k not in (
+                            'timestep', 'current_event')})
+
                 if sum(status_row[status]
-                       for status in self.model.infected_statuses) == 0:
+                        for status in self.model.infected_statuses) == 0:
                     break
+
+            # Store final datasets
+            status_group.create_dataset(
+                "summary", data=np.array(
+                    status_data, dtype=status_dtype))
+            indiv_group.create_dataset(
+                "log", data=np.array(
+                    indiv_data, dtype=folk_dtype))

@@ -37,7 +37,37 @@ class TestTown:
         if os.path.exists("cache"):
             shutil.rmtree("cache")
 
-    def test_graphmlz_file_saved_and_overwrite_prompt(self):
+    def test_classify_place_func_validation(self):
+        point_dom = (50.7753, 6.0839)
+        town_params = scon.TownParameters(100, 10)
+
+        # Case 1: classify_place_func is not a function
+        with pytest.raises(TypeError):
+            scon.Town.from_point(
+                point_dom, 500, town_params,
+                classify_place_func="not_a_function",
+                all_place_types=["accommodation", "workplace"]
+            )
+
+        # Case 2: custom classify_place_func but all_place_types is None
+        def dummy_classify(row):
+            return "workplace"
+        with pytest.raises(ValueError):
+            scon.Town.from_point(
+                point_dom, 500, town_params,
+                classify_place_func=dummy_classify,
+                all_place_types=None
+            )
+
+        # Case 3: custom classify_place_func but "accommodation" missing in all_place_types
+        with pytest.raises(ValueError):
+            scon.Town.from_point(
+                point_dom, 500, town_params,
+                classify_place_func=dummy_classify,
+                all_place_types=["workplace", "education"]
+            )
+
+    def test_graphmlz_file_saved_and_overwrite_prompt_and_abort(self):
         import builtins
 
         point_dom = 50.7753, 6.0839
@@ -52,25 +82,50 @@ class TestTown:
             assert os.path.exists(
                 graphmlz_path), "GraphMLZ file was not saved in the specified directory"
 
-            # Second save: should prompt for overwrite
+            # Second save: should prompt for overwrite and handle both 'y' and 'n'
             prompts = []
+            printed = []
 
-            def fake_input(prompt):
+            # Case 1: User types 'y' (overwrite)
+            def fake_input_yes(prompt):
                 prompts.append(prompt)
-                return "y"  # Simulate user typing 'y' to overwrite
+                return "y"
 
-            # Patch input to simulate user confirmation
             original_input = builtins.input
-            builtins.input = fake_input
+            builtins.input = fake_input_yes
             try:
                 town2 = scon.Town.from_point(
                     point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
             finally:
                 builtins.input = original_input
 
-            # Check that the prompt was shown
-            assert any(
-                "already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown"
+            assert any("already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'y'"
+            assert isinstance(town2, scon.Town), "Town object was not returned after overwrite"
+
+            # Case 2: User types 'n' (abort)
+            prompts.clear()
+            printed.clear()
+
+            def fake_input_no(prompt):
+                prompts.append(prompt)
+                return "n"
+
+            def fake_print(msg):
+                printed.append(msg)
+
+            builtins.input = fake_input_no
+            original_print = builtins.print
+            builtins.print = fake_print
+            try:
+                town3 = scon.Town.from_point(
+                    point_dom, 500, town_params, file_prefix=file_prefix, save_dir=tmpdir)
+            finally:
+                builtins.input = original_input
+                builtins.print = original_print
+
+            assert any("already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'n'"
+            assert any("aborted" in str(p).lower() for p in printed), "Abort message was not printed"
+            assert isinstance(town3, scon.Town), "Town object was not returned after abort"
 
     def test_spreader_initial_nodes_assertion_error(self):
         """
@@ -166,6 +221,9 @@ class TestTown:
         town_params_2000 = scon.TownParameters(100, 10)
         town_params_750 = scon.TownParameters(100, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
+            # We have to construct with from_point since we always want to make sure that
+            # our algorithm of shortest path construction works with the most recent
+            # open street map information
             town_2000 = scon.Town.from_point(
                 point_dom, 2000, town_params_2000, file_prefix="dom_2000m", save_dir=tmpdir)
             town_750 = scon.Town.from_point(

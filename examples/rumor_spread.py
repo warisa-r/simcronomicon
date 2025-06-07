@@ -38,6 +38,6 @@ model_params = scon.SEIsIrRModelParameters(
     4, 0.7, 0.9, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
 model = scon.SEIsIrRModel(model_params, step_events)
 sim = scon.Simulation(town, model, 50)
-sim.run(save_result=True)
+sim.run()
 scon.plot_status_summary_from_hdf5("simulation_output.h5")
 # scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
