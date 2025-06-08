@@ -82,9 +82,9 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(
             float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
 
-        if not isinstance(mem_span, int) or mem_span <= 1:
+        if not isinstance(mem_span, int) or mem_span < 1:
             raise TypeError(
-                f"mem_span must be an integer greater than 1, got {mem_span}")
+                f"mem_span must be an integer greater or equal to 1, got {mem_span}")
 
         # Store some parameters so that they can be recalled as simulation
         # metadata later on

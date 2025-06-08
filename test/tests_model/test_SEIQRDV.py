@@ -4,31 +4,38 @@ import h5py
 from scipy.integrate import solve_ivp
 import tempfile
 import os
+import pytest
+from ..test_helper import default_test_step_events
 
 class TestSEIQRDVModel:
     classmethod
     def setup_class(cls):
         cls.town_graph_path = "test/test_data/uniklinik_500m.graphmlz"
         cls.town_metadata_path = "test/test_data/uniklinik_500m_metadata.json"
-        cls.step_events = [
-            scon.StepEvent(
-                "greet_neighbors",
-                scon.FolkSEIQRDV.interact,
-                scon.EventType.DISPERSE,
-                500,
-                ['accommodation']),
-            scon.StepEvent(
-                "chore",
-                scon.FolkSEIQRDV.interact,
-                scon.EventType.DISPERSE,
-                2000,
-                [
-                    'commercial',
-                    'workplace',
-                    'education',
-                    'religious'
-                ])
-        ]
+    def test_invalid_seiqrdv_model_parameters(self):
+        # lam_cap out of range
+        with pytest.raises(TypeError, match="lam_cap must be a float between 0 and 1!"):
+            scon.SEIQRDVModelParameters(
+                max_energy=10, lam_cap=1.5, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
+            )
+
+        # beta negative
+        with pytest.raises(TypeError, match="beta must be a float between 0 and 1!"):
+            scon.SEIQRDVModelParameters(
+                max_energy=10, lam_cap=0.1, beta=-0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
+            )
+
+        # gamma not positive integer
+        with pytest.raises(TypeError, match="gamma must be a positive integer, got -4"):
+            scon.SEIQRDVModelParameters(
+                max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=-4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
+            )
+
+        # hospital_capacity not int or inf
+        with pytest.raises(TypeError, match="hospital_capacity must be a positive integer or a value of infinity"):
+            scon.SEIQRDVModelParameters(
+                max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01, hospital_capacity="a lot"
+            )
     def test_seiqrdv_abm_vs_ode_error(self):
         # ODE solution
         model_params = scon.SEIQRDVModelParameters(
@@ -69,7 +76,7 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(model_params, self.step_events)
+        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test_seiqrdv.h5")
@@ -143,7 +150,7 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(model_params, self.step_events)
+        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_test.h5")
@@ -167,7 +174,7 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(model_params, self.step_events)
+        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_cap_test.h5")
@@ -207,7 +214,7 @@ class TestSEIQRDVModel:
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIQRDVModel(model_params, self.step_events)
+        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "quarantine_address_stable.h5")

@@ -3,7 +3,7 @@ import simcronomicon as scon
 import h5py
 import tempfile
 import os
-from test.test_helper import MODEL_MATRIX, default_step_events, setup_simulation
+from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation
 
 class TestSimulationInitializationGeneralized:
     @pytest.mark.parametrize("model_key,spreader_status", [
@@ -22,7 +22,7 @@ class TestSimulationInitializationGeneralized:
         )
         spreader_nodes = list(town.accommodation_node_ids)[:5] * 2
         town_params.spreader_initial_nodes = spreader_nodes
-        sim, town, model = setup_simulation(model_key, town_params)
+        sim, town, _ = setup_simulation(model_key, town_params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
             sim.run(hdf5_path=h5_path)
@@ -66,6 +66,61 @@ class TestSimulationInitializationGeneralized:
             scon.Simulation(town, model, timesteps=1)
 
 class TestStepEventFunctionality:
+    def test_step_event_invalid_parameters(self): 
+        # Test SEND_HOME with probability_func (should raise ValueError)
+        with pytest.raises(ValueError, match="You cannot define a mobility probability function for an event that does not disperse people"):
+            scon.StepEvent(
+                "invalid_send_home",
+                lambda folk: None,
+                scon.EventType.SEND_HOME,
+                probability_func=lambda x: 0.5
+            )
+        
+        # Test non-callable probability_func (should raise ValueError)
+        with pytest.raises(ValueError, match="probability_func must be a callable function"):
+            scon.StepEvent(
+                "invalid_prob_func",
+                lambda folk: None,
+                scon.EventType.DISPERSE,
+                probability_func="not_a_function"
+            )
+        
+        # Test probability_func that doesn't return numeric value (should raise ValueError)
+        def bad_prob_func(x):
+            return "not_a_number"
+        
+        with pytest.raises(ValueError, match="probability_func must return a numeric value"):
+            scon.StepEvent(
+                "invalid_return_type",
+                lambda folk: None,
+                scon.EventType.DISPERSE,
+                probability_func=bad_prob_func
+            )
+        
+        # Test probability_func that returns values outside 0-1 range (should raise ValueError)
+        def out_of_range_prob_func(x):
+            return 1.5  # Invalid: > 1
+        
+        with pytest.raises(ValueError, match="probability_func must return values between 0 and 1"):
+            scon.StepEvent(
+                "invalid_range",
+                lambda folk: None,
+                scon.EventType.DISPERSE,
+                probability_func=out_of_range_prob_func
+            )
+        
+        # Test probability_func that returns negative values (should raise ValueError)
+        def negative_prob_func(x):
+            return -0.1  # Invalid: < 0
+        
+        with pytest.raises(ValueError, match="probability_func must return values between 0 and 1"):
+            scon.StepEvent(
+                "invalid_negative",
+                lambda folk: None,
+                scon.EventType.DISPERSE,
+                probability_func=negative_prob_func
+            )
+
     @pytest.mark.parametrize("model_key", ["seir", "seisir"])
     def test_disperse_and_end_day_events(self, model_key):
         _, _, folk_class, _, _, _ = MODEL_MATRIX[model_key]
@@ -108,10 +163,9 @@ class TestStepEventFunctionality:
 class TestSimulationUpdate:
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
     def test_population_conservation(self, model_key):
-        _, _, folk_class, _, _, _ = MODEL_MATRIX[model_key]
+        _, _, _, _, _, _ = MODEL_MATRIX[model_key]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
-        step_events = default_step_events(folk_class)
-        sim, town, _ = setup_simulation(model_key, town_params, step_events=step_events, timesteps=5)
+        sim, _, _ = setup_simulation(model_key, town_params, timesteps=5)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_cons_test.h5")
             sim.run(hdf5_path=h5_path)
@@ -124,14 +178,13 @@ class TestSimulationUpdate:
     def test_population_migration_and_death(self):
         # Only SEIQRDV truly updates population size after each day
         model_key = "seiqrdv"
-        _, _, folk_class, extra_params, _, _ = MODEL_MATRIX[model_key]
+        _, _, _, extra_params, _, _ = MODEL_MATRIX[model_key]
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
-        step_events = default_step_events(folk_class)
         # Test migration (lam_cap=1, mu=0)
         params = dict(extra_params)
         params['lam_cap'] = 1
         params['mu'] = 0
-        sim, town, _ = setup_simulation(model_key, town_params, step_events=step_events, timesteps=2, override_params=params)
+        sim, town, _ = setup_simulation(model_key, town_params, timesteps=2, override_params=params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_migration_test.h5")
             sim.run(hdf5_path=h5_path)
@@ -146,7 +199,7 @@ class TestSimulationUpdate:
         # Test death (lam_cap=0, mu=1)
         params['lam_cap'] = 0
         params['mu'] = 1
-        sim, town, _ = setup_simulation(model_key, town_params, step_events=step_events, timesteps=1, override_params=params)
+        sim, town, _ = setup_simulation(model_key, town_params, timesteps=1, override_params=params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_death_test.h5")
             sim.run(hdf5_path=h5_path)
@@ -178,8 +231,8 @@ class TestSimulationResults:
     def test_status_summary_last_step(self, model_key, expected_status):
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         folk_class = MODEL_MATRIX[model_key][2]
-        step_events = default_step_events(folk_class)
-        sim, town, _ = setup_simulation(model_key, town_params, step_events=step_events, timesteps=50, seed=True, override_params=None)
+        step_events = default_test_step_events(folk_class)
+        sim, _, _ = setup_simulation(model_key, town_params, step_events= step_events, timesteps=50, seed=True, override_params=None)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
             sim.run(hdf5_path=h5_path)

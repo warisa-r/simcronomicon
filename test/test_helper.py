@@ -61,7 +61,7 @@ MODEL_MATRIX = {
     )
 }
 
-def default_step_events(folk_class):
+def default_test_step_events(folk_class):
     return [
         scon.StepEvent("greet_neighbors", folk_class.interact, scon.EventType.DISPERSE, 5000, ['accommodation']),
         scon.StepEvent("chore", folk_class.interact, scon.EventType.DISPERSE, 19000,

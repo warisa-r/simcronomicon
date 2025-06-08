@@ -85,5 +85,25 @@ class StepEvent:
         self.event_type = event_type
         self.folk_action = folk_action
         self.probability_func = probability_func
-        assert not (event_type == EventType.SEND_HOME and probability_func !=
-                    None), "You cannot define a mobility probability function for an event that does not disperse people"
+        if event_type == EventType.SEND_HOME and probability_func is not None:
+            raise ValueError("You cannot define a mobility probability function for an event that does not disperse people")
+
+        if probability_func is not None:
+            if not callable(probability_func):
+                raise ValueError("probability_func must be a callable function")
+            
+            try:
+                # Test with dummy arguments
+                test_result = probability_func([0, 1000])  # or whatever test arguments make sense
+                if not isinstance(test_result, (int, float, np.ndarray)):
+                    raise ValueError("probability_func must return a numeric value (int, float, or numpy array)")
+                
+                # Convert to numpy array for easier validation
+                result_array = np.asarray(test_result)
+                
+                # Check if all values are between 0 and 1
+                if not np.all((result_array >= 0) & (result_array <= 1)):
+                    raise ValueError("probability_func must return values between 0 and 1 (inclusive)")
+                    
+            except Exception as e:
+                raise ValueError(f"probability_func failed validation test: {e}")
