@@ -247,27 +247,36 @@ class FolkSEIQRDV(AbstractFolk):
         Transition Rules
         ----------------
 
-        - If the agent is in Quarantine ('Q'):
+        - **If the agent is in Quarantine ('Q'):**
             - If `will_die` is True and the agent has been in quarantine for `rho` days,
-            the agent transitions to Dead ('D') and is marked as not alive.
+            the agent transitions to Dead ('D'), is marked as not alive, and `want_vaccine` is set to False.
             - If `will_die` is False and the agent has been in quarantine for `lam` days,
-            the agent transitions to Recovered ('R') and their movement is restricted.
-        - If the agent is Exposed ('E') and has been exposed for `gamma` days,
+            the agent transitions to Recovered ('R') and their movement restriction is lifted.
+
+        - **If the agent is Exposed ('E')** and has been exposed for `gamma` days,
         they transition to Infectious ('I').
-        - If the agent is Infectious ('I') and has been infectious for `delta` days,
+
+        - **If the agent is Infectious ('I')** and has been infectious for `delta` days,
         their symptoms are confirmed and they must quarantine. They transition to Quarantine ('Q'),
-        their movement is restricted, and with probability `kappa` they are marked to die (`will_die = True`).
-        - If the agent is Susceptible ('S') and a random draw is less than `alpha`,
-        they plan to get vaccinated by adding 'healthcare_facility' to their priority places and setting `want_vaccine` to True.
-        - If the agent is Vaccinated ('V'), their `want_vaccine` attribute is reset to False at the end of the day
-        to ensure correct vaccine queue handling.
+        their movement is restricted, `want_vaccine` is set to False, and with probability `kappa`
+        they are marked to die (`will_die = True`).
+
+        - **If the agent is Susceptible ('S')** and a random draw is less than `alpha`,
+        they plan to get vaccinated by setting `want_vaccine` to True.
+
+        - **If the agent is Vaccinated ('V')**, their `want_vaccine` attribute is reset to False
+        at the end of the day to ensure correct vaccine queue handling during the next day's events.
+
+        - **For any agent with `want_vaccine = True`**, 'healthcare_facility' is added to their
+        priority place types to guide movement toward vaccination sites.
 
         Parameters
         ----------
+        
         folks_here : list of FolkSEIQRDV
-            List of agents present at the same node (not used in this method, placeholder for interface compatibility).
+            List of agents present at the same node (not used in this method, for interface compatibility).
         current_place_type : str
-            The type of place where the agent is sleeping (not used in this method, placeholder for interface compatibility).
+            Type of place where the agent is sleeping (not used in this method, for interface compatibility).
         status_dict_t : dict
             Dictionary tracking the count of each status at the current timestep.
         model_params : SEIQRDVModelParameters
@@ -277,29 +286,41 @@ class FolkSEIQRDV(AbstractFolk):
 
         Returns
         -------
+
         None
+
+        Notes
+        -----
+
+        The `want_vaccine` attribute is reset to False in `sleep()` rather than immediately after
+        vaccination in `interact()` to maintain queue integrity. If reset during `interact()`,
+        it would modify the vaccination queue while agents are still being processed, potentially
+        causing some agents to be skipped or processed incorrectly. Deferring the reset ensures
+        fair and consistent vaccination queue processing.
         """
         super().sleep()
         if self.status == 'Q':
             if self.will_die:
                 if self.status_step_streak == model_params.rho:
                     self.convert('D', status_dict_t)
+                    self.want_vaccine = False
                     self.alive = False
             else:
                 if self.status_step_streak == model_params.lam:
                     self.convert('R', status_dict_t)
-                    self.movement_restricted = True
+                    self.movement_restricted = False
         elif self.status == 'E' and self.status_step_streak == model_params.gamma:
             self.convert('I', status_dict_t)
         elif self.status == 'I' and self.status_step_streak == model_params.delta:
             self.convert('Q', status_dict_t)
             self.movement_restricted = True
+            self.want_vaccine = False
             if dice > model_params.kappa:
                 self.will_die = True
-        elif self.status == 'S' and model_params.alpha > dice:
-            # A person has a likelyhood alpha to plane to get vaccinated
-            self.priority_place_type.append('healthcare_facility')
-            self.want_vaccine = True
+        elif self.status == 'S':
+            # We only apply the rate of planning to get vaccination on susceptible agents
+            if model_params.alpha > dice:
+                self.want_vaccine = True
         elif self.status == 'V':
             # We set self.want_vaccine = False here (in sleep) instead of immediately in interact
             # because if we set it in interact (right after conversion), it would change the order of the want_vaccine_list
@@ -310,6 +331,8 @@ class FolkSEIQRDV(AbstractFolk):
             # and the event logic remains consistent and fair.
             self.want_vaccine = False
 
+        if self.want_vaccine:
+                self.priority_place_type.append('healthcare_facility')
 
 class SEIQRDVModel(AbstractCompartmentalModel):
     """

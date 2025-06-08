@@ -71,6 +71,7 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
 
     Parameters
     ----------
+
     town_graph_path : str
         Path to the .graphmlz file containing the town graph.
     town_metadata_path : str
@@ -78,6 +79,7 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
 
     Returns
     -------
+
     None
         Displays an interactive Plotly map of nodes colored by place type.
     """
@@ -139,6 +141,7 @@ def visualize_folks_on_map_from_sim(
 
     Parameters
     ----------
+
     output_hdf5_path : str
         Path to the HDF5 file containing simulation results.
     town_graph_path : str
@@ -148,6 +151,7 @@ def visualize_folks_on_map_from_sim(
 
     Returns
     -------
+    
     None
         Displays an animated Plotly map showing agent locations and statuses over time.
     """

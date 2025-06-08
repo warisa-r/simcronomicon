@@ -4,7 +4,7 @@ simcronomicon package
 .. toctree::
    :maxdepth: 4
 
-Town input files
+Town network
 ----------------
 
 .. automodule:: simcronomicon.town

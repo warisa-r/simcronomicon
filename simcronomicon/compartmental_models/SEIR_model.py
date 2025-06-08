@@ -7,26 +7,49 @@ class SEIRModelParameters(AbstractModelParameters):
     """
     Model parameters for the SEIR compartmental model.
 
+    This class encapsulates all tunable parameters required for the SEIR
+    compartmental model, including transmission rates and duration parameters.
+    It validates parameter types and ranges upon initialization.
+
     Parameters
     ----------
+
     max_energy : int
-        Maximum energy for each agent.
+        Maximum energy for each agent (limits number of events per day).
     beta : float
         Transmission probability (0 < beta < 1).
     sigma : int
-        Incubation duration (days).
+        Incubation duration in days (positive integer).
     gamma : int
-        Symptom duration (days).
+        Symptom duration in days (positive integer).
     xi : int
-        Immune duration (days).
-
-    Raises
-    ------
-    TypeError
-        If any parameter is not of the correct type or out of valid range.
+        Immune duration in days (positive integer).
     """
 
     def __init__(self, max_energy, beta, sigma, gamma, xi):
+        """
+        Initialize SEIR model parameters and validate all inputs.
+
+        Parameters
+        ----------
+
+        max_energy : int
+            Maximum energy for each agent (must be a positive integer).
+        beta : float
+            Transmission probability (must be between 0 and 1, exclusive).
+        sigma : int
+            Incubation duration in days (must be a positive integer).
+        gamma : int
+            Symptom duration in days (must be a positive integer).
+        xi : int
+            Immune duration in days (must be a positive integer).
+
+        Raises
+        ------
+
+        TypeError
+            If any parameter is not of the correct type or out of valid range.
+        """
         # Check types and ranges
         for name, value in zip(
             ['beta', 'sigma', 'gamma', 'xi'],
@@ -49,6 +72,14 @@ class SEIRModelParameters(AbstractModelParameters):
         self.xi = xi  # Immune duration
 
     def to_metadata_dict(self):
+        """
+        Convert SEIR model parameters to a dictionary for metadata serialization.
+
+        Returns
+        -------
+        dict
+            Dictionary containing all model parameters as key-value pairs.
+        """
         return {
             'max_energy': self.max_energy,
             'beta': self.beta,
@@ -59,10 +90,67 @@ class SEIRModelParameters(AbstractModelParameters):
 
 
 class FolkSEIR(AbstractFolk):
+    """
+    Agent class for the SEIR model.
+
+    This class represents individual agents in the SEIR compartmental model,
+    handling transitions between Susceptible (S), Exposed (E), Infectious (I),
+    and Recovered (R) states based on contact with infectious agents and
+    time-based progression rules.
+
+    Methods
+    -------
+
+    inverse_bernoulli(folks_here, conversion_prob, stats)
+        Calculate the probability of status transition given contact with infectious agents.
+    interact(folks_here, current_place_type, status_dict_t, model_params, dice)
+        Handle agent interactions and possible exposure to infection.
+    sleep(folks_here, current_place_type, status_dict_t, model_params, dice)
+        Handle end-of-day status transitions based on disease progression.
+    """
     def __init__(self, id, home_address, max_energy, status):
+        """
+        Initialize a FolkSEIR agent.
+
+        Parameters
+        ----------
+
+        id : int
+            Unique identifier for the agent.
+        home_address : int
+            Node index of the agent's home location.
+        max_energy : int
+            Maximum social energy for the agent.
+        status : str
+            Initial compartmental status ('S', 'E', 'I', or 'R').
+        """
         super().__init__(id, home_address, max_energy, status)
 
     def inverse_bernoulli(self, folks_here, conversion_prob, stats):
+        """
+        Calculate the probability of status transition given contact with infectious agents.
+
+        This method implements the inverse Bernoulli probability calculation used
+        in agent-based modeling to approximate the continuous ODE dynamics of
+        compartmental models. It calculates the probability of infection based
+        on the number of infectious contacts and transmission probability.
+
+        Parameters
+        ----------
+
+        folks_here : list of FolkSEIR
+            List of agents present at the same node.
+        conversion_prob : float
+            Base transmission probability per contact.
+        stats : list of str
+            List of infectious status types to consider.
+
+        Returns
+        -------
+
+        float
+            Probability of at least one successful transmission event.
+        """
         num_contact = len(
             [folk for folk in folks_here if folk != self and folk.status in stats])
         # beta * I / N is the non-linear term that defines conversion
@@ -77,6 +165,35 @@ class FolkSEIR(AbstractFolk):
             status_dict_t,
             model_params,
             dice):
+        """
+        Perform interactions with other agents and handle potential disease transmission.
+
+        Transition Rules
+        ----------------
+
+        - If the agent is Susceptible ('S') and comes into contact with at least one
+          Infectious ('I') agent, the probability of becoming Exposed ('E') is calculated
+          using the inverse Bernoulli formula with transmission probability (`beta`).
+          If this probability exceeds the random value `dice`, the agent transitions to Exposed.
+
+        Parameters
+        ----------
+
+        folks_here : list of FolkSEIR
+            List of agents present at the same node.
+        current_place_type : str
+            Type of place where the interaction occurs.
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+        model_params : SEIRModelParameters
+            Model parameters for the simulation.
+        dice : float
+            Random float for stochastic transitions.
+
+        Returns
+        -------
+        None
+        """
         # When a susceptible person comes into contact with an infectious person,
         # they have a likelihood to become exposed to the disease
         if self.status == 'S' and self.inverse_bernoulli(
@@ -92,6 +209,41 @@ class FolkSEIR(AbstractFolk):
             status_dict_t,
             model_params,
             dice):
+        """
+        Perform end-of-day status transitions based on disease progression.
+
+        This method handles the deterministic time-based transitions between
+        compartmental states at the end of each simulation day.
+
+        Transition Rules
+        ----------------
+
+        - If the agent is Exposed ('E') and has been exposed for `sigma` days,
+          they transition to Infectious ('I').
+        - If the agent is Infectious ('I') and has been infectious for `gamma` days,
+          they transition to Recovered ('R').
+        - If the agent is Recovered ('R') and has been recovered for `xi` days,
+          they transition back to Susceptible ('S') (waning immunity).
+
+        Parameters
+        ----------
+
+        folks_here : list of FolkSEIR
+            List of agents present at the same node (not used, for interface compatibility).
+        current_place_type : str
+            Type of place where the agent is sleeping (not used, for interface compatibility).
+        status_dict_t : dict
+            Dictionary tracking the count of each status at the current timestep.
+        model_params : SEIRModelParameters
+            Model parameters for the simulation.
+        dice : float
+            Random float for stochastic transitions (not used for deterministic transitions).
+
+        Returns
+        -------
+
+        None
+        """
         super().sleep()
         if self.status == 'E' and self.status_step_streak == model_params.sigma:
             self.convert('I', status_dict_t)
@@ -102,7 +254,39 @@ class FolkSEIR(AbstractFolk):
 
 
 class SEIRModel(AbstractCompartmentalModel):
+    """
+    SEIR compartmental model implementation.
+
+    This class implements the Susceptible-Exposed-Infectious-Recovered model
+    for epidemic simulation. It includes waning immunity where recovered
+    individuals return to susceptible status after a specified duration.
+
+    Parameters
+    ----------
+
+    model_params : SEIRModelParameters
+        Model parameters for the simulation.
+    step_events : list of StepEvent, optional
+        List of step events for the simulation. If None, default events are used.
+
+    Methods
+    -------
+
+    initialize_sim_population(town)
+        Initialize the simulation population and their initial status assignments.
+    """
     def __init__(self, model_params, step_events=None):
+        """
+        Initialize the SEIR model with specified parameters and events.
+
+        Parameters
+        ----------
+
+        model_params : SEIRModelParameters
+            Configuration parameters for the SEIR model.
+        step_events : list of StepEvent, optional
+            Custom step events for the simulation. If None, default events are used.
+        """
         self.folk_class = FolkSEIR
         self.all_statuses = (['S', 'E', 'I', 'R'])
         self.infected_statuses = ['I', 'E']
@@ -112,6 +296,32 @@ class SEIRModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
+        """
+        Initialize the simulation population and their initial status assignments.
+
+        This method assigns initial statuses and home locations to all agents in the simulation,
+        including initial spreaders (both randomly assigned and those at specified nodes) and
+        susceptible agents. It creates agent objects, updates the town graph with agent
+        assignments, and tracks household nodes.
+
+        Parameters
+        ----------
+
+        town : Town
+            The Town object representing the simulation environment.
+
+        Returns
+        -------
+        
+        tuple
+            (folks, household_node_indices, status_dict_t0)
+            - folks : list of FolkSEIR
+                List of all agent objects created for the simulation.
+            - household_node_indices : set
+                Set of node indices where households are tracked.
+            - status_dict_t0 : dict
+                Dictionary with the initial count of each status at timestep 0.
+        """
         num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
         ).initialize_sim_population(town)
 

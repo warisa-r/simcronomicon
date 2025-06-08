@@ -226,7 +226,7 @@ class TestSimulationResults:
     @pytest.mark.parametrize("model_key,expected_status", [
         ("seir", {"S": 76, "E": 2, "I": 6, "R": 16}),
         ("seisir", {"S": 0, "E": 0, "Is": 44, "Ir": 43, "R": 13}),
-        ("seiqrdv", {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 3, "D": 19, "V": 78}),
+        ("seiqrdv", {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 3, "D": 20, "V": 77}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)

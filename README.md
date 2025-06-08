@@ -8,6 +8,7 @@ A simulation for ... well ...
 ## Features
 
 - TODO
+- Test if we can make the mobility function dependent on the agent charateristics
 - Make town.py more compact
 - Reduce redundancy in test modules
 - Write test for visualization

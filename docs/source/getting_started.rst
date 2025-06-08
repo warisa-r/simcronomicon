@@ -3,6 +3,8 @@ Getting Started with simcronomicon
 
 Welcome to **simcronomicon**! This guide will help you get started with the main features of the package, including building a town, defining disease spread models, running simulations, and visualizing results.
 
+We will use the simplest and most common compartmental model in disease modeling throughout this tutorial, the SEIR model!
+
 Installation
 ------------
 
@@ -27,7 +29,54 @@ Basic Workflow
 Building or Loading a Town
 --------------------------
 
-You can create a town from OpenStreetMap data or load a pre-built town from files.
+First step of running the simulation of agent-based network modeling is generating a network from a given
+geographic point you want to simulate your spread on.
+
+You can simply call the function `from_point` from the module `Town`
+to generate the appropriate input files.
+
+When a `Town` object is generated, a network of buildings is created with each node carrying the x and y coordinate of the building
+centroids in your interested location connected with each other with edges that represent shortest path distances from each other.
+Furthermore, each node that represent each location in town is also classfied to different types of buildings with the building tags
+in OpenStreetMap data.
+
+**Create from a geographic point:**
+
+.. code-block:: python
+    
+    import simcronomicon as scon
+
+    town = scon.Town.from_point(
+        point=[50.7753, 6.0839],  # Aachen Dom
+        dist=1000,
+        town_params=town_params,
+        file_prefix="aachen_dom",
+        save_dir="./data"
+    )
+
+A simple town graph in `.graphmlz` form and its metadata in `.json` form is then generated. These are important input files
+for the simulation and visualization later on!
+
+Since constructing a `Town` object can take a while (see the documentation in Town modules as to why), we also provide you an
+option to create the input files and load them to use in other simulations later.
+
+Note that we have not talked about `town_params`. `town_params` can be defined with the following code:
+
+.. code-block:: python
+
+    town_params = scon.TownParameters(num_pop=1000, num_init_spreader=3, spreader_initial_nodes = [1, 2, 2])
+
+With these parameters, you get 997 agents that are susceptible to the spread and 3 that are infectious.
+2 of the infectious agents are placed at node of ID 2 in the to-be-constructed graph. The other one is located at node 1.
+If `spreader_initial_nodes` are not defined at all or not defined for all spreaders, the spreader will be placed randomly
+at a node in the town_graph.
+
+Even though `town_params` is a part of the `Town` object 
+(define geographical initial condition of the simulation), it indeed is seperated from the construction of the 2 input files
+with the function `from_point`. This means that you can generate a town graph with one set of `town_params` and the town object with
+your desired initial condition and 2 output files that are independent of your current initial condition. This is so that you can reuse
+the input files with different initial conditions. You can do so by the function `from_files` in our `Town` module.
+
 
 **Load from files:**
 
@@ -42,18 +91,6 @@ You can create a town from OpenStreetMap data or load a pre-built town from file
        metadata_path=town_metadata_path,
        town_graph_path=town_graph_path,
        town_params=town_params
-   )
-
-**Create from a geographic point:**
-
-.. code-block:: python
-
-   town = scon.Town.from_point(
-       point=[50.7753, 6.0839],  # Aachen Dom
-       dist=1000,
-       town_params=town_params,
-       file_prefix="aachen_dom",
-       save_dir="./data"
    )
 
 ---
@@ -130,6 +167,7 @@ Here is how the sleep function looks like for SEIR model so that you can see tha
 from being 'E' or exposed to 'I' or infectious if an amount of incubation time has passed.
 
 .. code-block:: python
+
     def sleep(
             self,
             folks_here,
@@ -179,7 +217,7 @@ After the simulation finish running, an output file `simulation_output.h5` will 
                 └── log                   (dataset: structured array with timestep, event, folk_id, status, address)
 
 Visualizing Simulation Results
------------------------------
+------------------------------
 
 For visualization, we provide 2 functions to see how your spread develops.
 
@@ -200,7 +238,8 @@ For visualization, we provide 2 functions to see how your spread develops.
 Comparing with ODE Solution (SEIR Example)
 ------------------------------------------
 
-You can compare your simulation to a standard ODE solution:
+You can compare your simulation to a standard ODE solution by using `scipy.integrate`. Here is an ODE system of 
+the SEIR compartmental model that also governs the agent interaction and contagion dynamic in our ABM simulation:
 
 .. code-block:: python
 
@@ -247,7 +286,7 @@ You can compare your simulation to a standard ODE solution:
 Next Steps
 ----------
 
-- Explore other models: SEIQRDV, SEIsIrR, or define your own by subclassing `AbstractCompartmentalModel`.
+- Explore other models: SEIsIrR, SEIQRDV, or define your own by subclassing `AbstractCompartmentalModel`.
 - Customize step events for your scenario.
 - See the API documentation for advanced usage.
 
