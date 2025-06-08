@@ -1,4 +1,4 @@
-from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
+from .abstract_model import AbstractModelParameters, AbstractFolk, AbstractCompartmentalModel
 from .step_event import StepEvent, EventType
 import random as rd
 
@@ -58,7 +58,7 @@ class SEIRModelParameters(AbstractModelParameters):
         }
 
 
-class FolkSEIR(Folk):
+class FolkSEIR(AbstractFolk):
     def __init__(self, id, home_address, max_energy, status):
         super().__init__(id, home_address, max_energy, status)
 
@@ -113,7 +113,7 @@ class SEIRModel(AbstractCompartmentalModel):
 
     def initialize_sim_population(self, town):
         num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
-        )._initialize_sim_population(town)
+        ).initialize_sim_population(town)
 
         # Randomly assign initial spreaders (not on specified nodes)
         for i in range(num_init_spreader_rd):

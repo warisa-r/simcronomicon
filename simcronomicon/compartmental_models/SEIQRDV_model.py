@@ -1,4 +1,4 @@
-from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
+from .abstract_model import AbstractModelParameters, AbstractFolk, AbstractCompartmentalModel
 from .step_event import *
 import random as rd
 
@@ -7,39 +7,47 @@ class SEIQRDVModelParameters(AbstractModelParameters):
     """
     Model parameters for the SEIQRDV compartmental model.
 
-    Parameters
-    ----------
-    max_energy : int
-        Maximum energy for each agent.
-    lam_cap : float
-        Rate of new population due to birth or migration (0 <= lam_cap <= 1).
-    beta : float
-        Transmission probability (0 <= beta <= 1).
-    alpha : float
-        Vaccination rate (0 <= alpha <= 1).
-    gamma : int
-        Average latent time (days).
-    delta : int
-        Average days until the infected case is confirmed and quarantined.
-    lam : int
-        Average days until recovery for quarantined agents.
-    rho : int
-        Average days until death for quarantined agents.
-    kappa : float
-        Disease mortality rate (0 <= kappa <= 1).
-    mu : float
-        Natural background death rate (0 <= mu <= 1).
-    hospital_capacity : int or float
-        Average number of people a healthcare facility can vaccinate per event.
-        Should be a positive integer or float('inf') for unlimited capacity.
-
-    Raises
-    ------
-    TypeError
-        If any parameter is not of the correct type or out of valid range.
+    This class encapsulates all tunable parameters required for the SEIQRDV
+    compartmental model, including epidemiological rates, probabilities, and
+    healthcare system constraints. It validates parameter types and ranges
+    upon initialization.
     """
 
     def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity=float('inf')):
+        """
+        Initialize SEIQRDV model parameters and validate all inputs.
+
+        Parameters
+        ----------
+        max_energy : int
+            Maximum energy for each agent (must be a positive integer).
+        lam_cap : float
+            Rate of new population due to birth or migration (must be between 0 and 1).
+        beta : float
+            Transmission probability (must be between 0 and 1).
+        alpha : float
+            Vaccination rate (must be between 0 and 1).
+        gamma : int
+            Average latent time (must be a positive integer).
+        delta : int
+            Average days until the infected case is confirmed and quarantined (must be a positive integer).
+        lam : int
+            Average days until recovery for quarantined agents (must be a positive integer).
+        rho : int
+            Average days until death for quarantined agents (must be a positive integer).
+        kappa : float
+            Disease mortality rate (must be between 0 and 1).
+        mu : float
+            Natural background death rate (must be between 0 and 1).
+        hospital_capacity : int or float, optional
+            Average number of people a healthcare facility can vaccinate per event.
+            Must be a positive integer or float('inf') for unlimited capacity (default: float('inf')).
+
+        Raises
+        ------
+        TypeError
+            If any parameter is not of the correct type or out of valid range.
+        """
         for name, value in zip(
             ['lam_cap', 'beta', 'alpha', 'gamma', 'delta', 'lam',
                 'rho', 'kappa', 'mu', 'hospital_capacity'],
@@ -79,6 +87,14 @@ class SEIQRDVModelParameters(AbstractModelParameters):
         self.hospital_capacity = hospital_capacity
 
     def to_metadata_dict(self):
+        """
+        Convert SEIQRDV model parameters to a dictionary for metadata serialization.
+
+        Returns
+        -------
+        dict
+            Dictionary containing all model parameters as key-value pairs.
+        """
         return {
             'max_energy': self.max_energy,
             'lam_cap': self.lam_cap,
@@ -94,7 +110,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
         }
 
 
-class FolkSEIQRDV(Folk):
+class FolkSEIQRDV(AbstractFolk):
     """
     Agent class for the SEIQRDV model.
 
@@ -117,7 +133,7 @@ class FolkSEIQRDV(Folk):
 
     def __init__(self, id, home_address, max_energy, status):
         """
-        Initialize a FolkSEIQRDV agent with 2 more attributes than the standard Folk.
+        Initialize a FolkSEIQRDV agent with 2 more attributes than the standard AbstractFolk.
         The first one being will_die which plays a role in determining if the infected agent
         will pass away or not. The second one, want_vaccine, signifies the agent's will to
         get vaccinated. An agent with this attribute == True will try to get vaccinated at
@@ -144,8 +160,8 @@ class FolkSEIQRDV(Folk):
 
         Parameters
         ----------
-        folks_here : list of Folk
-            List of Folk agents present at the same node.
+        folks_here : list of FolkSEIQRDV
+            List of FolkSEIQRDV agents present at the same node.
         conversion_prob : float
             Probability of conversion per contact.
         stats : list of str
@@ -185,8 +201,8 @@ class FolkSEIQRDV(Folk):
 
         Parameters
         ----------
-        folks_here : list of Folk
-            List of Folk agents present at the same node.
+        folks_here : list of FolkSEIQRDV
+            List of FolkSEIQRDV agents present at the same node.
         current_place_type : str
             The type of place where the interaction occurs.
         status_dict_t : dict
@@ -223,11 +239,14 @@ class FolkSEIQRDV(Folk):
             model_params,
             dice):
         """
-        Perform end-of-day updates for this agent.
+        Perform end-of-day updates and state transitions for this agent.
 
-        Handles transitions for quarantine, recovery, death, infection, and vaccination planning.
+        This method handles all status progressions and transitions that occur at the end of a simulation day,
+        including quarantine outcomes, recovery, death, infection progression, and vaccination planning.
 
-        ## Transition Rules
+        Transition Rules
+        ----------------
+
         - If the agent is in Quarantine ('Q'):
             - If `will_die` is True and the agent has been in quarantine for `rho` days,
             the agent transitions to Dead ('D') and is marked as not alive.
@@ -235,18 +254,20 @@ class FolkSEIQRDV(Folk):
             the agent transitions to Recovered ('R') and their movement is restricted.
         - If the agent is Exposed ('E') and has been exposed for `gamma` days,
         they transition to Infectious ('I').
-        - If the agent is Infectious ('I') and has been infectious for `delta` days, their symptoms get confirmed and they
-        must quarantine. They transition to Quarantine ('Q'), their movement is restricted, and with probability `kappa` 
-        they are marked to die (`will_die = True`).
+        - If the agent is Infectious ('I') and has been infectious for `delta` days,
+        their symptoms are confirmed and they must quarantine. They transition to Quarantine ('Q'),
+        their movement is restricted, and with probability `kappa` they are marked to die (`will_die = True`).
         - If the agent is Susceptible ('S') and a random draw is less than `alpha`,
         they plan to get vaccinated by adding 'healthcare_facility' to their priority places and setting `want_vaccine` to True.
+        - If the agent is Vaccinated ('V'), their `want_vaccine` attribute is reset to False at the end of the day
+        to ensure correct vaccine queue handling.
 
         Parameters
         ----------
-        folks_here : list of Folk
-            *Just a placeholder here.* List of Folk agents present at the same node.
+        folks_here : list of FolkSEIQRDV
+            List of agents present at the same node (not used in this method, placeholder for interface compatibility).
         current_place_type : str
-            *Just a placeholder here.* The type of place where the agent is sleeping.
+            The type of place where the agent is sleeping (not used in this method, placeholder for interface compatibility).
         status_dict_t : dict
             Dictionary tracking the count of each status at the current timestep.
         model_params : SEIQRDVModelParameters
@@ -319,8 +340,31 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         super().__init__(model_params)
 
     def initialize_sim_population(self, town):
+        """
+        Initialize the simulation population and their assignments.
+
+        This method assigns initial statuses and home locations to all agents in the simulation,
+        including initial spreaders (both randomly assigned and those at specified nodes) and susceptible agents.
+        It also creates agent objects, updates the town graph with agent assignments, and tracks household nodes.
+
+        Parameters
+        ----------
+        town : Town
+            The Town object representing the simulation environment.
+
+        Returns
+        -------
+        tuple
+            (folks, household_node_indices, status_dict_t0)
+            - folks : list of FolkSEIQRDV
+                List of all agent objects created for the simulation.
+            - household_node_indices : set
+                Set of node indices where households are tracked.
+            - status_dict_t0 : dict
+                Dictionary with the initial count of each status at timestep 0.
+        """
         num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
-        )._initialize_sim_population(town)
+        ).initialize_sim_population(town)
 
         # Randomly assign initial spreaders (not on specified nodes)
         for i in range(num_init_spreader_rd):
@@ -374,8 +418,8 @@ class SEIQRDVModel(AbstractCompartmentalModel):
 
         Parameters
         ----------
-        folks : list of Folk
-            The current list of Folk agent objects in the simulation.
+        folks : list of FolkSEIQRDV
+            The current list of FolkSEIQRDV agent objects in the simulation.
         town : Town
             The Town object representing the simulation environment.
         household_node_indices : set

@@ -12,6 +12,7 @@ import plotly.express as px
 import plotly.io as pio
 from IPython import get_ipython
 
+
 def _set_plotly_renderer():
     try:
         # Check if running in a Jupyter notebook
@@ -23,6 +24,7 @@ def _set_plotly_renderer():
     except NameError:
         # Not running in IPython/Jupyter
         pio.renderers.default = "browser"
+
 
 _set_plotly_renderer()
 

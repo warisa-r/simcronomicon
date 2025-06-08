@@ -234,12 +234,12 @@ class TestSEIQRDVModel:
                             first_q_address[folk_id] = address
                         else:
                             assert address == first_q_address[folk_id], (
-                                f"Folk {folk_id} changed address after quarantine at timestep {timestep}!"
+                                f"AbstractFolk {folk_id} changed address after quarantine at timestep {timestep}!"
                             )
                     if status == b'D':
                         if folk_id not in first_d_address:
                             first_d_address[folk_id] = address
                         else:
                             assert address == first_d_address[folk_id], (
-                                f"Folk {folk_id} changed address after death at timestep {timestep}!"
+                                f"AbstractFolk {folk_id} changed address after death at timestep {timestep}!"
                             )

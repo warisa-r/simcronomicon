@@ -9,7 +9,7 @@ Rumor spreading model considering rumor credibility, correlation and crowd class
 *Scientific Reports*, 10, 5887. https://doi.org/10.1038/s41598-020-62585-9
 """
 
-from .abstract_model import AbstractModelParameters, Folk, AbstractCompartmentalModel
+from .abstract_model import AbstractModelParameters, AbstractFolk, AbstractCompartmentalModel
 from .step_event import StepEvent, EventType
 import random as rd
 
@@ -121,7 +121,7 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         }
 
 
-class FolkSEIsIrR(Folk):
+class FolkSEIsIrR(AbstractFolk):
     def __init__(self, id, home_address, max_energy, status):
         super().__init__(id, home_address, max_energy, status)
 
@@ -207,7 +207,7 @@ class SEIsIrRModel(AbstractCompartmentalModel):
 
     def initialize_sim_population(self, town):
         num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments = super(
-        )._initialize_sim_population(town)
+        ).initialize_sim_population(town)
 
         num_IsIr = num_pop - num_init_spreader
 

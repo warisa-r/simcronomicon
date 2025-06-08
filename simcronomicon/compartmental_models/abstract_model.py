@@ -2,32 +2,141 @@ import random as rd
 from .step_event import StepEvent, EventType
 
 
-class AbstractModelParameters():
+class AbstractModelParameters:
+    """
+    Base class for compartmental model parameters.
+
+    This abstract class defines the common interface for all compartmental model
+    parameter classes. It provides basic energy management and requires subclasses
+    to implement metadata serialization for simulation persistence.
+
+    Parameters
+    ----------
+
+    max_energy : int
+        The maximum energy for an agent. This number limits the maximum number 
+        of events an agent can attend in a day.
+
+    Attributes
+    ----------
+
+    max_energy : int
+        Maximum social energy value for agents in the simulation.
+
+    Methods
+    -------
+
+    to_metadata_dict()
+        Abstract method that subclasses must implement to serialize parameters
+        to a dictionary for saving simulation metadata.
+    """
+
     def __init__(self, max_energy):
         """
         Initialize model parameters.
 
         Parameters
         ----------
+
         max_energy : int
             The maximum energy for an agent. This number limits the maximum number of events an agent can attend in a day.
+        Raises
+        ------
+
+        AssertionError
+            If max_energy is not a positive integer.
         """
         assert isinstance(
             max_energy, int) and max_energy > 0, "max_energy must be a positive integer!"
         self.max_energy = max_energy
 
     def to_metadata_dict(self):
+        """
+        Convert model parameters to a dictionary for metadata serialization.
+
+        This abstract method must be implemented by subclasses to enable saving
+        and loading of simulation configurations. The returned dictionary should
+        contain all parameter values needed to reconstruct the model.
+
+        Returns
+        -------
+
+        dict
+            Dictionary containing all model parameters as key-value pairs.
+
+        Raises
+        ------
+
+        NotImplementedError
+            Always raised in the base class. Subclasses must override this method.
+        """
         raise NotImplementedError(
             "Subclasses must implement to_metadata_dict()")
 
 
-class Folk:
+class AbstractFolk:
+    """
+    Agent class representing individuals in the simulation.
+
+    AbstractFolk objects represent individual agents that move through the town network,
+    interact with other agents, and undergo status transitions according to
+    compartmental model rules. Each agent has energy, status, location, and
+    behavioral attributes that influence their participation in simulation events.
+
+    Parameters
+    ----------
+
+    id : int
+        Unique identifier for the agent.
+    home_address : int
+        Node index of the agent's home location in the town network.
+    max_energy : int
+        Maximum social energy. Limits the number of events an agent can attend daily.
+    status : str
+        Initial compartmental status of the agent (e.g., 'S', 'I', 'R').
+
+    Attributes
+    ----------
+
+    id : int
+        Unique agent identifier.
+    home_address : int
+        Home node index in the town network.
+    address : int
+        Current location node index (initially set to home_address).
+    max_energy : int
+        Maximum daily social energy.
+    energy : int
+        Current social energy (randomly initialized between 0 and max_energy).
+    status : str
+        Current compartmental status.
+    status_step_streak : int
+        Number of consecutive timesteps in current status.
+    movement_restricted : bool
+        Whether agent movement is restricted (e.g., quarantine).
+    alive : bool
+        Whether the agent is alive and active in the simulation.
+    priority_place_type : list
+        List of place types the agent prioritizes for visits.
+
+    Methods
+    -------
+
+    convert(new_stat, status_dict_t)
+        Change agent status and update population counts.
+    inverse_bernoulli(contact_possibility, conversion_prob)
+        Calculate probability of status transition given contacts and conversion rates.
+    sleep()
+        Reset energy and increment status streak (called at day end).
+    """
+
     def __init__(self, id, home_address, max_energy, status):
         """
-        Initialize a Folk agent.
+        Initialize a AbstractFolk agent.
 
         Parameters
         ----------
+
         id : int
             Unique identifier for the agent.
         home_address : int
@@ -55,6 +164,7 @@ class Folk:
 
         Parameters
         ----------
+
         new_stat : str
             The new status to assign.
         status_dict_t : dict
@@ -77,6 +187,7 @@ class Folk:
 
         Parameters
         ----------
+
         contact_possibility : int
             Number of possible contacts.
         conversion_prob : float
@@ -84,6 +195,7 @@ class Folk:
 
         Returns
         -------
+
         float
             Probability of at least one successful conversion.
         """
@@ -100,15 +212,78 @@ class Folk:
         self.energy = rd.randint(0, self.max_energy)  # Reset social energy
 
 
-class AbstractCompartmentalModel():
+class AbstractCompartmentalModel:
+    """
+    Abstract base class for all compartmental epidemic models.
+
+    This class provides the foundation for implementing compartmental models
+    (e.g., SIR, SEIR, SEIQRDV) in agent-based simulations. It handles agent
+    creation, step event management, population initialization, and defines
+    the interface that all compartmental models must implement.
+
+    Parameters
+    ----------
+
+    model_params : AbstractModelParameters
+        Model-specific parameters object containing simulation configuration.
+
+    Attributes
+    ----------
+
+    model_params : AbstractModelParameters
+        Configuration parameters for the model.
+    step_events : list of StepEvent
+        Sequence of events that occur during each simulation timestep.
+    infected_statuses : list
+        List of status strings considered infectious (must be defined by subclasses).
+    all_statuses : list
+        Complete list of all possible agent statuses (must be defined by subclasses).
+    required_place_types : set
+        Set of place types required by the model (includes 'accommodation', 'commercial').
+    folk_class : class
+        The Folk class or subclass used to create agents (must be defined by subclasses).
+
+    Methods
+    -------
+
+    create_folk(*args, **kwargs)
+        Create a new Folk agent using the model's folk_class.
+
+    initialize_sim_population(town)
+        Initialize simulation population at the beginning of the simulation.
+
+    update_population(folks, town, household_node_indices, status_dict_t)
+        Update simulation population at the end of each timestep.
+
+    Notes
+    -----
+
+    - Subclasses must define 'infected_statuses', 'all_statuses', and 'folk_class'
+      before calling the parent constructor.
+    - An 'end_day' event is automatically appended to step_events if not provided.
+    - Default step_events include neighborhood greeting and commercial activities.
+    """
+
     def __init__(self, model_params):
         """
         Initialize the abstract compartmental model.
 
         Parameters
         ----------
+
         model_params : AbstractModelParameters
             Model parameters object.
+            Raises
+
+        Raise
+        ------
+
+        NotImplementedError
+            If subclass doesn't define required attributes (infected_statuses, all_statuses).
+        TypeError
+            If step_events contains invalid objects or folk_action methods are not callable.
+        ValueError
+            If the model has fewer than 3 different statuses.
         """
         self.model_params = model_params
 
@@ -184,16 +359,55 @@ class AbstractCompartmentalModel():
 
     def create_folk(self, *args, **kwargs):
         """
-        Create a new Folk agent using the model's folk_class.
+        Create a new AbstractFolk agent using the model's folk_class.
 
         Returns
         -------
-        Folk
-            A new Folk agent instance of a given folk_class.
+
+        AbstractFolk
+            A new AbstractFolk agent instance of a given folk_class.
         """
         return self.folk_class(*args, **kwargs)
 
-    def _initialize_sim_population(self, town):
+    def initialize_sim_population(self, town):
+        """
+        Initialize simulation population data structures and validate spreader configuration.
+
+        This method sets up the basic data structures needed for population initialization
+        and validates that the spreader configuration is valid. It prepares containers
+        for agent creation and household assignment.
+
+        Parameters
+        ----------
+
+        town : Town
+            The town network where agents will be placed.
+
+        Returns
+        -------
+
+        tuple
+            Contains (num_pop, num_init_spreader, num_init_spreader_rd, folks, 
+            household_node_indices, assignments) where:
+            - num_pop : int - Total population size
+            - num_init_spreader : int - Total number of initial spreaders
+            - num_init_spreader_rd : int - Number of randomly placed spreaders
+            - folks : list - Empty list for agent objects
+            - household_node_indices : set - Empty set for household node tracking
+            - assignments : list - Empty list for agent assignments
+
+        Raises
+        ------
+
+        AssertionError
+            If there are more spreader locations than total number of spreaders.
+
+        Notes
+        -----
+
+        This method only initializes data structures and validates configuration.
+        Actual agent creation and placement is handled by the Simulation class.
+        """
         num_init_spreader_nodes = len(town.town_params.spreader_initial_nodes)
         assert town.town_params.num_init_spreader >= num_init_spreader_nodes, \
             "There cannot be more locations of the initial spreaders than the number of initial spreaders"
@@ -217,8 +431,9 @@ class AbstractCompartmentalModel():
 
         Parameters
         ----------
-        folks : list of Folk
-            The current list of Folk agent objects in the simulation.
+        
+        folks : list of AbstractFolk
+            The current list of AbstractFolk agent objects in the simulation.
         town : Town
             The Town object representing the simulation environment.
         status_dict_t : dict

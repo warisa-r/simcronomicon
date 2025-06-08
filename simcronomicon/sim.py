@@ -10,6 +10,119 @@ from .compartmental_models import EventType
 
 
 class Simulation:
+    """
+    Agent-based simulation engine for epidemic modeling in spatial networks.
+
+    The Simulation class implements an agent-based modeling (ABM) framework that applies
+    transition rules according to user-defined compartmental models. Agents move through
+    a spatial town network, interact with each other and their environment, and undergo
+    state transitions based on the rules defined in the chosen compartmental model.
+
+    Purpose
+    -------
+
+    1. **Initialize Population**: Distribute agents across the town network according to
+       user-specified parameters, including initial spreader locations and population size.
+
+    2. **Agent Movement**: Move agents through the city during simulation timesteps based
+       on step events that define mobility patterns and destination preferences.
+
+    3. **Agent Interactions**: Enable agent-to-agent and agent-to-environment interactions
+       at each location according to the rules defined in the compartmental model.
+
+    4. **State Transitions**: Apply compartmental model transition rules (e.g., S→E→I→R)
+       based on agent interactions, environmental factors, and time-dependent processes.
+
+    5. **Temporal Dynamics**: Execute simulation in discrete timesteps, where each step
+       consists of multiple events, and agents return home after each complete step.
+
+    Simulation Workflow
+    -------------------
+
+    Each simulation timestep follows this pattern:
+
+    1. **Event Execution**: For each step event in the current timestep:
+       - Reset agent locations (clear previous positions)
+       - Execute event-specific movement (DISPERSE) or actions (SEND_HOME)
+       - Apply compartmental model rules for agent interactions
+       - Record population status and individual agent states
+
+    2. **Agent Movement**: During DISPERSE events:
+       - Agents move to locations within their travel distance
+       - Movement considers place type preferences and priority destinations
+       - Probability functions can influence destination selection
+
+    3. **Interactions**: At each active location:
+       - Agents interact according to compartmental model rules
+       - Environmental factors (place type) influence interaction outcomes
+       - State transitions occur based on model-specific probabilities
+
+    4. **Home Reset**: After all events, agents return to their home addresses
+
+    Parameters
+    ----------
+
+    town : Town
+        The Town object representing the spatial network with nodes (locations)
+        and edges (travel routes) where the simulation takes place.
+    compartmental_model : AbstractCompartmentalModel
+        The compartmental model instance (e.g., SEIRModel, SEIQRDVModel) that
+        defines agent states, transition rules, and interaction behaviors.
+    timesteps : int
+        Number of discrete timesteps to run the simulation.
+    seed : bool, optional
+        Whether to set random seeds for reproducible results (default: True).
+    seed_value : int, optional
+        Random seed value for reproducibility (default: 5710).
+
+    Attributes
+    ----------
+
+    folks : list
+        List of AbstractFolk (agent) objects representing the population.
+    town : Town
+        The spatial network where agents live and move.
+    model : AbstractCompartmentalModel
+        The compartmental model governing agent behavior and transitions.
+    step_events : list
+        Sequence of events that occur in each timestep.
+    active_node_indices : set
+        Set of town nodes currently occupied by agents.
+    status_dicts : list
+        Historical record of population status counts at each timestep.
+
+    Raises
+    ------
+
+    ValueError
+        If required place types for the chosen compartmental model are missing
+        in the town data. This ensures model-specific locations (e.g., healthcare
+        facilities for medical models) are available in the spatial network.
+
+    Examples
+    --------
+
+    >>> # Create town and model
+    >>> town = Town.from_point(point=[50.7753, 6.0839], dist=1000, 
+    ...                        town_params=TownParameters(num_pop=1000, num_init_spreader=10))
+    >>> model_params = SEIRModelParameters(max_energy=10, beta=0.3, sigma=5, gamma=7, xi=100)
+    >>> model = SEIRModel(model_params)
+    >>> 
+    >>> # Run simulation
+    >>> sim = Simulation(town, model, timesteps=100)
+    >>> sim.run(hdf5_path="epidemic_simulation.h5")
+
+    Notes
+    -----
+
+    - The simulation saves detailed results to HDF5 format, including population
+      summaries and individual agent trajectories.
+    - Agent energy levels affect movement capability and interaction potential.
+    - Movement restrictions (e.g., quarantine) can limit agent mobility while
+      still allowing interactions with visiting agents.
+    - The simulation automatically terminates early if no infected agents remain.
+    """
+
     def __init__(
             self,
             town,
@@ -22,6 +135,7 @@ class Simulation:
 
         Parameters
         ----------
+
         town : Town
             The Town object representing the simulation environment.
         compartmental_model : AbstractCompartmentalModel
@@ -35,6 +149,7 @@ class Simulation:
 
         Raises
         ------
+
         ValueError
             If required place types for the model are missing in the town data of the given spatial area.
         """
@@ -219,22 +334,26 @@ class Simulation:
 
         The simulation results are saved to an HDF5 file with the following structure:
 
-        simulation_output.h5
-    ├── metadata
-    │   ├── simulation_metadata   (JSON-encoded simulation metadata)
-    │   └── town_metadata         (JSON-encoded town metadata)
-    ├── status_summary
-    │   └── summary               (dataset: structured array with timestep, current_event, and statuses)
-    └── individual_logs
-        └── log                   (dataset: structured array with timestep, event, folk_id, status, address)
+        .. code-block:: text
+
+            simulation_output.h5
+            ├── metadata
+            │   ├── simulation_metadata   (JSON-encoded simulation metadata)
+            │   └── town_metadata         (JSON-encoded town metadata)
+            ├── status_summary
+            │   └── summary               (dataset: structured array with timestep, current_event, and statuses)
+            └── individual_logs
+                └── log                   (dataset: structured array with timestep, event, folk_id, status, address)
 
         Parameters
         ----------
+
         hdf5_path : str
             Path to the output HDF5 file.
 
         Returns
         -------
+
         None
         """
         with h5py.File(hdf5_path, "w") as h5file:

@@ -55,11 +55,147 @@ class TownParameters():
 
 
 class Town():
+    """
+    Spatial network representation for agent-based epidemic modeling.
+
+    The Town class represents a spatial network derived from OpenStreetMap data,
+    where nodes correspond to places of interest (POIs) and edges represent
+    walkable paths between locations. This network serves as the environment
+    where agents move, interact, and undergo state transitions during simulation.
+
+    Purpose
+    -------
+
+    1. **Spatial Network Creation**: Build a graph representation of urban areas
+       from OpenStreetMap data, including roads, buildings, and points of interest.
+
+    2. **Place Classification**: Categorize locations into functional types
+       (accommodation, workplace, healthcare, etc.) that influence agent behavior.
+
+    3. **Agent Housing**: Provide accommodation nodes where agents reside and
+       return to after each simulation timestep.
+
+    4. **Distance Calculation**: Maintain shortest-path distances between all
+       locations to enable realistic agent movement patterns.
+
+    5. **Data Persistence**: Save and load town networks to/from compressed
+       files for reuse across multiple simulations.
+
+    Network Structure
+    -----------------
+
+    - **Nodes**: Represent places of interest with attributes including:
+      - place_type: Functional category of the location
+      - x, y: Projected coordinates in the town's coordinate system
+      - folks: List of agents currently at this location
+
+    - **Edges**: Represent walkable connections with attributes:
+      - weight: Shortest-path distance in meters between connected nodes
+
+    Place Types
+    -----------
+
+    The default classification system recognizes:
+    - accommodation: Residential buildings where agents live
+    - healthcare_facility: Hospitals, clinics, pharmacies
+    - commercial: Shops, restaurants, banks
+    - workplace: Offices, factories, industrial areas
+    - education: Schools, universities
+    - religious: Churches, mosques, temples
+    - other: Unclassified locations (filtered out by default)
+
+    Attributes
+    ----------
+
+    town_graph : networkx.Graph
+        The spatial network with nodes representing locations and edges
+        representing shortest paths between them.
+    town_params : TownParameters
+        Configuration parameters including population size and initial spreader locations.
+    epsg_code : int
+        EPSG coordinate reference system code for spatial projections.
+    point : tuple
+        Origin point [latitude, longitude] used to center the network.
+    dist : float
+        Radius in meters defining the network extent from the origin point.
+    all_place_types : list
+        Complete list of possible place type categories.
+    found_place_types : set
+        Place types actually present in this town network.
+    accommodation_node_ids : list
+        Node IDs of all accommodation locations where agents can reside.
+
+    Methods
+    -------
+    from_point(point, dist, town_params, **kwargs)
+        Create a town network from OpenStreetMap data centered on a geographic point.
+    from_files(metadata_path, town_graph_path, town_params)
+        Load a previously saved town network from compressed files.
+
+    Examples
+    --------
+
+    >>> # Create town from geographic coordinates (Aachen, Germany)
+    >>> town_params = TownParameters(num_pop=1000, num_init_spreader=10)
+    >>> town = Town.from_point(
+    ...     point=[50.7753, 6.0839],  # Aachen Dom coordinates
+    ...     dist=1000,  # 1km radius
+    ...     town_params=town_params
+    ... )
+    >>> 
+    >>> # Load previously saved town
+    >>> town = Town.from_files(
+    ...     metadata_path="town_metadata.json",
+    ...     town_graph_path="town_graph.graphmlz",
+    ...     town_params=town_params
+    ... )
+    >>> 
+    >>> # Examine town properties
+    >>> print(f"Town has {len(town.town_graph.nodes)} locations")
+    >>> print(f"Place types found: {town.found_place_types}")
+    >>> print(f"Accommodation nodes: {len(town.accommodation_node_ids)}")
+
+    Notes
+    -----
+
+    - The town network uses shortest-path distances calculated from road network
+      edges rather than Euclidean distances to provide realistic travel times
+      between locations. These distances are computed by finding the shortest
+      route along actual roads and pathways connecting places.
+    - All shortest paths between every pair of places are pre-calculated during
+      town creation, and the resulting simplified graph stores these distances
+      as direct edge weights. This optimization dramatically reduces computational
+      overhead during simulation steps, as agent movement only requires looking
+      up neighboring edge weights rather than performing path searches.
+    - This pre-computation approach is especially beneficial when running multiple
+      simulations in the same location or simulations with many agents and timesteps,
+      as the expensive shortest-path calculations are done once during town creation.
+    - Building centroids are mapped to nearest road network nodes to ensure
+      all locations are accessible via the street network.
+    - Custom place classification functions can be provided to adapt the
+      categorization system to specific research needs.
+    - Town networks are automatically saved in compressed GraphMLZ format
+      along with JSON metadata for efficient storage and reuse. These output
+      files serve as input files for the Simulation class, enabling rapid
+      simulation setup without re-downloading or re-processing OpenStreetMap data.
+
+    Raises
+    ------
+
+    ValueError
+        If the specified point coordinates are invalid, if no relevant
+        locations remain after filtering, or if initial spreader nodes
+        don't exist in the network.
+    TypeError
+        If the place classification function is not callable or if required
+        parameters are missing when using custom classification.
+    """
+
     def __init__(self):
         # Default constructor for flexibility
         pass
 
-    def check_all_spreader_nodes_in_graph(self):
+    def _check_all_spreader_nodes_in_graph(self):
         missing_nodes = [
             node for node in self.town_params.spreader_initial_nodes
             if node not in self.town_graph.nodes
@@ -80,6 +216,63 @@ class Town():
         file_prefix="town_graph",
         save_dir="."
     ):
+        """
+    Create a town network from OpenStreetMap data centered on a geographic point.
+
+    Downloads road network and building data from OpenStreetMap, processes building
+    geometries, classifies places by type, and constructs a simplified graph with
+    pre-computed shortest-path distances between all locations.
+
+    Parameters
+    ----------
+
+    point : list or tuple
+        Geographic coordinates [latitude, longitude] defining the center point
+        for data extraction.
+    dist : float
+        Radius in meters around the point to extract data. Defines the spatial
+        extent of the town network.
+    town_params : TownParameters
+        Configuration object containing population size, initial spreader count,
+        and spreader node locations.
+    classify_place_func : callable, optional
+        Function to classify building types into place categories. Must accept
+        a pandas row and return a place type string (default: classify_place).
+    all_place_types : list, optional
+        List of all possible place type categories. Required when using custom
+        classify_place_func (default: None).
+    file_prefix : str, optional
+        Prefix for output files (default: "town_graph").
+    save_dir : str, optional
+        Directory to save compressed graph and metadata files (default: ".").
+
+    Returns
+    -------
+
+    Town
+        Town object with populated spatial network and metadata.
+
+    Raises
+    ------
+
+    ValueError
+        If point coordinates are invalid, no relevant nodes remain after
+        filtering, or spreader nodes don't exist in the network.
+    TypeError
+        If classify_place_func is not callable or required parameters are missing.
+
+    Examples
+    --------
+
+    >>> town_params = TownParameters(num_pop=1000, num_init_spreader=5)
+    >>> town = Town.from_point(
+    ...     point=[50.7753, 6.0839],  # Aachen Dom
+    ...     dist=1000,
+    ...     town_params=town_params,
+    ...     file_prefix="aachen_dom",
+    ...     save_dir="./data"
+    ... )
+    """
 
         import igraph as ig
         from tqdm import tqdm
@@ -236,7 +429,7 @@ class Town():
                 'place_type').values())
 
         # Assert that all spreader_initial_nodes exist in the town graph
-        town.check_all_spreader_nodes_in_graph()
+        town._check_all_spreader_nodes_in_graph()
 
         print("[10/10] Saving a compressed graph and metadata...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
@@ -277,6 +470,46 @@ class Town():
 
     @classmethod
     def from_files(cls, metadata_path, town_graph_path, town_params):
+        """
+    Load a previously saved town network from compressed files.
+
+    Reconstructs a Town object from GraphMLZ and JSON metadata files created
+    by a previous call to from_point(). This method enables rapid simulation
+    setup without re-downloading or re-processing OpenStreetMap data.
+
+    Parameters
+    ----------
+    metadata_path : str
+        Path to the JSON metadata file containing town configuration and
+        place type information.
+    town_graph_path : str
+        Path to the compressed GraphMLZ file containing the spatial network.
+    town_params : TownParameters
+        Configuration object containing population size, initial spreader count,
+        and spreader node locations for the simulation.
+
+    Returns
+    -------
+    Town
+        Town object with loaded spatial network and metadata.
+
+    Raises
+    ------
+    ValueError
+        If spreader nodes specified in town_params don't exist in the
+        loaded network.
+    FileNotFoundError
+        If the specified files don't exist.
+
+    Examples
+    --------
+    >>> town_params = TownParameters(num_pop=1000, num_init_spreader=5)
+    >>> town = Town.from_files(
+    ...     metadata_path="./data/aachen_dom_metadata.json",
+    ...     town_graph_path="./data/aachen_dom.graphmlz",
+    ...     town_params=town_params
+    ... )
+    """
         # 1. Unzip the graphmlz to a temp folder
         print("[1/3] Decompressing the graphmlz file...")
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -310,7 +543,7 @@ class Town():
                 town.town_graph.nodes[i]["folks"] = []
 
         # Assert that all spreader_initial_nodes exist in the town graph
-        town.check_all_spreader_nodes_in_graph()
+        town._check_all_spreader_nodes_in_graph()
 
         print("Town graph successfully built from input files!")
         return town

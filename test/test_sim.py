@@ -148,14 +148,14 @@ class TestStepEventFunctionality:
                     home_addr = next(folk.home_address for folk in sim.folks if folk.id == folk_id)
                     place_type = town.town_graph.nodes[address]['place_type']
                     assert address == home_addr or place_type == 'workplace', \
-                        f"Folk {folk_id} at address {address} (type {place_type}) is not at home or workplace during go_to_work"
+                        f"AbstractFolk {folk_id} at address {address} (type {place_type}) is not at home or workplace during go_to_work"
                 # Check 'end_day' event that automatically gets appended regardless of the StepEvents input from the user
                 end_day_rows = log[(log['timestep'] == 1) & (log['event'] == b"end_day")]
                 for row in end_day_rows:
                     folk_id = row['folk_id']
                     address = row['address']
                     home_addr = next(folk.home_address for folk in sim.folks if folk.id == folk_id)
-                    assert address == home_addr, f"Folk {folk_id} not at home at end_day (address {address}, home {home_addr})"
+                    assert address == home_addr, f"AbstractFolk {folk_id} not at home at end_day (address {address}, home {home_addr})"
 
 # For SEIQRDV, the functionality of priority place is tested in its own dedicated tests,
 # since agents may prioritize 'healthcare_facility' and bypass typical destinations like 'workplace'.

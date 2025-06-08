@@ -37,6 +37,57 @@ class EventType(Enum):
 
 
 class StepEvent:
+    """
+    Defines agent activities and movement patterns during simulation timesteps.
+
+    StepEvent objects represent discrete activities that agents perform during
+    simulation timesteps. Each event specifies how agents move through the town
+    network, what types of locations they visit, and what actions they perform
+    when they arrive at destinations.
+
+    Purpose
+    -------
+    1. **Agent Movement Control**: Define where and how far agents travel during
+       specific activities (work, shopping, healthcare visits, etc.).
+
+    2. **Location Targeting**: Specify which types of places agents visit for
+       different activities using place type filters.
+
+    3. **Mobility Modeling**: Apply realistic human mobility patterns through
+       customizable probability functions based on distance.
+
+    Event Types
+    -----------
+    - **DISPERSE**: Agents move to locations within specified distance and place
+      type constraints. Enables agent-to-agent interactions at destinations.
+    - **SEND_HOME**: All agents return directly to their home addresses without
+      movement or interaction. Represents end-of-day or emergency scenarios.
+
+    Attributes
+    ----------
+    name : str
+        Event identifier.
+    max_distance : int
+        Maximum travel distance in meters.
+    place_types : list
+        Allowed destination place types.
+    event_type : EventType
+        Movement behavior type.
+    folk_action : callable
+        Agent interaction function.
+    probability_func : callable or None
+        Distance-based mobility probability function.
+
+    Examples
+    --------
+    >>> # End of day event
+    >>> end_day = StepEvent("end_day", folk_class.sleep)
+    >>> 
+    >>> # Work event with specific constraints
+    >>> work = StepEvent("work", folk_class.interact, EventType.DISPERSE, 
+    ...                  max_distance=10000, place_types=['workplace'])
+    """
+
     def __init__(
             self,
             name,
@@ -46,38 +97,42 @@ class StepEvent:
             place_types=[],
             probability_func=None):
         """
-        Initialize a StepEvent. A StepEvent is an instance that defines an agents' activities in a day.
-        This means that one day can have multiple StepEvent defined!
-        A StepEvent contained a name, an action that is performed by the agent when this StepEvent is being
-        carried out, a maximum distance that agents will travel to perform this event, and the place types
-        of the event.
+        Initialize a StepEvent for agent activity simulation.
 
         Parameters
         ----------
         name : str
-            Name of the event.
+            Descriptive name for the event (e.g., "work", "shopping", "end_day").
         folk_action : callable
-            Function to execute for each folk during the event. Must accept 4 arguments (folks_here, status_dict_t, model_params, dice).
+            Function executed for each agent during the event. Must accept 4 arguments:
+            (folks_here, status_dict_t, model_params, dice).
         event_type : EventType, optional
-            Type of the event (default: EventType.SEND_HOME).
+            Movement behavior type (default: EventType.SEND_HOME).
         max_distance : int, optional
-            Maximum distance in meters for the event (default: 0).
+            Maximum travel distance in meters for DISPERSE events (default: 0).
         place_types : list, optional
-            List of place types relevant for the event (default: []).
+            Place type categories agents can visit. Examples: ['commercial', 'workplace'] 
+            (default: []).
         probability_func : callable, optional
-            Function that takes a list of distances and returns a list of probabilities of those distances based on the probability
-            function you want to use to model human mobility.
-            If None, uniform probability is used.
+            Function taking distances and returning movement probabilities [0,1].
+            Cannot be used with SEND_HOME events (default: None).
+
+        Raises
+        ------
+        ValueError
+            If probability_func is specified for SEND_HOME events, if probability_func
+            is not callable, or if it returns invalid probability values.
 
         Examples
         --------
-        - StepEvent("end_day", self.folk_class.sleep):
-        Agents send home and send to sleep. A days ends with this event.
+        >>> # Simple home event
+        >>> StepEvent("end_day", folk_class.sleep)
 
-        - StepEvent("chore", self.folk_class.interact, EventType.DISPERSE, 19000, ['commercial', 'workplace', 'education', 'religious']):
-        Agents disperse up to 19km to perform chores at commercial, workplace, education, or religious places.
+        >>> # Complex disperse event with mobility function
+        >>> StepEvent("shopping", folk_class.interact, EventType.DISPERSE,
+        ...           max_distance=5000, place_types=['commercial'],
+        ...           probability_func=log_normal_probabilities)
         """
-        # TODO: Write check that place_types is in the classification in
         # town.py
         self.name = name
         self.max_distance = max_distance  # in meters
@@ -86,24 +141,30 @@ class StepEvent:
         self.folk_action = folk_action
         self.probability_func = probability_func
         if event_type == EventType.SEND_HOME and probability_func is not None:
-            raise ValueError("You cannot define a mobility probability function for an event that does not disperse people")
+            raise ValueError(
+                "You cannot define a mobility probability function for an event that does not disperse people")
 
         if probability_func is not None:
             if not callable(probability_func):
-                raise ValueError("probability_func must be a callable function")
-            
+                raise ValueError(
+                    "probability_func must be a callable function")
+
             try:
                 # Test with dummy arguments
-                test_result = probability_func([0, 1000])  # or whatever test arguments make sense
+                # or whatever test arguments make sense
+                test_result = probability_func([0, 1000])
                 if not isinstance(test_result, (int, float, np.ndarray)):
-                    raise ValueError("probability_func must return a numeric value (int, float, or numpy array)")
-                
+                    raise ValueError(
+                        "probability_func must return a numeric value (int, float, or numpy array)")
+
                 # Convert to numpy array for easier validation
                 result_array = np.asarray(test_result)
-                
+
                 # Check if all values are between 0 and 1
                 if not np.all((result_array >= 0) & (result_array <= 1)):
-                    raise ValueError("probability_func must return values between 0 and 1 (inclusive)")
-                    
+                    raise ValueError(
+                        "probability_func must return values between 0 and 1 (inclusive)")
+
             except Exception as e:
-                raise ValueError(f"probability_func failed validation test: {e}")
+                raise ValueError(
+                    f"probability_func failed validation test: {e}")
