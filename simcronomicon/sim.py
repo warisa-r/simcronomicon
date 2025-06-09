@@ -20,7 +20,6 @@ class Simulation:
 
     Purpose
     -------
-
     1. **Initialize Population**: Distribute agents across the town network according to
        user-specified parameters, including initial spreader locations and population size.
 
@@ -38,7 +37,6 @@ class Simulation:
 
     Simulation Workflow
     -------------------
-
     Each simulation timestep follows this pattern:
 
     1. **Event Execution**: For each step event in the current timestep:
@@ -61,7 +59,6 @@ class Simulation:
 
     Parameters
     ----------
-
     town : Town
         The Town object representing the spatial network with nodes (locations)
         and edges (travel routes) where the simulation takes place.
@@ -77,7 +74,6 @@ class Simulation:
 
     Attributes
     ----------
-
     folks : list
         List of AbstractFolk (agent) objects representing the population.
     town : Town
@@ -93,7 +89,6 @@ class Simulation:
 
     Raises
     ------
-
     ValueError
         If required place types for the chosen compartmental model are missing
         in the town data. This ensures model-specific locations (e.g., healthcare
@@ -117,9 +112,12 @@ class Simulation:
 
     - The simulation saves detailed results to HDF5 format, including population
       summaries and individual agent trajectories.
+
     - Agent energy levels affect movement capability and interaction potential.
+
     - Movement restrictions (e.g., quarantine) can limit agent mobility while
       still allowing interactions with visiting agents.
+
     - The simulation automatically terminates early if no infected agents remain.
     """
 
@@ -135,7 +133,6 @@ class Simulation:
 
         Parameters
         ----------
-
         town : Town
             The Town object representing the simulation environment.
         compartmental_model : AbstractCompartmentalModel
@@ -149,7 +146,6 @@ class Simulation:
 
         Raises
         ------
-
         ValueError
             If required place types for the model are missing in the town data of the given spatial area.
         """
@@ -347,13 +343,11 @@ class Simulation:
 
         Parameters
         ----------
-
         hdf5_path : str
             Path to the output HDF5 file.
 
         Returns
         -------
-
         None
         """
         with h5py.File(hdf5_path, "w") as h5file:

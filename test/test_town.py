@@ -32,6 +32,16 @@ class TestTown:
         if os.path.exists("cache"):
             shutil.rmtree("cache")
 
+        # Clean up default town files that might be produced even if the initial conditions are wrong
+        default_files = [
+            "town_graph.graphmlz",
+            "town_graph_metadata.json"
+        ]
+        for filename in default_files:
+            if os.path.exists(filename):
+                os.remove(filename)
+                print(f"Cleaned up: {filename}")
+
     def teardown_method(self):
         # Repeat cleanup after each test
         cache_dir = os.path.expanduser("~/.osmnx")

@@ -112,14 +112,19 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
 class FolkSEIQRDV(AbstractFolk):
     """
-    Agent class for the SEIQRDV model.
-
-    Attributes
-    ----------
-    will_die : bool
-        Whether the agent is destined to die if quarantined (set during transition to 'Q').
-    want_vaccine : bool
-        Whether the agent wants to get vaccinated and will seek a healthcare facility.
+    Agent class for the SEIQRDV compartmental model with vaccination and mortality dynamics.
+    FolkSEIQRDV agents extend the basic AbstractFolk with two critical attributes for epidemic modeling: 
+    `will_die` and `want_vaccine`. The `will_die` attribute is probabilistically set when an agent enters 
+    quarantine and determines their eventual outcome (recovery or death), 
+    reflecting the stochastic nature of disease severity. The `want_vaccine` attribute models vaccination-seeking behavior, 
+    where susceptible agents can spontaneously decide to seek vaccination based on the model's `alpha` parameter, 
+    creating realistic vaccine demand patterns. These agents exhibit complex behavioral dynamics including healthcare-seeking 
+    movement (prioritizing healthcare facilities when `want_vaccine` is True), quarantine compliance 
+    (restricted movement when infectious), and status-dependent interaction patterns. 
+    The vaccination system implements a queue-based mechanism at healthcare facilities with capacity constraints, 
+    ensuring fair vaccine distribution while maintaining epidemiological realism. 
+    Additionally, agents undergo natural aging and mortality processes independent of disease status, allowing for 
+    comprehensive population dynamics that include births, deaths, migration, and demographic changes throughout the simulation period.
     """
 
     def __init__(self, id, home_address, max_energy, status):
@@ -333,15 +338,12 @@ class FolkSEIQRDV(AbstractFolk):
 
 class SEIQRDVModel(AbstractCompartmentalModel):
     """
-    SEIQRDV compartmental model implementation.
+    SEIQRDV compartmental model implementation for epidemic simulation with vaccination.
 
-    Parameters
-    ----------
-    model_params : SEIQRDVModelParameters
-        Model parameters for the simulation.
-    step_events : list of StepEvent, optional
-        List of step events for the simulation.
-
+    The SEIQRDV model extends the classic SEIR model by adding three additional compartments:
+    Quarantine (Q), Death (D), and Vaccination (V). This model is particularly suited for
+    simulating disease outbreaks where quarantine measures, vaccination campaigns, and
+    mortality are important factors.
     """
 
     def __init__(self, model_params, step_events=None):

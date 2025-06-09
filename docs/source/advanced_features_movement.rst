@@ -72,7 +72,7 @@ This automatic behavior ensures that:
 - The simulation maintains proper day/night cycles
 
 Event Types Explained
---------------------
+---------------------
 
 **SEND_HOME Events**
   - All agents return directly to their home addresses
@@ -172,7 +172,7 @@ Here is an example of how you can define your own simple probability function:
    )
 
 Agent-Dependent Probability Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The power of the 2-parameter system is enabling agent-specific behavior. For example, if you have an SEIR model,
 you can make assumption about agent's mobility dependence with their status:
@@ -247,7 +247,7 @@ Complete Example: Daily Routine
    model = scon.SEIRModel(model_params, step_events)
 
 Tips for Effective Step Events
------------------------------
+------------------------------
 
 **Event Timing**
   - Order events logically (commute → work → lunch → home)

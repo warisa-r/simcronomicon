@@ -20,12 +20,6 @@ class AbstractModelParameters:
     ----------
     max_energy : int
         Maximum social energy value for agents in the simulation.
-
-    Methods
-    -------
-    to_metadata_dict()
-        Abstract method that subclasses must implement to serialize parameters
-        to a dictionary for saving simulation metadata.
     """
 
     def __init__(self, max_energy):
@@ -105,15 +99,6 @@ class AbstractFolk:
         Whether the agent is alive and active in the simulation.
     priority_place_type : list
         List of place types the agent prioritizes for visits.
-
-    Methods
-    -------
-    convert(new_stat, status_dict_t)
-        Change agent status and update population counts.
-    inverse_bernoulli(contact_possibility, conversion_prob)
-        Calculate probability of status transition given contacts and conversion rates.
-    sleep()
-        Reset energy and increment status streak (called at day end).
     """
 
     def __init__(self, id, home_address, max_energy, status):
@@ -208,17 +193,6 @@ class AbstractCompartmentalModel:
         Set of place types required by the model (includes 'accommodation', 'commercial').
     folk_class : class
         The Folk class or subclass used to create agents (must be defined by subclasses).
-
-    Methods
-    -------
-    create_folk(*args, **kwargs)
-        Create a new Folk agent using the model's folk_class.
-
-    initialize_sim_population(town)
-        Initialize simulation population at the beginning of the simulation.
-
-    update_population(folks, town, household_node_indices, status_dict_t)
-        Update simulation population at the end of each timestep.
 
     Notes
     -----
@@ -349,7 +323,6 @@ class AbstractCompartmentalModel:
 
         Returns
         -------
-
         tuple
             Contains (num_pop, num_init_spreader, num_init_spreader_rd, folks, 
             household_node_indices, assignments) where:
@@ -362,13 +335,11 @@ class AbstractCompartmentalModel:
 
         Raises
         ------
-
         AssertionError
             If there are more spreader locations than total number of spreaders.
 
         Notes
         -----
-
         This method only initializes data structures and validates configuration.
         Actual agent creation and placement is handled by the Simulation class.
         """
@@ -395,7 +366,6 @@ class AbstractCompartmentalModel:
 
         Parameters
         ----------
-        
         folks : list of AbstractFolk
             The current list of AbstractFolk agent objects in the simulation.
         town : Town

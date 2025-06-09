@@ -52,7 +52,6 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
 
     Parameters
     ----------
-
     output_hdf5_path : str
         Path to the HDF5 file containing simulation results.
     status_type : str or list of str or None, optional
@@ -62,7 +61,6 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
 
     Raises
     ------
-
     ValueError
         If the HDF5 file contains no status data or if the total population is zero.
         If an invalid status_type is provided.
@@ -71,7 +69,6 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
 
     Returns
     -------
-    
     None
         Displays a matplotlib plot of the status densities over time.
     """

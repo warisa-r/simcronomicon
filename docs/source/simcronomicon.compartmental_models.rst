@@ -26,7 +26,7 @@ simcronomicon.compartmental_models.abstract_model module
    :undoc-members:
 
 simcronomicon.compartmental_models.step_event module
----------------------------------------------------
+----------------------------------------------------
 
 .. automodule:: simcronomicon.compartmental_models.step_event
    :members:

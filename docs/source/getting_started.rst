@@ -112,7 +112,6 @@ It is very important to note that unclassified nodes or the grey nodes that are 
    :alt: Aachen town visualization showing different building types
 
 *The visualization shows different place types in the interested area with different colors*
----
 
 Defining Step Events and a Model
 --------------------------------
@@ -239,7 +238,7 @@ For visualization, we provide 2 functions to see how your spread develops.
    :align: center
    :alt: Status density plot of ABM simulation throughout all simulation time steps
 
-*Figure: Status density plot of ABM simulation throughout all simulation time steps
+*Figure: Status density plot of ABM simulation throughout all simulation time steps*
 
 2. Visualize agent locations on the map:
 
@@ -252,8 +251,7 @@ For visualization, we provide 2 functions to see how your spread develops.
    :align: center
    :alt: Scatter plot of agents with each status in different location at day 29 in the simulation
 
-*Figure: Scatter plot of agents with each status in different location at day 29 in the simulation
----
+*Figure: Scatter plot of agents with each status in different location at day 29 in the simulation*
 
 Comparing with ODE Solution (SEIR Example)
 ------------------------------------------
@@ -309,8 +307,7 @@ pattern emergence as the ODE system predict with some randomness included.
    :align: center
    :alt: Result of ODE-based SEIR simulation
 
-*Figure: Result of ODE-based SEIR simulation
----
+*Figure: Result of ODE-based SEIR simulation*
 
 Next Steps
 ----------

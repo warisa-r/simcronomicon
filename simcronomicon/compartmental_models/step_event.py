@@ -39,9 +39,11 @@ def energy_exponential_mobility(distances, folk):
 class EventType(Enum):
     """
     Step events are classified into two types.
+
     - DISPERSE is the type of event
     that send agents around the town graph to specific locations in a given range and allow them to interact with other agents
-    who are in the same nodes.
+    who are in the same nodes..
+
     - SEND_HOME is the type of event that every agents in the simulation back to their home address without any interaction.
     SEND_HOME can represent the end of the day where everybody go home and sleep or an emergency announcement
     that sends everyone around town straight back home.
@@ -77,6 +79,7 @@ class StepEvent:
     -----------
     - **DISPERSE**: Agents move to locations within specified distance and place
       type constraints. Enables agent-to-agent interactions at destinations.
+
     - **SEND_HOME**: All agents return directly to their home addresses without
       movement or interaction. Represents end-of-day or emergency scenarios.
 
@@ -85,12 +88,16 @@ class StepEvent:
     Custom probability functions must:
     
     - Accept exactly 2 non-default arguments: `(distances, agent)`
+
     - Return probabilities between 0 and 1 (will be normalized automatically)
+
     - Handle numpy arrays for distances
+
     - Be robust to edge cases (empty arrays, zero distances)
 
     Built-in mobility functions include:
-    - `log_normal_mobility`: Human mobility based on log-normal distance distribution
+    - `log_normal_mobility`: Human mobility based on log-normal distance 
+    
     - `energy_exponential_mobility`: Agent energy-dependent exponential decay
 
     Attributes
@@ -178,9 +185,13 @@ class StepEvent:
 
         ValueError
             - If probability_func is specified for SEND_HOME events
+
             - If probability_func is not callable
+
             - If probability_func doesn't have exactly 2 non-default arguments
+
             - If probability_func returns invalid probability values during validation
+            
             - If probability_func fails signature inspection
 
         """

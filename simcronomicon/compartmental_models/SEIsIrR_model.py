@@ -22,32 +22,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
     rumor spreading model, including rumor credibility, spreading probabilities,
     and population literacy characteristics. It validates parameter types and
     ranges upon initialization.
-
-    Parameters
-    ----------
-
-    max_energy : int
-        Maximum energy for each agent (limits number of events per day).
-    literacy : float
-        Fraction of the population that is literate (0 <= literacy <= 1, affects Is/Ir split).
-    gamma : float
-        Fraction representing how credible the rumor is (0 <= gamma <= 1).
-    alpha : float
-        Fraction representing how relevant the rumor is to a human's life (0 <= alpha <= 1).
-    lam : float
-        Rumor spreading probability (0 <= lam <= 1).
-    phi : float
-        Stifling probability parameter for E to R transition (0 <= phi <= 1).
-    theta : float
-        Probability parameter for E to S transition (0 <= theta <= 1).
-    mu : float
-        The spreading desire ratio of individuals in class Is to individuals in class Ir (0 <= mu <= 1).
-    eta1 : float
-        Probability parameter for S to R transition (0 <= eta1 <= 1).
-    eta2 : float
-        Probability parameter for forgetting (S to R) in sleep (0 <= eta2 <= 1).
-    mem_span : int, optional
-        Memory span for forgetting mechanism (default: 10).
     """
 
     def __init__(
@@ -68,7 +42,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
 
         Parameters
         ----------
-
         max_energy : int
             Maximum energy for each agent (must be a positive integer).
         literacy : float
@@ -94,7 +67,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
 
         Raises
         ------
-
         TypeError
             If any parameter is not of the correct type or out of valid range.
         """
@@ -147,7 +119,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
 
         Returns
         -------
-
         dict
             Dictionary containing all model parameters as key-value pairs.
         """
@@ -174,16 +145,6 @@ class FolkSEIsIrR(AbstractFolk):
     handling transitions between Susceptible (S), Exposed (E), Ignorant spreaders (Is),
     Intelligent spreaders (Ir), and Recovered/Stifler (R) states based on rumor
     credibility, literacy levels, and social interactions.
-
-    Methods
-    -------
-
-    inverse_bernoulli(folks_here, conversion_prob, stats)
-        Calculate the probability of status transition given contact with specific statuses.
-    interact(folks_here, current_place_type, status_dict_t, model_params, dice)
-        Handle agent interactions and rumor spreading dynamics.
-    sleep(folks_here, current_place_type, status_dict_t, model_params, dice)
-        Handle end-of-day status transitions and forgetting mechanisms.
     """
     def __init__(self, id, home_address, max_energy, status):
         """
@@ -214,7 +175,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Parameters
         ----------
-
         folks_here : list of FolkSEIsIrR
             List of agents present at the same node.
         conversion_prob : float
@@ -224,7 +184,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Returns
         -------
-
         float
             Probability of at least one successful transition event.
         """
@@ -244,7 +203,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Transition Rules
         ----------------
-
         - **Rule 1:** If the agent is Intelligent spreader ('Ir') and contacts Susceptible ('S') agents,
           they may transition to Susceptible ('S') based on `Ir2S` probability.
         
@@ -261,7 +219,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Parameters
         ----------
-
         folks_here : list of FolkSEIsIrR
             List of agents present at the same node.
         current_place_type : str
@@ -339,7 +296,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Transition Rules
         ----------------
-
         - **Rule 4.2:** If the agent is Susceptible ('S'), they may transition to Recovered ('R')
           through forgetting if either:
           - They have been in 'S' status for longer than `mem_span` days, OR
@@ -347,7 +303,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Parameters
         ----------
-
         folks_here : list of FolkSEIsIrR
             List of agents present at the same node (not used, for interface compatibility).
         current_place_type : str
@@ -361,7 +316,6 @@ class FolkSEIsIrR(AbstractFolk):
 
         Returns
         -------
-
         None
         """
         super().sleep()
@@ -378,20 +332,6 @@ class SEIsIrRModel(AbstractCompartmentalModel):
     This class implements the Susceptible-Exposed-Ignorant spreader-Intelligent spreader-Recovered
     model for rumor spreading dynamics. The model considers rumor credibility, population literacy,
     and personality-based classification of spreaders.
-
-    Parameters
-    ----------
-
-    model_params : SEIsIrRModelParameters
-        Model parameters for the simulation.
-    step_events : list of StepEvent, optional
-        List of step events for the simulation. If None, default events are used.
-
-    Methods
-    -------
-
-    initialize_sim_population(town)
-        Initialize the simulation population and their initial status assignments.
     """
     def __init__(self, model_params, step_events=None):
         """
@@ -421,19 +361,20 @@ class SEIsIrRModel(AbstractCompartmentalModel):
 
         Parameters
         ----------
-
         town : Town
             The Town object representing the simulation environment.
 
         Returns
         -------
-        
         tuple
-            (folks, household_node_indices, status_dict_t0)
+            (folks, household_node_indices, status_dict_t0
+
             - folks : list of FolkSEIsIrR
                 List of all agent objects created for the simulation.
+
             - household_node_indices : set
                 Set of node indices where households are tracked.
+
             - status_dict_t0 : dict
                 Dictionary with the initial count of each status at timestep 0.
         """

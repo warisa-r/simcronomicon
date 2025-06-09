@@ -18,7 +18,6 @@ class SEIRModelParameters(AbstractModelParameters):
 
         Parameters
         ----------
-
         max_energy : int
             Maximum energy for each agent (must be a positive integer).
         beta : float
@@ -32,7 +31,6 @@ class SEIRModelParameters(AbstractModelParameters):
 
         Raises
         ------
-
         TypeError
             If any parameter is not of the correct type or out of valid range.
         """
@@ -199,7 +197,6 @@ class FolkSEIR(AbstractFolk):
 
         Parameters
         ----------
-
         folks_here : list of FolkSEIR
             List of agents present at the same node (not used, for interface compatibility).
         current_place_type : str
@@ -232,13 +229,6 @@ class SEIRModel(AbstractCompartmentalModel):
     This class implements the Susceptible-Exposed-Infectious-Recovered model
     for epidemic simulation. It includes waning immunity where recovered
     individuals return to susceptible status after a specified duration.
-
-    Parameters
-    ----------
-    model_params : SEIRModelParameters
-        Model parameters for the simulation.
-    step_events : list of StepEvent, optional
-        List of step events for the simulation. If None, default events are used.
     """
     def __init__(self, model_params, step_events=None):
         """
