@@ -105,6 +105,13 @@ It is very important to note that unclassified nodes or the grey nodes that are 
 
    scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
 
+
+.. image:: images/aachen_mitte_classification.png
+   :width: 500px
+   :align: center
+   :alt: Aachen town visualization showing different building types
+
+*The visualization shows different place types in the interested area with different colors*
 ---
 
 Defining Step Events and a Model
@@ -134,7 +141,7 @@ afterwards. In these event steps, if the agents have enough energy, they will go
                'education',
                'religious'
            ],
-           scon.log_normal_probabilities
+           scon.log_normal_mobility
        )
    ]
 
@@ -227,12 +234,25 @@ For visualization, we provide 2 functions to see how your spread develops.
 
    scon.plot_status_summary_from_hdf5("simulation_output.h5")
 
+.. image:: images/SEIR_plot_summary.png
+   :width: 500px
+   :align: center
+   :alt: Status density plot of ABM simulation throughout all simulation time steps
+
+*Figure: Status density plot of ABM simulation throughout all simulation time steps
+
 2. Visualize agent locations on the map:
 
 .. code-block:: python
 
    scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
 
+.. image:: images/SEIR_scatter_plot.png
+   :width: 750px
+   :align: center
+   :alt: Scatter plot of agents with each status in different location at day 29 in the simulation
+
+*Figure: Scatter plot of agents with each status in different location at day 29 in the simulation
 ---
 
 Comparing with ODE Solution (SEIR Example)
@@ -281,6 +301,15 @@ the SEIR compartmental model that also governs the agent interaction and contagi
    plt.legend()
    plt.show()
 
+This is the result of the plot produced by solving this ODE system. You can see that agent-based modelling produced the same kind of
+pattern emergence as the ODE system predict with some randomness included.
+
+.. image:: images/ODE_SEIR_plot.png
+   :width: 500px
+   :align: center
+   :alt: Result of ODE-based SEIR simulation
+
+*Figure: Result of ODE-based SEIR simulation
 ---
 
 Next Steps

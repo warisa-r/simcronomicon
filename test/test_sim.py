@@ -85,40 +85,12 @@ class TestStepEventFunctionality:
                 probability_func="not_a_function"
             )
         
-        # Test probability_func that doesn't return numeric value (should raise ValueError)
-        def bad_prob_func(x):
-            return "not_a_number"
-        
-        with pytest.raises(ValueError, match="probability_func must return a numeric value"):
+        with pytest.raises(ValueError, match=r"Could not inspect probability_func signature: probability_func must have exactly 2 non-default arguments, got 1\. Expected signature: func\(distances, agent, \*\*kwargs\)"):
             scon.StepEvent(
-                "invalid_return_type",
+                "invalid_prob_func_without_folk",
                 lambda folk: None,
                 scon.EventType.DISPERSE,
-                probability_func=bad_prob_func
-            )
-        
-        # Test probability_func that returns values outside 0-1 range (should raise ValueError)
-        def out_of_range_prob_func(x):
-            return 1.5  # Invalid: > 1
-        
-        with pytest.raises(ValueError, match="probability_func must return values between 0 and 1"):
-            scon.StepEvent(
-                "invalid_range",
-                lambda folk: None,
-                scon.EventType.DISPERSE,
-                probability_func=out_of_range_prob_func
-            )
-        
-        # Test probability_func that returns negative values (should raise ValueError)
-        def negative_prob_func(x):
-            return -0.1  # Invalid: < 0
-        
-        with pytest.raises(ValueError, match="probability_func must return values between 0 and 1"):
-            scon.StepEvent(
-                "invalid_negative",
-                lambda folk: None,
-                scon.EventType.DISPERSE,
-                probability_func=negative_prob_func
+                probability_func=lambda x: 0.5
             )
 
     @pytest.mark.parametrize("model_key", ["seir", "seisir"])
@@ -224,9 +196,9 @@ class TestSimulationResults:
             assert "log" in h5file["individual_logs"], "'log' missing in individual_logs group"
 
     @pytest.mark.parametrize("model_key,expected_status", [
-        ("seir", {"S": 76, "E": 2, "I": 6, "R": 16}),
-        ("seisir", {"S": 0, "E": 0, "Is": 44, "Ir": 43, "R": 13}),
-        ("seiqrdv", {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 3, "D": 20, "V": 77}),
+        ("seir", {"S": 89, "E": 3, "I": 3, "R": 5}),
+        ("seisir", {"S": 0, "E": 0, "Is": 43, "Ir": 41, "R": 16}),
+        ("seiqrdv", {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 4, "D": 20, "V": 76}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)

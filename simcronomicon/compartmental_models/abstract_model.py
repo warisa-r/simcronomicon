@@ -12,20 +12,17 @@ class AbstractModelParameters:
 
     Parameters
     ----------
-
     max_energy : int
         The maximum energy for an agent. This number limits the maximum number 
         of events an agent can attend in a day.
 
     Attributes
     ----------
-
     max_energy : int
         Maximum social energy value for agents in the simulation.
 
     Methods
     -------
-
     to_metadata_dict()
         Abstract method that subclasses must implement to serialize parameters
         to a dictionary for saving simulation metadata.
@@ -37,12 +34,11 @@ class AbstractModelParameters:
 
         Parameters
         ----------
-
         max_energy : int
             The maximum energy for an agent. This number limits the maximum number of events an agent can attend in a day.
+            
         Raises
         ------
-
         AssertionError
             If max_energy is not a positive integer.
         """
@@ -58,15 +54,8 @@ class AbstractModelParameters:
         and loading of simulation configurations. The returned dictionary should
         contain all parameter values needed to reconstruct the model.
 
-        Returns
-        -------
-
-        dict
-            Dictionary containing all model parameters as key-value pairs.
-
         Raises
         ------
-
         NotImplementedError
             Always raised in the base class. Subclasses must override this method.
         """
@@ -85,7 +74,6 @@ class AbstractFolk:
 
     Parameters
     ----------
-
     id : int
         Unique identifier for the agent.
     home_address : int
@@ -97,7 +85,6 @@ class AbstractFolk:
 
     Attributes
     ----------
-
     id : int
         Unique agent identifier.
     home_address : int
@@ -121,7 +108,6 @@ class AbstractFolk:
 
     Methods
     -------
-
     convert(new_stat, status_dict_t)
         Change agent status and update population counts.
     inverse_bernoulli(contact_possibility, conversion_prob)
@@ -131,22 +117,7 @@ class AbstractFolk:
     """
 
     def __init__(self, id, home_address, max_energy, status):
-        """
-        Initialize a AbstractFolk agent.
-
-        Parameters
-        ----------
-
-        id : int
-            Unique identifier for the agent.
-        home_address : int
-            Node index of the agent's home. After performing all the events in a day, the agent will return to this address.
-        max_energy : int
-            Maximum social energy. This number limits the maximum number of events an agent can attend in a day.
-            The agent can wake up with any random integer number of energy between 0 and max_energy. 
-        status : str
-            Initial status of the agent.
-        """
+        """Initialize a AbstractFolk agent."""
         self.id = id
         self.home_address = home_address
         self.address = self.home_address
@@ -164,7 +135,6 @@ class AbstractFolk:
 
         Parameters
         ----------
-
         new_stat : str
             The new status to assign.
         status_dict_t : dict
@@ -180,6 +150,7 @@ class AbstractFolk:
     def inverse_bernoulli(self, contact_possibility, conversion_prob):
         """
         Calculate the probability of status transition given contact possibility and conversion probability.
+        
         This function is adapted from section 2.2 of
         Eden, M., Castonguay, R., Munkhbat, B., Balasubramanian, H., & Gopalappa, C. (2021).
         Agent-based evolving network modeling: A new simulation method for modeling low prevalence infectious diseases.
@@ -187,7 +158,6 @@ class AbstractFolk:
 
         Parameters
         ----------
-
         contact_possibility : int
             Number of possible contacts.
         conversion_prob : float
@@ -195,7 +165,6 @@ class AbstractFolk:
 
         Returns
         -------
-
         float
             Probability of at least one successful conversion.
         """
@@ -205,9 +174,7 @@ class AbstractFolk:
             return 1 - (1 - conversion_prob)**(contact_possibility)
 
     def sleep(self):
-        """
-        Reset the agent's energy and increment the status streak (called at the end of a day).
-        """
+        """Reset the agent's energy and increment the status streak (called at the end of a day)."""
         self.status_step_streak += 1
         self.energy = rd.randint(0, self.max_energy)  # Reset social energy
 
@@ -229,7 +196,6 @@ class AbstractCompartmentalModel:
 
     Attributes
     ----------
-
     model_params : AbstractModelParameters
         Configuration parameters for the model.
     step_events : list of StepEvent
@@ -245,7 +211,6 @@ class AbstractCompartmentalModel:
 
     Methods
     -------
-
     create_folk(*args, **kwargs)
         Create a new Folk agent using the model's folk_class.
 
@@ -257,7 +222,6 @@ class AbstractCompartmentalModel:
 
     Notes
     -----
-
     - Subclasses must define 'infected_statuses', 'all_statuses', and 'folk_class'
       before calling the parent constructor.
     - An 'end_day' event is automatically appended to step_events if not provided.

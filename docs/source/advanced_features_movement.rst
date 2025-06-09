@@ -93,6 +93,8 @@ We have 1 built-in function to simulate the movement of the agent for you.
 Built-in Probability Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+We have 2 built-in functions to simulate agent movement patterns:
+
 .. code-block:: python
 
    # Log-normal mobility (models real human movement patterns)
@@ -102,7 +104,17 @@ Built-in Probability Functions
        event_type=scon.EventType.DISPERSE,
        max_distance=8000,
        place_types=['commercial'],
-       probability_func=scon.log_normal_probabilities
+       probability_func=scon.log_normal_mobility
+   )
+
+   # Agent's energy-dependent exponential mobility
+   work_event = scon.StepEvent(
+       name="tired_commute",
+       folk_action=scon.FolkSEIR.interact,
+       event_type=scon.EventType.DISPERSE,
+       max_distance=15000,
+       place_types=['workplace'],
+       probability_func=scon.energy_exponential_mobility
    )
 
 Creating Custom Probability Functions
@@ -113,40 +125,41 @@ the distances. You can define them yourselves!
 
 Your probability function must:
 
-1. Accept a list/array of distances (in meters)
-2. Return probabilities between 0 and 1
-3. Probabilities should sum to 1 (will be normalized automatically)
+1. Accept exactly 2 non-default arguments: `(distances, agent)`
+2. Return probabilities between 0 and 1  
+3. Probabilities should sum to 1. This means you must normalize the probabilities!
+4. Handle numpy arrays for distances
+5. Be robust to edge cases (empty arrays, zero distances)
 
-Here is an example of how you can define your own probability function:
+Here is an example of how you can define your own simple probability function:
 
 .. code-block:: python
 
-   def distance_preference(distances, preference="nearby"):
-       """
-       Custom probability function based on distance preference.
-       
-       Parameters
-       ----------
-       distances : array-like
-           Distances to potential destinations in meters
-       preference : str
-           "nearby" for short distances, "far" for long distances
-       """
-       import numpy as np
-       distances = np.array(distances)
-       
-       if preference == "nearby":
-           # Exponential decay - prefer closer locations
-           probs = np.exp(-distances / 2000)  # 2km characteristic distance
-       elif preference == "far":
-           # Prefer moderate to far distances
-           probs = distances / np.max(distances) if len(distances) > 1 else [1.0]
-       else:
-           # Uniform - all distances equally likely
-           probs = np.ones_like(distances)
-       
-       # Normalize to sum to 1
-       return probs / np.sum(probs) if np.sum(probs) > 0 else probs
+    def distance_preference_mobility(distances, agent, preference="nearby"):
+        """
+        Custom probability function based on distance preference.
+        
+        Parameters
+        ----------
+        distances : array-like
+            Distances to potential destinations in meters
+        agent : object
+            The agent object (unused in this example, but required for signature)
+        preference : str
+            "nearby" for short distances, "far" for long distances
+        """
+        import numpy as np
+        distances = np.array(distances)
+        
+        if preference == "nearby":
+            # Exponential decay - prefer closer locations
+            probs = np.exp(-distances / 2000)  # 2km characteristic distance
+        elif preference == "far":
+            # Prefer moderate to far distances
+            probs = distances / np.max(distances) if len(distances) > 1 else [1.0]
+        else:
+            # Uniform - all distances equally likely
+            probs = np.ones_like(distances)
 
    # Use custom function
    exploration_event = scon.StepEvent(
@@ -157,6 +170,37 @@ Here is an example of how you can define your own probability function:
        place_types=['commercial', 'religious', 'education'],
        probability_func=lambda dists: distance_preference(dists, "far")
    )
+
+Agent-Dependent Probability Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The power of the 2-parameter system is enabling agent-specific behavior. For example, if you have an SEIR model,
+you can make assumption about agent's mobility dependence with their status:
+
+.. code-block:: python
+
+   def status_based_mobility(distances, agent):
+       """
+       Movement patterns that depend on agent health status.
+       """
+       import numpy as np
+       distances = np.array(distances)
+       
+       # Quarantined agents cannot move (handled elsewhere)
+       # Sick agents prefer shorter distances
+       if hasattr(agent, 'status'):
+           if agent.status == 'I':  # Infectious - stay closer to home
+               probs = np.exp(-distances / 1000)  # 1km characteristic distance
+           elif agent.status == 'R':  # Recovered - normal mobility
+               probs = np.exp(-distances / 3000)  # 3km characteristic distance
+           else:  # Susceptible - slightly more adventurous
+               probs = np.exp(-distances / 4000)  # 4km characteristic distance
+       else:
+           # Default behavior for other statuses
+           probs = np.exp(-distances / 2000)
+       
+       return probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
+
 
 Complete Example: Daily Routine
 -------------------------------
@@ -173,7 +217,7 @@ Complete Example: Daily Routine
                scon.EventType.DISPERSE,
                max_distance=20000,
                place_types=['workplace', 'education'],
-               probability_func=scon.log_normal_probabilities
+               probability_func=scon.log_normal_mobility
            ),
            
            # Lunch break - nearby commercial areas
@@ -183,7 +227,7 @@ Complete Example: Daily Routine
                scon.EventType.DISPERSE,
                max_distance=3000,
                place_types=['commercial'],
-               probability_func=lambda d: distance_preference(d, "nearby")
+               probability_func=lambda d, agent: distance_preference_mobility(d, agent, "nearby")
            ),
            
            # Evening activities - varied distances and places
@@ -193,7 +237,7 @@ Complete Example: Daily Routine
                scon.EventType.DISPERSE, 
                max_distance=15000,
                place_types=['commercial', 'religious', 'entertainment'],
-               probability_func=lambda d: distance_preference(d, "far")
+               probability_func=lambda d, agent: distance_preference_mobility(d, agent, "far")
            ),
            
        ]

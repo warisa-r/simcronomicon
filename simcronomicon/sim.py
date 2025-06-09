@@ -248,7 +248,7 @@ class Simulation:
                             self.town.town_graph[current_node][neighbor]['weight']
                             for neighbor in candidates
                         ]
-                        probs = step_event.probability_func(distances)
+                        probs = step_event.probability_func(distances, person)
                         new_node = np.random.choice(candidates, p=probs)
                     else:
                         new_node = rd.choice(candidates)

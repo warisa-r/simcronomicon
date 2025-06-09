@@ -1,8 +1,8 @@
 from enum import Enum
 import numpy as np
+import inspect
 
-
-def log_normal_probabilities(distances, mu=0, sigma=1):
+def log_normal_mobility(distances, folk, mu=0, sigma=1):
     """
     Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
     the human mobility pattern in this follow literature and its predecessor:
@@ -21,6 +21,20 @@ def log_normal_probabilities(distances, mu=0, sigma=1):
     probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
     return probs
 
+def energy_exponential_mobility(distances, folk):
+    """
+    Return probabilities proportional to exponential PDF of distances. With lam = proportion of agent's energy to maximum
+    energy as a rate parameter
+    """
+    distances = np.array(distances)
+       
+    lam = folk.energy / folk.max_energy
+    probs = lam * np.exp(-lam * distances)
+
+    # Normalize probabilities to sum to 1
+    probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
+
+    return probs
 
 class EventType(Enum):
     """
@@ -54,7 +68,10 @@ class StepEvent:
        different activities using place type filters.
 
     3. **Mobility Modeling**: Apply realistic human mobility patterns through
-       customizable probability functions based on distance.
+       customizable probability functions based on distance and agent characteristics.
+
+    4. **Agent-Dependent Behavior**: Enable mobility patterns that adapt to individual
+       agent properties such as energy levels, status, or other attributes.
 
     Event Types
     -----------
@@ -62,6 +79,19 @@ class StepEvent:
       type constraints. Enables agent-to-agent interactions at destinations.
     - **SEND_HOME**: All agents return directly to their home addresses without
       movement or interaction. Represents end-of-day or emergency scenarios.
+
+    Probability Functions
+    --------------------
+    Custom probability functions must:
+    
+    - Accept exactly 2 non-default arguments: `(distances, agent)`
+    - Return probabilities between 0 and 1 (will be normalized automatically)
+    - Handle numpy arrays for distances
+    - Be robust to edge cases (empty arrays, zero distances)
+
+    Built-in mobility functions include:
+    - `log_normal_mobility`: Human mobility based on log-normal distance distribution
+    - `energy_exponential_mobility`: Agent energy-dependent exponential decay
 
     Attributes
     ----------
@@ -76,16 +106,40 @@ class StepEvent:
     folk_action : callable
         Agent interaction function.
     probability_func : callable or None
-        Distance-based mobility probability function.
+        Distance and agent-based mobility probability function.
 
     Examples
     --------
     >>> # End of day event
     >>> end_day = StepEvent("end_day", folk_class.sleep)
     >>> 
-    >>> # Work event with specific constraints
+    >>> # Work event with distance constraints
     >>> work = StepEvent("work", folk_class.interact, EventType.DISPERSE, 
     ...                  max_distance=10000, place_types=['workplace'])
+    >>>
+    >>> # Shopping with log-normal mobility
+    >>> shopping = StepEvent("shopping", folk_class.interact, EventType.DISPERSE,
+    ...                      max_distance=5000, place_types=['commercial'],
+    ...                      probability_func=log_normal_mobility)
+    >>>
+    >>> # Energy-dependent movement
+    >>> leisure = StepEvent("leisure", folk_class.interact, EventType.DISPERSE,
+    ...                     max_distance=8000, place_types=['commercial', 'religious'],
+    ...                     probability_func=energy_exponential_mobility)
+    >>>
+    >>> # Custom agent-dependent mobility
+    >>> def age_based_mobility(distances, agent):
+    ...     import numpy as np
+    ...     distances = np.array(distances)
+    ...     # Older agents prefer shorter distances
+    ...     age_factor = getattr(agent, 'age', 30) / 100.0  # Normalize age
+    ...     decay_rate = 0.0001 * (1 + age_factor)  # Higher decay for older agents
+    ...     probs = np.exp(-decay_rate * distances)
+    ...     return probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
+    >>>
+    >>> custom_event = StepEvent("age_sensitive", folk_class.interact, EventType.DISPERSE,
+    ...                          max_distance=15000, place_types=['healthcare'],
+    ...                          probability_func=age_based_mobility)
     """
 
     def __init__(
@@ -101,11 +155,12 @@ class StepEvent:
 
         Parameters
         ----------
+
         name : str
             Descriptive name for the event (e.g., "work", "shopping", "end_day").
         folk_action : callable
-            Function executed for each agent during the event. Must accept 4 arguments:
-            (folks_here, status_dict_t, model_params, dice).
+            Function executed for each agent during the event. Must accept arguments:
+            (folks_here, current_place_type, status_dict_t, model_params, dice).
         event_type : EventType, optional
             Movement behavior type (default: EventType.SEND_HOME).
         max_distance : int, optional
@@ -114,24 +169,20 @@ class StepEvent:
             Place type categories agents can visit. Examples: ['commercial', 'workplace'] 
             (default: []).
         probability_func : callable, optional
-            Function taking distances and returning movement probabilities [0,1].
-            Cannot be used with SEND_HOME events (default: None).
+            Function taking (distances, agent) and returning movement probabilities [0,1].
+            Must have exactly 2 non-default arguments. Cannot be used with SEND_HOME events 
+            (default: None).
 
         Raises
         ------
+
         ValueError
-            If probability_func is specified for SEND_HOME events, if probability_func
-            is not callable, or if it returns invalid probability values.
+            - If probability_func is specified for SEND_HOME events
+            - If probability_func is not callable
+            - If probability_func doesn't have exactly 2 non-default arguments
+            - If probability_func returns invalid probability values during validation
+            - If probability_func fails signature inspection
 
-        Examples
-        --------
-        >>> # Simple home event
-        >>> StepEvent("end_day", folk_class.sleep)
-
-        >>> # Complex disperse event with mobility function
-        >>> StepEvent("shopping", folk_class.interact, EventType.DISPERSE,
-        ...           max_distance=5000, place_types=['commercial'],
-        ...           probability_func=log_normal_probabilities)
         """
         # town.py
         self.name = name
@@ -149,22 +200,19 @@ class StepEvent:
                 raise ValueError(
                     "probability_func must be a callable function")
 
+            # Check function signature only - no runtime validation
             try:
-                # Test with dummy arguments
-                # or whatever test arguments make sense
-                test_result = probability_func([0, 1000])
-                if not isinstance(test_result, (int, float, np.ndarray)):
+                sig = inspect.signature(probability_func)
+                non_default_params = [
+                    p for p in sig.parameters.values() 
+                    if p.default == inspect.Parameter.empty
+                ]
+                
+                if len(non_default_params) != 2:
                     raise ValueError(
-                        "probability_func must return a numeric value (int, float, or numpy array)")
-
-                # Convert to numpy array for easier validation
-                result_array = np.asarray(test_result)
-
-                # Check if all values are between 0 and 1
-                if not np.all((result_array >= 0) & (result_array <= 1)):
-                    raise ValueError(
-                        "probability_func must return values between 0 and 1 (inclusive)")
-
+                        f"probability_func must have exactly 2 non-default arguments, "
+                        f"got {len(non_default_params)}. Expected signature: func(distances, agent, **kwargs)")
+            
             except Exception as e:
                 raise ValueError(
-                    f"probability_func failed validation test: {e}")
+                    f"Could not inspect probability_func signature: {e}")

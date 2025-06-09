@@ -63,9 +63,9 @@ MODEL_MATRIX = {
 
 def default_test_step_events(folk_class):
     return [
-        scon.StepEvent("greet_neighbors", folk_class.interact, scon.EventType.DISPERSE, 5000, ['accommodation']),
+        scon.StepEvent("greet_neighbors", folk_class.interact, scon.EventType.DISPERSE, 5000, ['accommodation'], scon.energy_exponential_mobility),
         scon.StepEvent("chore", folk_class.interact, scon.EventType.DISPERSE, 19000,
-                       ['commercial', 'workplace', 'education', 'religious'], scon.log_normal_probabilities)
+                       ['commercial', 'workplace', 'education', 'religious'], scon.log_normal_mobility)
     ]
 
 def setup_simulation(model_key, town_params, step_events=None, timesteps=1, seed=None, override_params=None):

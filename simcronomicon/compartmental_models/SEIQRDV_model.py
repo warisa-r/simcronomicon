@@ -120,15 +120,6 @@ class FolkSEIQRDV(AbstractFolk):
         Whether the agent is destined to die if quarantined (set during transition to 'Q').
     want_vaccine : bool
         Whether the agent wants to get vaccinated and will seek a healthcare facility.
-
-    Methods
-    -------
-    inverse_bernoulli(folks_here, conversion_prob, stats)
-        Calculates the probability of status transition given contact with specific statuses.
-    interact(folks_here, current_place_type, status_dict_t, model_params, dice)
-        Handles agent interactions and possible state transitions (exposure, vaccination).
-    sleep(folks_here, current_place_type, status_dict_t, model_params, dice)
-        Handles end-of-day transitions (progression, quarantine, death, recovery, vaccination planning).
     """
 
     def __init__(self, id, home_address, max_energy, status):
@@ -189,13 +180,18 @@ class FolkSEIQRDV(AbstractFolk):
         """
         Perform interaction with other agents in the area and the environment for this agent.
 
-        ## Transition Rules
+        Transition Rules
+        ----------------
+
         - If the agent is Susceptible ('S'):
+
             - If the agent comes into contact with at least one Infectious ('I') agent at the same node,
             the probability of becoming Exposed ('E') is calculated using the inverse Bernoulli formula with
             the transmission probability (`beta`). If this probability exceeds the random value `dice`,
             the agent transitions to Exposed ('E').
+
         - If the agent is Susceptible ('S'), wants a vaccine, and is at a healthcare facility:
+
             - If the number of agents at the facility wanting a vaccine is less than the hospital capacity,
             the agent transitions to Vaccinated ('V') and `want_vaccine` is set to False.
 
@@ -246,10 +242,11 @@ class FolkSEIQRDV(AbstractFolk):
 
         Transition Rules
         ----------------
-
         - **If the agent is in Quarantine ('Q'):**
+            
             - If `will_die` is True and the agent has been in quarantine for `rho` days,
             the agent transitions to Dead ('D'), is marked as not alive, and `want_vaccine` is set to False.
+
             - If `will_die` is False and the agent has been in quarantine for `lam` days,
             the agent transitions to Recovered ('R') and their movement restriction is lifted.
 
@@ -345,12 +342,6 @@ class SEIQRDVModel(AbstractCompartmentalModel):
     step_events : list of StepEvent, optional
         List of step events for the simulation.
 
-    Methods
-    -------
-    initialize_sim_population(town)
-        Initializes the simulation population and their assignments.
-    update_population(folks, town, household_node_indices, status_dict_t)
-        Updates the population at the end of each day (natural deaths and births/migration).
     """
 
     def __init__(self, model_params, step_events=None):
@@ -379,10 +370,13 @@ class SEIQRDVModel(AbstractCompartmentalModel):
         -------
         tuple
             (folks, household_node_indices, status_dict_t0)
+
             - folks : list of FolkSEIQRDV
                 List of all agent objects created for the simulation.
+
             - household_node_indices : set
                 Set of node indices where households are tracked.
+
             - status_dict_t0 : dict
                 Dictionary with the initial count of each status at timestep 0.
         """
@@ -434,6 +428,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
 
         This function performs two main operations:
         1. **Natural Deaths:** Iterates through all currently alive agents and, with probability `mu` (the natural death rate), transitions them to the 'D' (Dead) status and marks them as not alive.
+        
         2. **Population Growth:** Calculates the number of possible new agents to add based on the current alive population and the parameter `lam_cap` (birth/migration rate). For each new agent:
             - Randomly selects an accommodation node as their home.
             - Randomly assigns a status from all possible statuses except 'D' (Dead) and 'Q' (Quarantine).

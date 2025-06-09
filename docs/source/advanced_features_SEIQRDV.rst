@@ -246,7 +246,7 @@ Here's a complete simulation showcasing all advanced SEIQRDV features:
            scon.EventType.DISPERSE,
            18000,
            ['commercial', 'workplace', 'education', 'healthcare_facility'],
-           scon.log_normal_probabilities
+           scon.log_normal_mobility
        )
    ]
 

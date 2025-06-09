@@ -31,7 +31,7 @@ step_events = [
             'commercial',
             'workplace',
             'education',
-            'religious'], scon.log_normal_probabilities)]
+            'religious'], scon.log_normal_mobility)]
 
 
 # scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
