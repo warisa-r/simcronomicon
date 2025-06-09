@@ -5,6 +5,9 @@ Welcome to **simcronomicon**! This guide will help you get started with the main
 
 We will use the simplest and most common compartmental model in disease modeling throughout this tutorial, the SEIR model!
 
+**If you have no knowledge on disease modeling, we recommend you to visit the tutorial in examples/basic_disease_spread.ipynb
+so that you might have a better grasp of how epidemic agent-based modelling looks like in action.**
+
 Installation
 ------------
 
@@ -23,8 +26,6 @@ Basic Workflow
 2. **Define step events and a compartmental model**
 3. **Run a simulation**
 4. **Visualize the results**
-
----
 
 Building or Loading a Town
 --------------------------
@@ -86,9 +87,9 @@ the input files with different initial conditions. You can do so by the function
 
    town_params = scon.TownParameters(num_pop=1000, num_init_spreader=10)
    town_graph_path = "../test/test_data/aachen_dom_500m.graphmlz"
-   town_metadata_path = "../test/test_data/aachen_dom_500m_metadata.json"
+   town_config_path = "../test/test_data/aachen_dom_500m_config.json"
    town = scon.Town.from_files(
-       metadata_path=town_metadata_path,
+       config_path=town_config_path,
        town_graph_path=town_graph_path,
        town_params=town_params
    )
@@ -103,7 +104,7 @@ It is very important to note that unclassified nodes or the grey nodes that are 
 
 .. code-block:: python
 
-   scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
+   scon.visualize_place_types_from_graphml(town_graph_path, town_config_path)
 
 
 .. image:: images/aachen_mitte_classification.png

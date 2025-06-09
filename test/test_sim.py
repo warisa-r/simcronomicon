@@ -17,7 +17,7 @@ class TestSimulationInitializationGeneralized:
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         # Use first 5 accommodation nodes, repeated twice
         town = scon.Town.from_files(
-            metadata_path=MODEL_MATRIX[model_key][4],
+            config_path=MODEL_MATRIX[model_key][4],
             town_graph_path=MODEL_MATRIX[model_key][5],
             town_params=town_params
         )
@@ -37,29 +37,29 @@ class TestSimulationInitializationGeneralized:
 
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
     def test_spreader_initial_nodes_assertion(self, model_key):
-        _, model_params_class, _, _, metadata_path, graphmlz_path = MODEL_MATRIX[model_key]
+        _, model_params_class, _, _, config_path, graphmlz_path = MODEL_MATRIX[model_key]
         # Case 1: More initial spreader nodes than num_init_spreader (should raise)
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=2)
         town_params.spreader_initial_nodes = [1, 2, 3]
         model_params = model_params_class(**MODEL_MATRIX[model_key][3])
         model = MODEL_MATRIX[model_key][0](model_params)
-        town = scon.Town.from_files(metadata_path, graphmlz_path, town_params)
+        town = scon.Town.from_files(config_path, graphmlz_path, town_params)
         with pytest.raises(AssertionError):
             model.initialize_sim_population(town)
         # Case 2: num_init_spreader is more than the number of given nodes (should pass)
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=5)
         town_params.spreader_initial_nodes = [1, 2]
         model = MODEL_MATRIX[model_key][0](model_params)
-        town = scon.Town.from_files(metadata_path, graphmlz_path, town_params)
+        town = scon.Town.from_files(config_path, graphmlz_path, town_params)
         model.initialize_sim_population(town)
 
     @pytest.mark.parametrize("model_key", ["seiqrdv"])
     def test_missing_required_place_type(self, model_key):
         # Use test data that does NOT contain 'healthcare_facility' in found_place_types
-        metadata_path = "test/test_data/aachen_dom_500m_metadata.json"
+        config_path = "test/test_data/aachen_dom_500m_config.json"
         graphmlz_path = "test/test_data/aachen_dom_500m.graphmlz"
         town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
-        town = scon.Town.from_files(metadata_path, graphmlz_path, town_params)
+        town = scon.Town.from_files(config_path, graphmlz_path, town_params)
         model_params_class = MODEL_MATRIX[model_key][1]
         model_params = model_params_class(**MODEL_MATRIX[model_key][3])
         model = MODEL_MATRIX[model_key][0](model_params)

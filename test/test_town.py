@@ -43,7 +43,7 @@ class TestTown:
         # Default town files cleanup
         default_files = [
             "town_graph.graphmlz",
-            "town_graph_metadata.json"
+            "town_graph_config.json"
         ]
         for filename in default_files:
             if os.path.exists(filename):
@@ -166,7 +166,7 @@ class TestTown:
 
     def test_spreader_initial_nodes_assertion_error(self):
         test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
-        test_metadata = "test/test_data/aachen_dom_500m_metadata.json"
+        test_metadata = "test/test_data/aachen_dom_500m_config.json"
 
         # Set spreader_initial_nodes to include non-existent nodes (350, 750)
         town_params_spreader = scon.TownParameters(100, 4, [1, 350, 750])
@@ -181,7 +181,7 @@ class TestTown:
         # from_files test remains the same (doesn't create new files)
         with pytest.raises(ValueError, match=expected_error_msg):
             scon.Town.from_files(
-                metadata_path=test_metadata,
+                config_path=test_metadata,
                 town_graph_path=test_graphmlz,
                 town_params=town_params_spreader
             )

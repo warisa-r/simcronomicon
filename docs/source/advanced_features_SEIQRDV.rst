@@ -33,7 +33,7 @@ Then we define the model parameters.
    # Load a town with healthcare facilities
    town_params = scon.TownParameters(2000, 10)
    town = scon.Town.from_files(
-       metadata_path="town_metadata.json",
+       config_path="town_config.json",
        town_graph_path="town_graph.graphmlz",
        town_params=town_params
    )
@@ -226,7 +226,7 @@ Here's a complete simulation showcasing all advanced SEIQRDV features:
    # Setup town and model
    town_params = scon.TownParameters(1500, 5)
    town = scon.Town.from_files(
-       metadata_path="town_metadata.json",
+       config_path="town_config.json",
        town_graph_path="town_graph.graphmlz", 
        town_params=town_params
    )

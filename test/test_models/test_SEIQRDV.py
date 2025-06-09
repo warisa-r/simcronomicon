@@ -12,7 +12,7 @@ class TestSEIQRDVModel:
     @classmethod
     def setup_class(cls):
         cls.town_graph_path = "test/test_data/uniklinik_500m.graphmlz"
-        cls.town_metadata_path = "test/test_data/uniklinik_500m_metadata.json"
+        cls.town_config_path = "test/test_data/uniklinik_500m_config.json"
 
     def test_invalid_seiqrdv_model_parameters(self):
         # lam_cap out of range
@@ -81,7 +81,7 @@ class TestSEIQRDVModel:
         # Perform ABM simulation
         town_params = scon.TownParameters(num_pop=2000, num_init_spreader=20)
         town = scon.Town.from_files(
-            metadata_path=self.town_metadata_path,
+            config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
@@ -157,7 +157,7 @@ class TestSEIQRDVModel:
 
         town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
         town = scon.Town.from_files(
-            metadata_path=self.town_metadata_path,
+            config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
@@ -181,7 +181,7 @@ class TestSEIQRDVModel:
 
         town_params = scon.TownParameters(num_pop=21, num_init_spreader=1)
         town = scon.Town.from_files(
-            metadata_path=self.town_metadata_path,
+            config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
@@ -224,7 +224,7 @@ class TestSEIQRDVModel:
         )
         town_params = scon.TownParameters(num_pop=10, num_init_spreader=10)
         town = scon.Town.from_files(
-            metadata_path=self.town_metadata_path,
+            config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )

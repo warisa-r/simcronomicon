@@ -3,11 +3,11 @@ import simcronomicon as scon
 point = 50.7753, 6.0839
 town_params = scon.TownParameters(1000, 10)
 town_graph_path = "test/test_data/aachen_dom_500m.graphmlz"
-town_metadata_path = "test/test_data/aachen_dom_500m_metadata.json"
+town_config_path = "test/test_data/aachen_dom_500m_config.json"
 
 
 town = scon.Town.from_files(
-    metadata_path=town_metadata_path,
+    config_path=town_config_path,
     town_graph_path=town_graph_path,
     town_params=town_params
 )
@@ -31,7 +31,7 @@ step_events = [
             'religious'], scon.log_normal_mobility)]
 
 
-# scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
+# scon.visualize_place_types_from_graphml(town_graph_path, town_config_path)
 
 model_params = scon.SEIRModelParameters(
     max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200)

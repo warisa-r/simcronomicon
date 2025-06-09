@@ -43,7 +43,7 @@ MODEL_MATRIX = {
         scon.SEIRModelParameters,
         scon.FolkSEIR,
         dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=20),
-        "test/test_data/aachen_dom_500m_metadata.json",
+        "test/test_data/aachen_dom_500m_config.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
     "seisir": (
@@ -52,7 +52,7 @@ MODEL_MATRIX = {
         scon.FolkSEIsIrR,
         dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.9,
              phi=0.5, theta=0.8, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
-        "test/test_data/aachen_dom_500m_metadata.json",
+        "test/test_data/aachen_dom_500m_config.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
     "seiqrdv": (
@@ -61,7 +61,7 @@ MODEL_MATRIX = {
         scon.FolkSEIQRDV,
         dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3,
              delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
-        "test/test_data/uniklinik_500m_metadata.json",
+        "test/test_data/uniklinik_500m_config.json",
         "test/test_data/uniklinik_500m.graphmlz"
     )
 }
@@ -77,12 +77,12 @@ def default_test_step_events(folk_class):
 
 
 def setup_simulation(model_key, town_params, step_events=None, timesteps=1, seed=None, override_params=None):
-    model_class, model_params_class, folk_class, base_params, metadata_path, graphmlz_path = MODEL_MATRIX[
+    model_class, model_params_class, folk_class, base_params, config_path, graphmlz_path = MODEL_MATRIX[
         model_key]
     params = dict(base_params)
     if override_params:
         params.update(override_params)
     model_params = model_params_class(**params)
     model = model_class(model_params, step_events=step_events)
-    town = scon.Town.from_files(metadata_path, graphmlz_path, town_params)
+    town = scon.Town.from_files(config_path, graphmlz_path, town_params)
     return scon.Simulation(town, model, timesteps=timesteps, seed=seed), town, model

@@ -65,7 +65,7 @@ def _load_node_info_from_graphmlz(
     return node_positions
 
 
-def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
+def visualize_place_types_from_graphml(town_graph_path, town_config_path):
     """
     Visualize nodes from a .graphmlz town graph with their classified place_type using Plotly and OpenStreetMap.
 
@@ -73,7 +73,7 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     ----------
     town_graph_path : str
         Path to the .graphmlz file containing the town graph.
-    town_metadata_path : str
+    town_config_path : str
         Path to the .json file containing town metadata (must include 'epsg_code').
 
     Returns
@@ -83,10 +83,10 @@ def visualize_place_types_from_graphml(town_graph_path, town_metadata_path):
     """
     assert town_graph_path.endswith(
         ".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
-    assert town_metadata_path.endswith(
-        ".json"), f"Expected a .json file for town_metadata_path, got {town_metadata_path}"
+    assert town_config_path.endswith(
+        ".json"), f"Expected a .json file for town_config_path, got {town_config_path}"
 
-    with open(town_metadata_path, "r") as f:
+    with open(town_config_path, "r") as f:
         metadata = json.load(f)
     epsg_code = metadata["epsg_code"]
 

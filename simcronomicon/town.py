@@ -143,7 +143,7 @@ class Town():
     >>> 
     >>> # Load previously saved town
     >>> town = Town.from_files(
-    ...     metadata_path="town_metadata.json",
+    ...     config_path="town_config.json",
     ...     town_graph_path="town_graph.graphmlz",
     ...     town_params=town_params
     ... )
@@ -388,7 +388,7 @@ class Town():
         print("[10/10] Saving a compressed graph and metadata...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
         graphmlz_name = os.path.join(save_dir, f"{file_prefix}.graphmlz")
-        metadata_name = os.path.join(save_dir, f"{file_prefix}_metadata.json")
+        metadata_name = os.path.join(save_dir, f"{file_prefix}_config.json")
 
         nx.write_graphml_lxml(self.town_graph, graphml_name)
 
@@ -469,7 +469,7 @@ class Town():
         file_prefix : str, optional
             Prefix for output files (default: "town_graph").
         save_dir : str, optional
-            Directory to save compressed graph and metadata files (default: ".").
+            Directory to save compressed graph and configuration files (default: ".").
 
         Returns
         -------
@@ -514,18 +514,18 @@ class Town():
         return town
 
     @classmethod
-    def from_files(cls, metadata_path, town_graph_path, town_params):
+    def from_files(cls, config_path, town_graph_path, town_params):
         """
     Load a previously saved town network from compressed files.
 
-    Reconstructs a Town object from GraphMLZ and JSON metadata files created
+    Reconstructs a Town object from GraphMLZ and JSON configuration files created
     by a previous call to from_point(). This method enables rapid simulation
     setup without re-downloading or re-processing OpenStreetMap data.
 
     Parameters
     ----------
-    metadata_path : str
-        Path to the JSON metadata file containing town configuration and
+    config_path : str
+        Path to the JSON configuration file containing town configuration and
         place type information.
     town_graph_path : str
         Path to the compressed GraphMLZ file containing the spatial network.
@@ -550,7 +550,7 @@ class Town():
     --------
     >>> town_params = TownParameters(num_pop=1000, num_init_spreader=5)
     >>> town = Town.from_files(
-    ...     metadata_path="./data/aachen_dom_metadata.json",
+    ...     config_path="./data/aachen_dom_config.json",
     ...     town_graph_path="./data/aachen_dom.graphmlz",
     ...     town_params=town_params
     ... )
@@ -566,7 +566,7 @@ class Town():
 
         # 2. Load metadata
         print("[2/3] Load the metadata...")
-        with open(metadata_path, "r") as f:
+        with open(config_path, "r") as f:
             metadata = json.load(f)
 
         # 3. Rebuild Town object

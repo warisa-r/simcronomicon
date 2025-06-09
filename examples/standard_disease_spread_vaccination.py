@@ -3,11 +3,11 @@ import simcronomicon as scon
 point = 50.7753, 6.0839
 town_params = scon.TownParameters(2000, 0)
 town_graph_path = "test/test_data/uniklinik_500m.graphmlz"
-town_metadata_path = "test/test_data/uniklinik_500m_metadata.json"
+town_config_path = "test/test_data/uniklinik_500m_config.json"
 
 
 town = scon.Town.from_files(
-    metadata_path=town_metadata_path,
+    config_path=town_config_path,
     town_graph_path=town_graph_path,
     town_params=town_params
 )
@@ -34,7 +34,7 @@ step_events = [
             'religious'], scon.log_normal_mobility)]
 
 
-# scon.visualize_place_types_from_graphml(town_graph_path, town_metadata_path)
+# scon.visualize_place_types_from_graphml(town_graph_path, town_config_path)
 model_params = scon.SEIQRDVModelParameters(
     max_energy=2, lam_cap=0, beta=0.4, alpha=0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=100)
 model = scon.SEIQRDVModel(model_params, step_events)

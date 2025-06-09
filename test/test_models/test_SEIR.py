@@ -71,9 +71,9 @@ class TestSEIRModel:
         total_pop = 1000
         town_params = scon.TownParameters(total_pop, 10)
         town_graph_path = "test/test_data/aachen_dom_500m.graphmlz"
-        town_metadata_path = "test/test_data/aachen_dom_500m_metadata.json"
+        town_config_path = "test/test_data/aachen_dom_500m_config.json"
         town = scon.Town.from_files(
-            metadata_path=town_metadata_path,
+            config_path=town_config_path,
             town_graph_path=town_graph_path,
             town_params=town_params
         )
