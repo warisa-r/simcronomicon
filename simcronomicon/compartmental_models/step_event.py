@@ -2,6 +2,7 @@ from enum import Enum
 import numpy as np
 import inspect
 
+
 def log_normal_mobility(distances, folk, mu=0, sigma=1):
     """
     Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
@@ -21,13 +22,14 @@ def log_normal_mobility(distances, folk, mu=0, sigma=1):
     probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
     return probs
 
+
 def energy_exponential_mobility(distances, folk):
     """
     Return probabilities proportional to exponential PDF of distances. With lam = proportion of agent's energy to maximum
     energy as a rate parameter
     """
     distances = np.array(distances)
-       
+
     lam = folk.energy / folk.max_energy
     probs = lam * np.exp(-lam * distances)
 
@@ -35,6 +37,7 @@ def energy_exponential_mobility(distances, folk):
     probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
 
     return probs
+
 
 class EventType(Enum):
     """
@@ -86,7 +89,7 @@ class StepEvent:
     Probability Functions
     --------------------
     Custom probability functions must:
-    
+
     - Accept exactly 2 non-default arguments: `(distances, agent)`
 
     - Return probabilities between 0 and 1 (will be normalized automatically)
@@ -97,7 +100,7 @@ class StepEvent:
 
     Built-in mobility functions include:
     - `log_normal_mobility`: Human mobility based on log-normal distance 
-    
+
     - `energy_exponential_mobility`: Agent energy-dependent exponential decay
 
     Attributes
@@ -191,7 +194,7 @@ class StepEvent:
             - If probability_func doesn't have exactly 2 non-default arguments
 
             - If probability_func returns invalid probability values during validation
-            
+
             - If probability_func fails signature inspection
 
         """
@@ -215,15 +218,15 @@ class StepEvent:
             try:
                 sig = inspect.signature(probability_func)
                 non_default_params = [
-                    p for p in sig.parameters.values() 
+                    p for p in sig.parameters.values()
                     if p.default == inspect.Parameter.empty
                 ]
-                
+
                 if len(non_default_params) != 2:
                     raise ValueError(
                         f"probability_func must have exactly 2 non-default arguments, "
                         f"got {len(non_default_params)}. Expected signature: func(distances, agent, **kwargs)")
-            
+
             except Exception as e:
                 raise ValueError(
                     f"Could not inspect probability_func signature: {e}")

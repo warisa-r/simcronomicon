@@ -82,6 +82,7 @@ class FolkSEIR(AbstractFolk):
     and Recovered (R) states based on contact with infectious agents and
     time-based progression rules.
     """
+
     def __init__(self, id, home_address, max_energy, status):
         """
         Initialize a FolkSEIR agent.
@@ -230,6 +231,7 @@ class SEIRModel(AbstractCompartmentalModel):
     for epidemic simulation. It includes waning immunity where recovered
     individuals return to susceptible status after a specified duration.
     """
+
     def __init__(self, model_params, step_events=None):
         """
         Initialize the SEIR model with specified parameters and events.
@@ -273,7 +275,7 @@ class SEIRModel(AbstractCompartmentalModel):
 
             - household_node_indices : set
                 Set of node indices where households are tracked.
-                
+
             - status_dict_t0 : dict
                 Dictionary with the initial count of each status at timestep 0.
         """

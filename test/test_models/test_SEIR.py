@@ -77,7 +77,8 @@ class TestSEIRModel:
             town_graph_path=town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIRModel(model_params, default_test_step_events(scon.FolkSEIR))
+        model = scon.SEIRModel(
+            model_params, default_test_step_events(scon.FolkSEIR))
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")

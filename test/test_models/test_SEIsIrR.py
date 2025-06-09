@@ -6,6 +6,7 @@ import os
 import pytest
 from ..test_helper import default_test_step_events
 
+
 class TestSEIsIrRModel:
     def test_invalid_seisir_model_parameters(self):
         # gamma not a float or int
@@ -30,7 +31,8 @@ class TestSEIsIrRModel:
         with pytest.raises(TypeError, match="mem_span must be an integer greater or equal to 1, got 1.03"):
             scon.SEIsIrRModelParameters(
                 max_energy=4, literacy=0.7, gamma=0.9, alpha=0.5, lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1, mem_span=1.03
-        )
+            )
+
     def test_SEIsIrR_abm_vs_ode_error(self):
         # ODE solution
         model_params = scon.SEIsIrRModelParameters(
@@ -70,7 +72,7 @@ class TestSEIsIrRModel:
         # , therefore, some coefficients have been dropped
         # This results in a system that is no longer based on density
         # We have to use this scaling instead to get a sensible result
-        # (yield similar result and trends to the literature numerical result)
+        # (yield similar result and trends to the reference literature numerical result)
         y0 = [0.1, 0, 6.9, 3.0, 0]
         t_eval = np.arange(0, t_end + 1)
 
@@ -92,7 +94,8 @@ class TestSEIsIrRModel:
             town_graph_path=town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIsIrRModel(model_params, default_test_step_events(scon.FolkSEIsIrR))
+        model = scon.SEIsIrRModel(
+            model_params, default_test_step_events(scon.FolkSEIsIrR))
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")

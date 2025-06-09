@@ -146,6 +146,7 @@ class FolkSEIsIrR(AbstractFolk):
     Intelligent spreaders (Ir), and Recovered/Stifler (R) states based on rumor
     credibility, literacy levels, and social interactions.
     """
+
     def __init__(self, id, home_address, max_energy, status):
         """
         Initialize a FolkSEIsIrR agent.
@@ -205,15 +206,15 @@ class FolkSEIsIrR(AbstractFolk):
         ----------------
         - **Rule 1:** If the agent is Intelligent spreader ('Ir') and contacts Susceptible ('S') agents,
           they may transition to Susceptible ('S') based on `Ir2S` probability.
-        
+
         - **Rule 2:** If the agent is Ignorant spreader ('Is') and contacts Susceptible ('S') agents,
           they may transition to either Exposed ('E') or Susceptible ('S') based on `Is2E` and `Is2S`
           probabilities respectively. The transition with higher probability is evaluated first.
-        
+
         - **Rule 3:** If the agent is Exposed ('E'), they may transition to either Susceptible ('S')
           or Recovered ('R') based on `E2S` and `E2R` probabilities respectively. The transition
           with higher probability is evaluated first.
-        
+
         - **Rule 4.1:** If the agent is Susceptible ('S'), they may transition to Recovered ('R')
           when contacting any other agents ('S', 'E', 'R') based on `S2R` probability.
 
@@ -333,6 +334,7 @@ class SEIsIrRModel(AbstractCompartmentalModel):
     model for rumor spreading dynamics. The model considers rumor credibility, population literacy,
     and personality-based classification of spreaders.
     """
+
     def __init__(self, model_params, step_events=None):
         """
         Initialize the SEIsIrR model with specified parameters and events.

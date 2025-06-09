@@ -20,19 +20,27 @@ from test.test_helper import (
     get_nearest_node, get_shortest_path_length, DEFAULT_TOWN_PARAMS
 )
 
+
 class TestTown:
     def setup_method(self):
-        # Disable OSMnx cache for tests
         ox.settings.use_cache = False
-        # Remove OSMnx cache directory if it exists
-        cache_dir = os.path.expanduser("~/.osmnx")
-        if os.path.exists(cache_dir):
-            shutil.rmtree(cache_dir)
-        # Remove any custom cache or temp files the code might create
-        if os.path.exists("cache"):
-            shutil.rmtree("cache")
+        self._cleanup_all_files()
 
-        # Clean up default town files that might be produced even if the initial conditions are wrong
+    def teardown_method(self):
+        self._cleanup_all_files()
+
+    def _cleanup_all_files(self):
+        """Centralized cleanup for all test artifacts."""
+        # OSMnx cache cleanup
+        cache_dirs = [
+            os.path.expanduser("~/.osmnx"),
+            "cache"
+        ]
+        for cache_dir in cache_dirs:
+            if os.path.exists(cache_dir):
+                shutil.rmtree(cache_dir)
+
+        # Default town files cleanup
         default_files = [
             "town_graph.graphmlz",
             "town_graph_metadata.json"
@@ -123,8 +131,10 @@ class TestTown:
             finally:
                 builtins.input = original_input
 
-            assert any("already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'y'"
-            assert isinstance(town2, scon.Town), "Town object was not returned after overwrite"
+            assert any(
+                "already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'y'"
+            assert isinstance(
+                town2, scon.Town), "Town object was not returned after overwrite"
 
             # Case 2: User types 'n' (abort)
             prompts.clear()
@@ -147,9 +157,12 @@ class TestTown:
                 builtins.input = original_input
                 builtins.print = original_print
 
-            assert any("already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'n'"
-            assert any("aborted" in str(p).lower() for p in printed), "Abort message was not printed"
-            assert isinstance(town3, scon.Town), "Town object was not returned after abort"
+            assert any(
+                "already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'n'"
+            assert any("aborted" in str(p).lower()
+                       for p in printed), "Abort message was not printed"
+            assert isinstance(
+                town3, scon.Town), "Town object was not returned after abort"
 
     def test_spreader_initial_nodes_assertion_error(self):
         test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
@@ -159,11 +172,13 @@ class TestTown:
         town_params_spreader = scon.TownParameters(100, 4, [1, 350, 750])
 
         expected_error_msg = "Some spreader_initial_nodes do not exist in the town graph: \\[350, 750\\]"
-        # from_point should raise ValueError
-        with pytest.raises(ValueError, match=expected_error_msg):
-            scon.Town.from_point(POINT_DOM, 500, town_params_spreader)
 
-        # from_files should raise ValueError
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with pytest.raises(ValueError, match=expected_error_msg):
+                scon.Town.from_point(
+                    POINT_DOM, 500, town_params_spreader, save_dir=tmpdir)
+
+        # from_files test remains the same (doesn't create new files)
         with pytest.raises(ValueError, match=expected_error_msg):
             scon.Town.from_files(
                 metadata_path=test_metadata,

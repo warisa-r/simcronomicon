@@ -7,11 +7,13 @@ import os
 import pytest
 from ..test_helper import default_test_step_events
 
+
 class TestSEIQRDVModel:
-    classmethod
+    @classmethod
     def setup_class(cls):
         cls.town_graph_path = "test/test_data/uniklinik_500m.graphmlz"
         cls.town_metadata_path = "test/test_data/uniklinik_500m_metadata.json"
+
     def test_invalid_seiqrdv_model_parameters(self):
         # lam_cap out of range
         with pytest.raises(TypeError, match="lam_cap must be a float between 0 and 1!"):
@@ -36,6 +38,7 @@ class TestSEIQRDVModel:
             scon.SEIQRDVModelParameters(
                 max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01, hospital_capacity="a lot"
             )
+
     def test_seiqrdv_abm_vs_ode_error(self):
         # ODE solution
         model_params = scon.SEIQRDVModelParameters(
@@ -46,13 +49,20 @@ class TestSEIQRDVModel:
             S, E, I, Q, R, D, V = y
             N = S + E + I + Q + R + V
             rhs = np.zeros(7)
-            rhs[0] = model_params.lam_cap / 5 * N + model_params.beta * S * I / N - model_params.alpha * S - model_params.mu * S 
-            rhs[1] = model_params.lam_cap / 5 * N + model_params.beta * S * I / N - 1/model_params.gamma * E - model_params.mu * E
-            rhs[2] = model_params.lam_cap / 5 * N + 1/model_params.gamma * E - 1/model_params.delta * I - model_params.mu * I
-            rhs[3] = 1 / model_params.delta * I - (1-model_params.kappa)/ model_params.lam * Q - model_params.kappa / model_params.rho * Q - model_params.mu * Q
-            rhs[4] = model_params.lam_cap / 5 * N + (1-model_params.kappa)/ model_params.lam * Q - model_params.mu * R
+            rhs[0] = model_params.lam_cap / 5 * N + model_params.beta * \
+                S * I / N - model_params.alpha * S - model_params.mu * S
+            rhs[1] = model_params.lam_cap / 5 * N + model_params.beta * \
+                S * I / N - 1/model_params.gamma * E - model_params.mu * E
+            rhs[2] = model_params.lam_cap / 5 * N + 1/model_params.gamma * \
+                E - 1/model_params.delta * I - model_params.mu * I
+            rhs[3] = 1 / model_params.delta * I - (1-model_params.kappa) / model_params.lam * \
+                Q - model_params.kappa / model_params.rho * Q - model_params.mu * Q
+            rhs[4] = model_params.lam_cap / 5 * N + \
+                (1-model_params.kappa) / \
+                model_params.lam * Q - model_params.mu * R
             rhs[5] = model_params.kappa / model_params.rho * Q
-            rhs[6] = model_params.lam_cap / 5 * N + model_params.alpha * S - model_params.mu * V
+            rhs[6] = model_params.lam_cap / 5 * N + \
+                model_params.alpha * S - model_params.mu * V
             return rhs
 
         t_end = 100
@@ -76,7 +86,8 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
+        model = scon.SEIQRDVModel(
+            model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test_seiqrdv.h5")
@@ -138,6 +149,7 @@ class TestSEIQRDVModel:
             assert err_R < 0.03, f"Recovered compartment error too high: {err_R:.4f}"
             assert err_D < 0.03, f"Dead compartment error too high: {err_D:.4f}"
             assert err_V < 0.03, f"Vaccinated compartment error too high: {err_V:.4f}"
+
     def test_vaccination(self):
         model_params = scon.SEIQRDVModelParameters(
             max_energy=10, lam_cap=0, beta=0, alpha=1.0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=float('Inf')
@@ -150,7 +162,8 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
+        model = scon.SEIQRDVModel(
+            model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_test.h5")
@@ -161,7 +174,6 @@ class TestSEIQRDVModel:
                 # Since everyone wants vaccines and the hospitle capacity is infinite, they should all get it
                 vaccinated_last = last_step["V"]
                 assert vaccinated_last == 9, f"Every former susceptible person should be vaccinated at timestep {last_step['timestep']}: got {vaccinated_last}, expected 9"
-        
 
         model_params = scon.SEIQRDVModelParameters(
             max_energy=10, lam_cap=0, beta=0, alpha=1.0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=5
@@ -174,7 +186,8 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
+        model = scon.SEIQRDVModel(
+            model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_cap_test.h5")
@@ -182,7 +195,8 @@ class TestSEIQRDVModel:
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # Filter for the first step event where current_event is "greet_neighbors" and timestep == 1
-                first_step = log[(log['timestep'] == 1) & (log['event'] == b"greet_neighbors")]
+                first_step = log[(log['timestep'] == 1) & (
+                    log['event'] == b"greet_neighbors")]
                 # Count number of people at each healthcare node of interest
                 node_counts = {node: 0 for node in [26, 32, 40, 53]}
                 for row in first_step:
@@ -214,7 +228,8 @@ class TestSEIQRDVModel:
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIQRDVModel(model_params, default_test_step_events(scon.FolkSEIQRDV))
+        model = scon.SEIQRDVModel(
+            model_params, default_test_step_events(scon.FolkSEIQRDV))
         sim = scon.Simulation(town, model, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "quarantine_address_stable.h5")

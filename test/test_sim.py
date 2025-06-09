@@ -5,6 +5,7 @@ import tempfile
 import os
 from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation
 
+
 class TestSimulationInitializationGeneralized:
     @pytest.mark.parametrize("model_key,spreader_status", [
         ("seir", b'I'),
@@ -28,7 +29,8 @@ class TestSimulationInitializationGeneralized:
             sim.run(hdf5_path=h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
-                spreaders = [row for row in log if row['timestep'] == 0 and row['status'] == spreader_status]
+                spreaders = [row for row in log if row['timestep']
+                             == 0 and row['status'] == spreader_status]
                 assert len(spreaders) == town_params.num_init_spreader
                 spreader_addresses = [row['address'] for row in spreaders]
                 assert sorted(spreader_addresses) == sorted(spreader_nodes)
@@ -65,8 +67,9 @@ class TestSimulationInitializationGeneralized:
         with pytest.raises(ValueError, match="Missing required place types"):
             scon.Simulation(town, model, timesteps=1)
 
+
 class TestStepEventFunctionality:
-    def test_step_event_invalid_parameters(self): 
+    def test_step_event_invalid_parameters(self):
         # Test SEND_HOME with probability_func (should raise ValueError)
         with pytest.raises(ValueError, match="You cannot define a mobility probability function for an event that does not disperse people"):
             scon.StepEvent(
@@ -75,7 +78,7 @@ class TestStepEventFunctionality:
                 scon.EventType.SEND_HOME,
                 probability_func=lambda x: 0.5
             )
-        
+
         # Test non-callable probability_func (should raise ValueError)
         with pytest.raises(ValueError, match="probability_func must be a callable function"):
             scon.StepEvent(
@@ -84,7 +87,7 @@ class TestStepEventFunctionality:
                 scon.EventType.DISPERSE,
                 probability_func="not_a_function"
             )
-        
+
         with pytest.raises(ValueError, match=r"Could not inspect probability_func signature: probability_func must have exactly 2 non-default arguments, got 1\. Expected signature: func\(distances, agent, \*\*kwargs\)"):
             scon.StepEvent(
                 "invalid_prob_func_without_folk",
@@ -106,31 +109,37 @@ class TestStepEventFunctionality:
                 ['workplace']
             )
         ]
-        sim, town, _ = setup_simulation(model_key, town_params, step_events=step_events, timesteps=1)
+        sim, town, _ = setup_simulation(
+            model_key, town_params, step_events=step_events, timesteps=1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "stepevent_test.h5")
             sim.run(hdf5_path=h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # Check 'go_to_work' event
-                go_to_work_rows = log[(log['timestep'] == 1) & (log['event'] == b"go_to_work")]
+                go_to_work_rows = log[(log['timestep'] == 1) & (
+                    log['event'] == b"go_to_work")]
                 for row in go_to_work_rows:
                     folk_id = row['folk_id']
                     address = row['address']
-                    home_addr = next(folk.home_address for folk in sim.folks if folk.id == folk_id)
+                    home_addr = next(
+                        folk.home_address for folk in sim.folks if folk.id == folk_id)
                     place_type = town.town_graph.nodes[address]['place_type']
                     assert address == home_addr or place_type == 'workplace', \
                         f"AbstractFolk {folk_id} at address {address} (type {place_type}) is not at home or workplace during go_to_work"
                 # Check 'end_day' event that automatically gets appended regardless of the StepEvents input from the user
-                end_day_rows = log[(log['timestep'] == 1) & (log['event'] == b"end_day")]
+                end_day_rows = log[(log['timestep'] == 1) &
+                                   (log['event'] == b"end_day")]
                 for row in end_day_rows:
                     folk_id = row['folk_id']
                     address = row['address']
-                    home_addr = next(folk.home_address for folk in sim.folks if folk.id == folk_id)
+                    home_addr = next(
+                        folk.home_address for folk in sim.folks if folk.id == folk_id)
                     assert address == home_addr, f"AbstractFolk {folk_id} not at home at end_day (address {address}, home {home_addr})"
 
 # For SEIQRDV, the functionality of priority place is tested in its own dedicated tests,
 # since agents may prioritize 'healthcare_facility' and bypass typical destinations like 'workplace'.
+
 
 class TestSimulationUpdate:
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
@@ -144,7 +153,8 @@ class TestSimulationUpdate:
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 for row in summary:
-                    total = sum(row[name] for name in row.dtype.names if name not in ("timestep", "current_event"))
+                    total = sum(row[name] for name in row.dtype.names if name not in (
+                        "timestep", "current_event"))
                     assert total == 100, f"Population not conserved at timestep {row['timestep']}: got {total}, expected 100"
 
     def test_population_migration_and_death(self):
@@ -156,7 +166,8 @@ class TestSimulationUpdate:
         params = dict(extra_params)
         params['lam_cap'] = 1
         params['mu'] = 0
-        sim, town, _ = setup_simulation(model_key, town_params, timesteps=2, override_params=params)
+        sim, town, _ = setup_simulation(
+            model_key, town_params, timesteps=2, override_params=params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_migration_test.h5")
             sim.run(hdf5_path=h5_path)
@@ -164,14 +175,18 @@ class TestSimulationUpdate:
                 summary = h5file["status_summary/summary"][:]
                 step1 = summary[-2]
                 step2 = summary[-1]
-                total1 = sum(step1[name] for name in step1.dtype.names if name not in ("timestep", "current_event", "D"))
-                total2 = sum(step2[name] for name in step2.dtype.names if name not in ("timestep", "current_event", "D"))
+                total1 = sum(step1[name] for name in step1.dtype.names if name not in (
+                    "timestep", "current_event", "D"))
+                total2 = sum(step2[name] for name in step2.dtype.names if name not in (
+                    "timestep", "current_event", "D"))
                 assert total1 == 200, f"Population should be doubled at timestep {step1['timestep']}: got {total1}, expected 200"
-                assert total2 == total1 * 2, f"Population should be doubled at timestep {step2['timestep']}: got {total2}, expected {total1 * 2}"
+                assert total2 == total1 * \
+                    2, f"Population should be doubled at timestep {step2['timestep']}: got {total2}, expected {total1 * 2}"
         # Test death (lam_cap=0, mu=1)
         params['lam_cap'] = 0
         params['mu'] = 1
-        sim, town, _ = setup_simulation(model_key, town_params, timesteps=1, override_params=params)
+        sim, town, _ = setup_simulation(
+            model_key, town_params, timesteps=1, override_params=params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_death_test.h5")
             sim.run(hdf5_path=h5_path)
@@ -183,6 +198,7 @@ class TestSimulationUpdate:
                 other_statuses = ["S", "E", "I", "Q", "R", "V"]
                 for status in other_statuses:
                     assert last_step[status] == 0, "Population of other statuses should be equal to 0"
+
 
 class TestSimulationResults:
     def assert_h5_structure(self, h5_path):
@@ -198,13 +214,15 @@ class TestSimulationResults:
     @pytest.mark.parametrize("model_key,expected_status", [
         ("seir", {"S": 89, "E": 3, "I": 3, "R": 5}),
         ("seisir", {"S": 0, "E": 0, "Is": 43, "Ir": 41, "R": 16}),
-        ("seiqrdv", {"S": 0, "E": 0, "I": 0, "Q": 0, "R": 4, "D": 20, "V": 76}),
+        ("seiqrdv", {"S": 0, "E": 0, "I": 0,
+         "Q": 0, "R": 4, "D": 20, "V": 76}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
         folk_class = MODEL_MATRIX[model_key][2]
         step_events = default_test_step_events(folk_class)
-        sim, _, _ = setup_simulation(model_key, town_params, step_events= step_events, timesteps=50, seed=True, override_params=None)
+        sim, _, _ = setup_simulation(
+            model_key, town_params, step_events=step_events, timesteps=50, seed=True, override_params=None)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
             sim.run(hdf5_path=h5_path)

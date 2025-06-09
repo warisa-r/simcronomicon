@@ -6,7 +6,7 @@ import numpy as np
 import networkx as nx
 import random
 
-from .town import Town, TownParameters
+from .town import *
 from .compartmental_models import *
-from .sim import Simulation
+from .sim import *
 from .visualization import *

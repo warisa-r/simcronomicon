@@ -225,7 +225,7 @@ class Town():
                 "accommodation", "healthcare_facility", "commercial",
                 "workplace", "education", "religious", "other"
             ]
-        
+
         self.all_place_types = all_place_types
         self.town_params = town_params
         self.classify_place_func = classify_place_func
@@ -234,42 +234,49 @@ class Town():
 
         print("[2/10] Calculating EPSG code...")
         utm_zone = int((point[1] + 180) / 6) + 1
-        self.epsg_code = int(f"326{utm_zone}" if point[0] >= 0 else f"327{utm_zone}")
+        self.epsg_code = int(
+            f"326{utm_zone}" if point[0] >= 0 else f"327{utm_zone}")
 
     def _download_osm_data(self):
         import osmnx as ox
-        
+
         print("[3/10] Downloading OSM road network and building data...")
-        G_raw = ox.graph.graph_from_point(self.point, network_type="all", dist=self.dist)
+        G_raw = ox.graph.graph_from_point(
+            self.point, network_type="all", dist=self.dist)
         tags = {"building": True}
         self.G_projected = ox.project_graph(G_raw)
-        buildings = ox.features.features_from_point(self.point, tags, self.dist)
+        buildings = ox.features.features_from_point(
+            self.point, tags, self.dist)
         self.buildings = buildings.to_crs(epsg=self.epsg_code)
 
     def _process_buildings(self):
         from scipy.spatial import KDTree
         import numpy as np
-        
+
         print("[4/10] Processing building geometries...")
-        is_polygon = self.buildings.geometry.geom_type.isin(['Polygon', 'MultiPolygon'])
-        self.buildings.loc[is_polygon, 'geometry'] = self.buildings.loc[is_polygon, 'geometry'].centroid
+        is_polygon = self.buildings.geometry.geom_type.isin(
+            ['Polygon', 'MultiPolygon'])
+        self.buildings.loc[is_polygon,
+                           'geometry'] = self.buildings.loc[is_polygon, 'geometry'].centroid
         self.POI = self.buildings[self.buildings.geometry.geom_type == 'Point']
 
         print("[5/10] Matching building centroids to nearest road nodes...")
         self._match_buildings_to_roads()
-        
+
         print("[6/10] Classifying buildings...")
         # Use the classification function passed to from_point
-        self.POI['place_type'] = self.POI.apply(self.classify_place_func, axis=1)
+        self.POI['place_type'] = self.POI.apply(
+            self.classify_place_func, axis=1)
 
         print("[7/10] Annotating road graph with place types...")
-        place_type_map = self.POI.set_index('nearest_node')['place_type'].to_dict()
+        place_type_map = self.POI.set_index(
+            'nearest_node')['place_type'].to_dict()
         nx.set_node_attributes(self.G_projected, place_type_map, 'place_type')
 
     def _match_buildings_to_roads(self):
         from scipy.spatial import KDTree
         import numpy as np
-        
+
         # Get projected coordinates of road nodes
         node_xy = {
             node: (data['x'], data['y'])
@@ -289,10 +296,10 @@ class Town():
     def _build_spatial_network(self):
         import igraph as ig
         from tqdm import tqdm
-        
+
         print("[8/10] Filtering out irrelevant nodes...")
-        nodes_to_keep = [n for n, d in self.G_projected.nodes(data=True) 
-                        if d.get('place_type') is not None and d.get('place_type') != 'other']
+        nodes_to_keep = [n for n, d in self.G_projected.nodes(data=True)
+                         if d.get('place_type') is not None and d.get('place_type') != 'other']
         G_filtered = self.G_projected.subgraph(nodes_to_keep).copy()
 
         if len(G_filtered.nodes) == 0:
@@ -306,7 +313,7 @@ class Town():
         import igraph as ig
         from tqdm import tqdm
         import numpy as np
-        
+
         # Convert G_projected to igraph for fast distance computation
         projected_nodes = list(self.G_projected.nodes)
         node_idx_map = {node: idx for idx, node in enumerate(projected_nodes)}
@@ -340,20 +347,22 @@ class Town():
 
     def _build_final_graph(self, G_filtered, filtered_nodes, dist_matrix):
         from tqdm import tqdm
-        
+
         self.town_graph = nx.Graph()
-        id_map = {old_id: new_id for new_id, old_id in enumerate(filtered_nodes)}
+        id_map = {old_id: new_id for new_id,
+                  old_id in enumerate(filtered_nodes)}
         self.accommodation_node_ids = []
 
         # Add nodes with attributes
         for old_id, new_id in id_map.items():
             place_type = G_filtered.nodes[old_id].get("place_type")
             row = self.POI[self.POI['nearest_node'] == old_id]
-            x, y = (row.iloc[0].geometry.x, row.iloc[0].geometry.y) if not row.empty else (None, None)
-            
+            x, y = (row.iloc[0].geometry.x, row.iloc[0].geometry.y) if not row.empty else (
+                None, None)
+
             if place_type == "accommodation":
                 self.accommodation_node_ids.append(new_id)
-            
+
             self.town_graph.add_node(new_id, place_type=place_type, x=x, y=y)
 
         # Add edges with shortest path distances
@@ -368,25 +377,27 @@ class Town():
                         weight=dist
                     )
 
-        self.found_place_types = set(nx.get_node_attributes(self.town_graph, 'place_type').values())
+        self.found_place_types = set(nx.get_node_attributes(
+            self.town_graph, 'place_type').values())
 
     def _save_files(self, file_prefix, save_dir):
         import zipfile
         import json
         import os
-        
+
         print("[10/10] Saving a compressed graph and metadata...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
         graphmlz_name = os.path.join(save_dir, f"{file_prefix}.graphmlz")
         metadata_name = os.path.join(save_dir, f"{file_prefix}_metadata.json")
 
         nx.write_graphml_lxml(self.town_graph, graphml_name)
-        
+
         if os.path.exists(graphmlz_name):
             overwrite = input(
                 f"The file '{graphmlz_name}' already exists. Overwrite? (y/n): ").strip().lower()
             if overwrite != 'y':
-                print("Input file saving operation aborted to avoid overwriting the file. Returning town object...")
+                print(
+                    "Input file saving operation aborted to avoid overwriting the file. Returning town object...")
                 return
 
         with zipfile.ZipFile(graphmlz_name, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -491,13 +502,14 @@ class Town():
 
         town = cls()
         town._validate_inputs(point, classify_place_func, all_place_types)
-        town._setup_basic_attributes(point, dist, town_params, classify_place_func, all_place_types)
+        town._setup_basic_attributes(
+            point, dist, town_params, classify_place_func, all_place_types)
         town._download_osm_data()
         town._process_buildings()
         town._build_spatial_network()
         town._save_files(file_prefix, save_dir)
         town._finalize_town_setup()
-        
+
         print("Town graph successfully built and saved!")
         return town
 

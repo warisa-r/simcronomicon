@@ -248,7 +248,7 @@ class FolkSEIQRDV(AbstractFolk):
         Transition Rules
         ----------------
         - **If the agent is in Quarantine ('Q'):**
-            
+
             - If `will_die` is True and the agent has been in quarantine for `rho` days,
             the agent transitions to Dead ('D'), is marked as not alive, and `want_vaccine` is set to False.
 
@@ -274,7 +274,7 @@ class FolkSEIQRDV(AbstractFolk):
 
         Parameters
         ----------
-        
+
         folks_here : list of FolkSEIQRDV
             List of agents present at the same node (not used in this method, for interface compatibility).
         current_place_type : str
@@ -334,7 +334,8 @@ class FolkSEIQRDV(AbstractFolk):
             self.want_vaccine = False
 
         if self.want_vaccine:
-                self.priority_place_type.append('healthcare_facility')
+            self.priority_place_type.append('healthcare_facility')
+
 
 class SEIQRDVModel(AbstractCompartmentalModel):
     """
@@ -430,7 +431,7 @@ class SEIQRDVModel(AbstractCompartmentalModel):
 
         This function performs two main operations:
         1. **Natural Deaths:** Iterates through all currently alive agents and, with probability `mu` (the natural death rate), transitions them to the 'D' (Dead) status and marks them as not alive.
-        
+
         2. **Population Growth:** Calculates the number of possible new agents to add based on the current alive population and the parameter `lam_cap` (birth/migration rate). For each new agent:
             - Randomly selects an accommodation node as their home.
             - Randomly assigns a status from all possible statuses except 'D' (Dead) and 'Q' (Quarantine).

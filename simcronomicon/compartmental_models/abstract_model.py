@@ -30,7 +30,7 @@ class AbstractModelParameters:
         ----------
         max_energy : int
             The maximum energy for an agent. This number limits the maximum number of events an agent can attend in a day.
-            
+
         Raises
         ------
         AssertionError
@@ -135,7 +135,7 @@ class AbstractFolk:
     def inverse_bernoulli(self, contact_possibility, conversion_prob):
         """
         Calculate the probability of status transition given contact possibility and conversion probability.
-        
+
         This function is adapted from section 2.2 of
         Eden, M., Castonguay, R., Munkhbat, B., Balasubramanian, H., & Gopalappa, C. (2021).
         Agent-based evolving network modeling: A new simulation method for modeling low prevalence infectious diseases.
