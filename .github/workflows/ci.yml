@@ -6,8 +6,15 @@ on:
   pull_request:
     branches: [ main ]
 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
-  test:
+  test_and_docs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -22,12 +29,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov autopep8 sphinx sphinx-rtd-theme
+          pip install pytest pytest-cov autopep8 sphinx sphinx-rtd-theme ghp-import
+          pip install -e .
 
+      # Run tests
       - name: Run tests with coverage
         run: |
           pytest --cov=.
@@ -37,17 +47,18 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      # Only build docs on Ubuntu + main branch push
-      - name: Build documentation
+      - name: Build HTML documentation
         if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          cd docs
+          cd docs/
           make html
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages using ghp-import
         if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build/html
-          publish_branch: gh-pages
+        run: |
+          ghp-import -n -p -f docs/build/html
+
+      - name: Output documentation URL
+        if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "Documentation deployed to: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
