@@ -3,6 +3,9 @@ Advanced Step Events and Movement Patterns
 
 This tutorial covers how to create custom step events and design realistic movement patterns for your simulations. Step events control when, where, and how agents move and interact during each simulation day.
 
+**We recommend that along with reading this, 
+you should look at the tutorial `disease_spread_mobility.ipynb`` to see how StepEvent looks like in action**
+
 Understanding Step Events
 -------------------------
 
@@ -84,38 +87,58 @@ Event Types Explained
   - Enables agent interactions at destinations
   - Used for: work, shopping, social activities
 
-Custom Movement Patterns
-------------------------
-
-The real power of step events comes from custom probability functions that model realistic human mobility.
-We have 1 built-in function to simulate the movement of the agent for you.
-
 Built-in Probability Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We have 2 built-in functions to simulate agent movement patterns:
 
+**Log-Normal Mobility**
+Models realistic human travel patterns based on research literature. Best for:
+- Work commutes and regular activities
+- Shopping and errands  
+- Healthcare visits
+- Any activity with preferred typical distances
+
 .. code-block:: python
 
-   # Log-normal mobility (models real human movement patterns)
+   # Log-normal mobility with intuitive parameters
    shopping_event = scon.StepEvent(
        name="shopping",
        folk_action=scon.FolkSEIR.interact,
        event_type=scon.EventType.DISPERSE,
        max_distance=8000,
        place_types=['commercial'],
-       probability_func=scon.log_normal_mobility
+       probability_func=lambda distances, agent: scon.log_normal_mobility(
+           distances, agent, median_distance=2000, sigma=1.2)
    )
 
-   # Agent's energy-dependent exponential mobility
-   work_event = scon.StepEvent(
-       name="tired_commute",
+**Energy-Dependent Exponential Mobility**
+Models agent movement based on current energy levels. Best for:
+- Social activities after work
+- Leisure activities  
+- Any energy-dependent behavior
+
+.. code-block:: python
+
+   # Energy-dependent mobility with distance scaling
+   social_event = scon.StepEvent(
+       name="evening_social",
        folk_action=scon.FolkSEIR.interact,
        event_type=scon.EventType.DISPERSE,
        max_distance=15000,
-       place_types=['workplace'],
-       probability_func=scon.energy_exponential_mobility
+       place_types=['commercial', 'entertainment'],
+       probability_func=lambda distances, agent: scon.energy_exponential_mobility(
+           distances, agent, distance_scale=2000)
    )
+
+**Parameter Guidelines:**
+
+*Log-Normal Mobility:*
+- `median_distance`: 400m (local), 1100m (neighborhood), 3000m (city-wide), 8000m (regional)
+- `sigma`: 0.8 (consistent), 1.0 (moderate), 1.5 (variable)
+
+*Energy Exponential Mobility:*
+- `distance_scale`: 200 (very local), 1000 (moderate), 3000 (wide range)
 
 Creating Custom Probability Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,18 +159,6 @@ Here is an example of how you can define your own simple probability function:
 .. code-block:: python
 
     def distance_preference_mobility(distances, agent, preference="nearby"):
-        """
-        Custom probability function based on distance preference.
-        
-        Parameters
-        ----------
-        distances : array-like
-            Distances to potential destinations in meters
-        agent : object
-            The agent object (unused in this example, but required for signature)
-        preference : str
-            "nearby" for short distances, "far" for long distances
-        """
         import numpy as np
         distances = np.array(distances)
         
@@ -210,36 +221,38 @@ Complete Example: Daily Routine
    # Define a realistic daily schedule with varied movement patterns
    def create_daily_events():
        return [
-           # Morning commute - moderate distance, work focus
+           # Morning commute - log-normal for realistic work travel
            scon.StepEvent(
                "morning_commute",
                scon.FolkSEIR.interact,
                scon.EventType.DISPERSE,
                max_distance=20000,
                place_types=['workplace', 'education'],
-               probability_func=scon.log_normal_mobility
+               probability_func=lambda distances, agent: scon.log_normal_mobility(
+                   distances, agent, median_distance=5000, sigma=1.0)
            ),
            
-           # Lunch break - nearby commercial areas
+           # Lunch break - energy-dependent for tired workers
            scon.StepEvent(
                "lunch_break", 
                scon.FolkSEIR.interact,
                scon.EventType.DISPERSE,
                max_distance=3000,
                place_types=['commercial'],
-               probability_func=lambda d, agent: distance_preference_mobility(d, agent, "nearby")
+               probability_func=lambda distances, agent: scon.energy_exponential_mobility(
+                   distances, agent, distance_scale=800)
            ),
            
-           # Evening activities - varied distances and places
+           # Evening activities - custom preference function
            scon.StepEvent(
                "evening_social",
                scon.FolkSEIR.interact,
                scon.EventType.DISPERSE, 
                max_distance=15000,
                place_types=['commercial', 'religious', 'entertainment'],
-               probability_func=lambda d, agent: distance_preference_mobility(d, agent, "far")
+               probability_func=lambda distances, agent: distance_preference_mobility(
+                   distances, agent, "far")
            ),
-           
        ]
 
    # Use in simulation
@@ -261,10 +274,36 @@ Tips for Effective Step Events
   - Be specific: `['workplace']` vs. `['commercial', 'workplace']`
   - Ensure your town has the required place types
 
-**Probability Functions**
+**Probability Function Parameters**
+  - **Log-normal median_distance**: Set to typical travel distance for the activity
+  - **Log-normal sigma**: Lower for consistent behavior, higher for varied patterns
+  - **Energy exponential distance_scale**: Lower for local activities, higher for wide-range movement
   - Test with sample distances before using in simulation
-  - Consider how movement patterns affect disease spread
-  - Balance realism with computational efficiency
+
+**Parameter Testing Example**
+
+.. code-block:: python
+
+   # Test your probability functions with sample data
+   import numpy as np
+   
+   class TestAgent:
+       def __init__(self, energy=5, max_energy=10):
+           self.energy = energy
+           self.max_energy = max_energy
+   
+   test_distances = np.array([100, 500, 1000, 2000, 5000])
+   test_agent = TestAgent()
+   
+   # Test log-normal mobility
+   log_probs = scon.log_normal_mobility(test_distances, test_agent, 
+                                       median_distance=1500, sigma=1.0)
+   print(f"Log-normal probabilities: {log_probs}")
+   
+   # Test energy exponential mobility  
+   energy_probs = scon.energy_exponential_mobility(test_distances, test_agent,
+                                                  distance_scale=1000)
+   print(f"Energy exponential probabilities: {energy_probs}")
 
 Debugging Step Events
 ---------------------

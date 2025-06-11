@@ -55,7 +55,7 @@ in OpenStreetMap data.
         save_dir="./data"
     )
 
-A simple town graph in `.graphmlz` form and its metadata in `.json` form is then generated. These are important input files
+A simple town graph in `.graphmlz` form and its configuration file in `.json` form is then generated. These are important input files
 for the simulation and visualization later on!
 
 Since constructing a `Town` object can take a while (see the documentation in Town modules as to why), we also provide you an

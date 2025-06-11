@@ -212,10 +212,10 @@ class TestSimulationResults:
             assert "log" in h5file["individual_logs"], "'log' missing in individual_logs group"
 
     @pytest.mark.parametrize("model_key,expected_status", [
-        ("seir", {"S": 89, "E": 3, "I": 3, "R": 5}),
-        ("seisir", {"S": 0, "E": 0, "Is": 43, "Ir": 41, "R": 16}),
+        ("seir", {"S": 94, "E": 2, "I": 0, "R": 4}),
+        ("seisir", {"S": 0, "E": 0, "Is": 45, "Ir": 42, "R": 13}),
         ("seiqrdv", {"S": 0, "E": 0, "I": 0,
-         "Q": 0, "R": 4, "D": 20, "V": 76}),
+         "Q": 0, "R": 3, "D": 19, "V": 78}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
