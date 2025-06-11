@@ -2,6 +2,7 @@
 
 [![codecov](https://codecov.io/gh/warisa-r/simcronomicon/graph/badge.svg?token=S13D4OWJ39)](https://codecov.io/gh/warisa-r/simcronomicon)
 [![CI](https://github.com/warisa-r/simcronomicon/actions/workflows/ci.yml/badge.svg)](https://github.com/warisa-r/simcronomicon/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://<your-username>.github.io/simcronomicon/)
 
 A simulation for ... well ...
 
