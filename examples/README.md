@@ -2,6 +2,8 @@
 
 This folder contains hands-on tutorials and examples demonstrating the capabilities of the `simcronomicon` package for agent-based epidemiological modeling on spatial networks.
 
+**We mostly use interactive plots via Plotly. Please make sure you have Plotly in your PC!**
+
 ## Available Tutorials
 
 ### Core Disease Modeling
@@ -13,8 +15,6 @@ This folder contains hands-on tutorials and examples demonstrating the capabilit
 
 - **[`disease_spread_mobility.ipynb`](disease_spread_mobility.ipynb)** - Advanced mobility patterns and their impact on disease spread
   - Explore different mobility models (log-normal, exponential)
-  - Analyze how travel distance affects outbreak dynamics
-  - Study spatial heterogeneity in transmission patterns
 
 ### Specialized Models
 - **[`standard_disease_spread_vaccination.py`](standard_disease_spread_vaccination.py)** - SEIQRDV model with vaccination strategies
