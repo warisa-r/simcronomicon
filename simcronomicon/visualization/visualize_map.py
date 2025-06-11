@@ -1,15 +1,16 @@
-from pyproj import Transformer
+import json
+import os
+import tempfile
+import warnings
+import zipfile
+from itertools import product
+
+import h5py
 import networkx as nx
 import pandas as pd
-from itertools import product
-import warnings
-import os
-import zipfile
-import tempfile
-import h5py
-import json
 import plotly.express as px
 import plotly.io as pio
+from pyproj import Transformer
 from IPython import get_ipython
 
 
@@ -275,6 +276,7 @@ def visualize_folks_on_map_from_sim(
         hover_data={"size": True}
     )
     fig.update_layout(mapbox_style="open-street-map")
-    fig.update_layout(title="Population status over time")
+    fig.update_layout(
+        title="Population status over time with marker size representing the number of people of that status at each time frame")
     fig.update_traces(marker=dict(opacity=0.7))
     fig.show()

@@ -324,7 +324,7 @@ class Simulation:
 
         return status_row, indiv_folk_rows
 
-    def run(self, hdf5_path="simulation_output.h5"):
+    def run(self, hdf5_path="simulation_output.h5", silent=False):
         """
         Run the simulation for the specified number of timesteps.
 
@@ -431,11 +431,12 @@ class Simulation:
                         row["address"]
                     ))
 
-                print("Step has been run", i)
-                print(
-                    "Status:", {
-                        k: v for k, v in status_row.items() if k not in (
-                            'timestep', 'current_event')})
+                if not silent:
+                    print("Step has been run", i)
+                    print(
+                        "Status:", {
+                            k: v for k, v in status_row.items() if k not in (
+                                'timestep', 'current_event')})
 
                 if sum(status_row[status]
                         for status in self.model.infected_statuses) == 0:

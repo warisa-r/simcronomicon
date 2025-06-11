@@ -33,4 +33,5 @@ you should read `Advanced Simulation Features: SEIQRDV Model`, to understand all
    basic_blocks
    advanced_features_movement
    advanced_features_SEIQRDV
+   create_custom_compartmental
    simcronomicon

@@ -153,10 +153,7 @@ class AbstractFolk:
         float
             Probability of at least one successful conversion.
         """
-        if contact_possibility == 0:
-            return 0
-        else:
-            return 1 - (1 - conversion_prob)**(contact_possibility)
+        return 1 - (1 - conversion_prob)**(contact_possibility)
 
     def sleep(self):
         """Reset the agent's energy and increment the status streak (called at the end of a day)."""

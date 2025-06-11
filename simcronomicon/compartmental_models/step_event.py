@@ -2,13 +2,14 @@ from enum import Enum
 import numpy as np
 import inspect
 
+
 def log_normal_mobility(distances, folk, median_distance=2000, sigma=1.0):
     """
     Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
     the human mobility pattern in this following literature and its predecessor:
     Wang, W., & Osaragi, T. (2024). Lognormal distribution of daily travel time and a utility model for its emergence. 
     Transportation Research Part A: Policy and Practice, 181, 104058. https://doi.org/10.1016/j.tra.2024.104058
-    
+
     Parameters
     ----------
     median_distance : float
@@ -28,10 +29,10 @@ def log_normal_mobility(distances, folk, median_distance=2000, sigma=1.0):
     distances = np.array(distances)
     # Avoid log(0) and negative/zero distances
     distances = np.clip(distances, 1e-6, None)
-    
+
     # Convert median distance to mu parameter: mu = ln(median)
     mu = np.log(median_distance)
-    
+
     probs = 1 / (distances * sigma * np.sqrt(2 * np.pi)) * \
         np.exp(- (np.log(distances) - mu) ** 2 / (2 * sigma ** 2))
     probs = np.nan_to_num(probs, nan=0.0, posinf=0.0, neginf=0.0)
@@ -43,7 +44,7 @@ def energy_exponential_mobility(distances, folk, distance_scale=1000):
     """
     Return probabilities proportional to exponential PDF of distances. With lam = inverse of normalized energy
     as a rate parameter - higher energy = lower decay rate = more willing to travel far.
-    
+
     Parameters
     ----------
     distance_scale : float
@@ -51,21 +52,23 @@ def energy_exponential_mobility(distances, folk, distance_scale=1000):
         Default 1000 means distances are scaled to kilometers.
     """
     distances = np.array(distances)
-    
+
     # Scale distances to control decay rate
     scaled_distances = distances / distance_scale
-    
+
     # Higher energy = lower lambda (less decay) = more willing to travel far
     # Lower energy = higher lambda (more decay) = prefer nearby locations
     energy_ratio = folk.energy / folk.max_energy  # 0 to 1
-    lam = 2.0 - energy_ratio  # This gives lambda from 1.0 (high energy) to 2.0 (no energy)
-    
+    # This gives lambda from 1.0 (high energy) to 2.0 (no energy)
+    lam = 2.0 - energy_ratio
+
     probs = lam * np.exp(-lam * scaled_distances)
 
     # Normalize probabilities to sum to 1
     probs = probs / probs.sum() if probs.sum() > 0 else np.ones_like(probs) / len(probs)
 
     return probs
+
 
 class EventType(Enum):
     """

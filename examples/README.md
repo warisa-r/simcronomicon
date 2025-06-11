@@ -22,8 +22,5 @@ This folder contains hands-on tutorials and examples demonstrating the capabilit
   - Hospital capacity constraints
   - Quarantine policy implementation
 
-### Information Spread
-- **[`rumor_spread.py`](rumor_spread.py)** - SEIsIrR model for information/rumor propagation
-  - Social network information dynamics
-  - Belief state transitions
-  - Literacy and memory effects on information spread
+### Custom Models
+- **[`custom_compartmental_model.ipynb`](custom_compartmental_model.ipynb)** - How to create a SIR model as the easiest model to implement

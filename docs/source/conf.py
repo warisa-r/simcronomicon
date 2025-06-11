@@ -6,6 +6,8 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import sys
+import os
 project = 'simcronomicon'
 copyright = '2025, Warisa Roongaraya'
 author = 'Warisa Roongaraya'
@@ -18,12 +20,9 @@ html_theme = 'sphinx_rtd_theme'
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 
 
-import os
-import sys
 sys.path.insert(0, os.path.abspath('..'))
 templates_path = ['_templates']
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------

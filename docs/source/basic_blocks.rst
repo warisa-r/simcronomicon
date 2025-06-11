@@ -95,6 +95,52 @@ This is govern by very simple block of if else condition and a touch of randomne
        
        self.energy -= 1  # Lose energy from interaction
 
+**Mathematical Foundation: Inverse Bernoulli Probability**
+
+The inverse Bernoulli function bridges the gap between continuous ODE dynamics and discrete agent interactions:
+
+.. code-block:: python
+
+   def inverse_bernoulli(self, folks_here, conversion_prob, infectious_statuses):
+       num_infectious = len([folk for folk in folks_here 
+                            if folk != self and folk.status in infectious_statuses])
+       
+       # Key formula: P(infection) = 1 - (1 - β/N)^k
+       contact_prob = conversion_prob / len(folks_here)  # β/N
+       return 1 - (1 - contact_prob) ** num_infectious  # 1 - (1 - β/N)^k
+
+**Why This Formula Works:**
+
+- **β/N**: Base transmission probability scaled by location density
+- **k**: Number of infectious people present (multiple exposure opportunities)  
+- **1 - (1 - β/N)^k**: Probability of at least one successful transmission
+
+**Real-World Examples:**
+
+.. code-block:: python
+
+   # Scenario 1: Small household (β=0.4)
+   # 1 infectious person, 5 total people
+   P = 1 - (1 - 0.4/5)^1 = 0.08 (8% infection risk)
+   
+   # Scenario 2: Crowded restaurant  
+   # 3 infectious people, 30 total people
+   P = 1 - (1 - 0.4/30)^3 = 0.039 (3.9% infection risk)
+   
+   # Scenario 3: Large event
+   # 10 infectious people, 100 total people  
+   P = 1 - (1 - 0.4/100)^10 = 0.039 (3.9% infection risk)
+
+**Key Insights:**
+
+- **Location matters**: Smaller venues (higher β/N) create higher per-contact risk
+- **Multiple contacts**: More infectious people increases overall risk non-linearly
+- **Crowd dilution**: Larger crowds can actually reduce individual infection risk
+- **ODE compatibility**: As population grows, results converge to traditional SEIR equations
+
+This mathematical foundation ensures that our agent-based results align with classical epidemiological 
+theory while capturing the spatial heterogeneity that makes simcronomicon powerful for policy analysis.
+
 Evening: Status Transitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
