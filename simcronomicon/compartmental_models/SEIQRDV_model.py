@@ -317,7 +317,7 @@ class FolkSEIQRDV(AbstractFolk):
             self.convert('Q', status_dict_t)
             self.movement_restricted = True
             self.want_vaccine = False
-            if dice > model_params.kappa:
+            if dice < model_params.kappa:
                 self.will_die = True
         elif self.status == 'S':
             # We only apply the rate of planning to get vaccination on susceptible agents
