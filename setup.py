@@ -22,19 +22,11 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
-readme = open('README.md').read()
-doclink = """
-Documentation
--------------
-
-The full documentation is at http://simcronomicon.rtfd.org."""
-history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='simcronomicon',
     version='0.1.0',
     description='A simulation for ... well ..',
-    long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Warisa Roongaraya',
     author_email='compund555@gmail.com',
     url='https://github.com/warisa-r/simcronomicon',
