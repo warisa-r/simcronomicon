@@ -175,9 +175,10 @@ def visualize_folks_on_map_from_sim(
 
     # Validate the user input time_interval
     if time_interval is not None:
-        assert isinstance(time_interval, (tuple, list)) and all(isinstance(
-            x, int) for x in time_interval), "time_interval must be a tuple or list of two integers (start, end)"
+        assert isinstance(time_interval, (tuple, list)) and len(time_interval) == 2, "time_interval must be a tuple or list of two integers (start, end)"
+        assert all(isinstance(x, int) for x in time_interval), "time_interval must contain only integers"
         assert time_interval[0] >= 0 and time_interval[1] > 0, "Timestep values in time_interval cannot be negative."
+        assert time_interval[1] >= time_interval[0], "Start timestep cannot be greater than end timestep."
 
         max_timestep_in_data = int(folk_data["timestep"].max())
 
@@ -187,8 +188,13 @@ def visualize_folks_on_map_from_sim(
                 f"Plotting will only include timesteps up to {max_timestep_in_data}."
             )
             time_interval = (time_interval[0], max_timestep_in_data)
-        assert time_interval[1] >= time_interval[0], "Start timestep cannot be greater than end timestep."
-
+            
+            # Check again after adjustment - if start > adjusted end, it's an error
+            if time_interval[0] > time_interval[1]:
+                raise ValueError(
+                    f"Start timestep {time_interval[0]} is greater than maximum available timestep {max_timestep_in_data}. "
+                    f"Please specify a start timestep <= {max_timestep_in_data}."
+                )
     # Aggregate for all (or selected) timesteps
     points = []
     for entry in folk_data:

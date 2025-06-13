@@ -29,10 +29,7 @@ nosetests.xml
 # Translations
 *.mo
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
+.vscode
 
 # Complexity
 output/*.html

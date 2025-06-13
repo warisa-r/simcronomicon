@@ -91,7 +91,7 @@ class TestSEIQRDVModel:
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test_seiqrdv.h5")
-            sim.run(hdf5_path=h5_path)
+            sim.run(hdf5_path=h5_path, silent = True)
 
             # Extract ABM results
             import h5py
@@ -167,7 +167,7 @@ class TestSEIQRDVModel:
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_test.h5")
-            sim.run(hdf5_path=h5_path)
+            sim.run(hdf5_path=h5_path, silent = True)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
@@ -191,7 +191,7 @@ class TestSEIQRDVModel:
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_cap_test.h5")
-            sim.run(hdf5_path=h5_path)
+            sim.run(hdf5_path=h5_path, silent = True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # Filter for the first step event where current_event is "greet_neighbors" and timestep == 1
@@ -233,7 +233,7 @@ class TestSEIQRDVModel:
         sim = scon.Simulation(town, model, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "quarantine_address_stable.h5")
-            sim.run(hdf5_path=h5_path)
+            sim.run(hdf5_path=h5_path, silent = True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # For each folk, track the address when they first become Q or D
