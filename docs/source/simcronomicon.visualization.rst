@@ -15,7 +15,7 @@ simcronomicon.visualization.plot\_status\_summary module
 simcronomicon.visualization.visualize\_map module
 -------------------------------------------------
 
-.. automodule:: simcronomicon.visualization.visualize_map
+.. automodule:: simcronomicon.visualization.plot_scatter
    :members:
    :show-inheritance:
    :undoc-members:

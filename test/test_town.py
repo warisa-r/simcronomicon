@@ -1,6 +1,3 @@
-"""
-Tests for `simcronomicon.town` module.
-"""
 import pytest
 import os
 import shutil

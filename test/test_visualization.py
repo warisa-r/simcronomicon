@@ -8,13 +8,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from unittest.mock import patch, MagicMock
-from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation
+from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation, create_test_town_files
 
 # Use non-interactive backend for matplotlib in tests
 matplotlib.use('Agg')
 
-
-#TODO: Uniform create_town
 class TestPlotStatusSummary:
     
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
@@ -134,7 +132,7 @@ class TestPlotStatusSummary:
                 data = [(0, 10, 5)]
                 status_group.create_dataset("summary", data=data, dtype=dt)
                 
-                # Zero population metadata
+                # Zero population metadata -> corrupt simulation!
                 metadata_group = h5file.create_group("metadata")
                 sim_metadata = {"population": 0}
                 metadata_group.create_dataset(
@@ -188,15 +186,51 @@ class TestPlotStatusSummary:
 
 
 class TestVisualizeMap:
-    
-    def create_test_town_files(self):
-        town_params = scon.TownParameters(num_pop=20, num_init_spreader=2)
-        point = (50.7753, 6.0839)
-        town = scon.Town.from_point(point, 500, town_params, file_prefix="test_viz")
-        return "test_viz.graphmlz", "test_viz_config.json", town
+    def test_set_plotly_renderer_no_ipython_nameerror(self):
+        from simcronomicon.visualization.visualization_util import _set_plotly_renderer
+        import plotly.io as pio
+        
+        # Store original renderer to restore later
+        original_renderer = pio.renderers.default
+        
+        try:
+            # Mock NameError when get_ipython is not available
+            with patch('simcronomicon.visualization.plot_scatter.get_ipython', side_effect=NameError("name 'get_ipython' is not defined")):
+                _set_plotly_renderer()
+                # Should set browser renderer when not in IPython
+                assert pio.renderers.default == "browser"
+        finally:
+            # Restore original renderer
+            pio.renderers.default = original_renderer
+
+    @pytest.mark.parametrize("shell_name,expected_renderer", [
+        ('ZMQInteractiveShell', 'notebook'),      # Jupyter notebook
+        ('TerminalInteractiveShell', 'browser'),   # IPython terminal
+        ('google.colab._shell', 'browser'),        # Google Colab
+        ('SpyderShell', 'browser'),                # Spyder IDE
+    ])
+    def test_set_plotly_renderer_different_shells(self, shell_name, expected_renderer):
+        from simcronomicon.visualization.visualization_util import _set_plotly_renderer
+        import plotly.io as pio
+        
+        # Mock different IPython shell environments
+        mock_ipython = MagicMock()
+        mock_ipython.__class__.__name__ = shell_name
+        
+        # Store original renderer
+        original_renderer = pio.renderers.default
+        
+        try:
+            # Patch get_ipython in the correct module where _set_plotly_renderer is defined
+            with patch('simcronomicon.visualization.visualization_util.get_ipython', return_value=mock_ipython):
+                _set_plotly_renderer()
+                assert pio.renderers.default == expected_renderer
+        finally:
+            # Restore original renderer
+            pio.renderers.default = original_renderer
     
     def test_visualize_place_types_from_graphml(self):
-        graphml_path, config_path, town = self.create_test_town_files()
+        graphml_path, config_path, town = create_test_town_files()
         
         try:
             # Mock plotly show to prevent actual display
@@ -229,8 +263,7 @@ class TestVisualizeMap:
             h5_path = os.path.join(tmpdir, "test_folks.h5")
             sim.run(hdf5_path=h5_path, silent=True)
             
-            # Create town graph file with specific prefix
-            graphml_path, config_path, _ = self.create_test_town_files()
+            graphml_path, config_path, _ = create_test_town_files()
             
             try:
                 # Mock plotly show to prevent actual display
@@ -272,7 +305,7 @@ class TestVisualizeMap:
             h5_path = os.path.join(tmpdir, "test_time_interval.h5")
             sim.run(hdf5_path=h5_path, silent=True)
             
-            graphml_path, config_path, _ = self.create_test_town_files()
+            graphml_path, config_path, _ = create_test_town_files()
             
             try:
                 if should_pass:
@@ -305,7 +338,7 @@ class TestVisualizeMap:
             h5_path = os.path.join(tmpdir, "test_exceed.h5")
             sim.run(hdf5_path=h5_path, silent=True)
             
-            graphml_path, config_path, _ = self.create_test_town_files()
+            graphml_path, config_path, _ = create_test_town_files()
             
             try:
                 with patch('plotly.graph_objects.Figure.show') as mock_show:
@@ -341,7 +374,7 @@ class TestVisualizeMap:
             h5_path = os.path.join(tmpdir, "test_no_data.h5")
             sim.run(hdf5_path=h5_path, silent=True)
             
-            graphml_path, config_path, _ = self.create_test_town_files()
+            graphml_path, config_path, _ = create_test_town_files()
             
             try:
                 # Request time interval with start > max timestep should raise ValueError
@@ -357,11 +390,6 @@ class TestVisualizeMap:
 
 
 class TestVisualizationUtilities:
-    def create_test_town_files(self):
-        town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
-        point = (50.7753, 6.0839)
-        town = scon.Town.from_point(point, 300, town_params, file_prefix="test_util")
-        return "test_util.graphmlz", "test_util_config.json", town
     
     def test_visualize_folks_has_data_flexible(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -376,7 +404,7 @@ class TestVisualizationUtilities:
             h5_path = os.path.join(tmpdir, "test_folks.h5")
             sim.run(hdf5_path=h5_path, silent=True)
             
-            graphml_path, config_path, _ = self.create_test_town_files()
+            graphml_path, config_path, _ = create_test_town_files()
             
             try:
                 captured_fig = None
