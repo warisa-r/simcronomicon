@@ -18,26 +18,28 @@ DEFAULT_TEST_TOWN_CONFIG = {
     'num_init_spreader': 2
 }
 
+
 def create_test_town_files(prefix="test_viz", **kwargs):
     # Merge defaults with provided overrides
     config = {**DEFAULT_TEST_TOWN_CONFIG, **kwargs}
-    
+
     town_params = scon.TownParameters(
-        num_pop=config['num_pop'], 
+        num_pop=config['num_pop'],
         num_init_spreader=config['num_init_spreader']
     )
-    
+
     town = scon.Town.from_point(
-        config['point'], 
-        config['distance'], 
-        town_params, 
+        config['point'],
+        config['distance'],
+        town_params,
         file_prefix=prefix
     )
-    
+
     graphml_path = f"{prefix}.graphmlz"
     config_path = f"{prefix}_config.json"
-    
+
     return graphml_path, config_path, town
+
 
 def get_nearest_node(town, coords):
     lat, lon = coords

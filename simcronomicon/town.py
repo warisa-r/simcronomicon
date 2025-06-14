@@ -13,6 +13,7 @@ import igraph as ig
 from tqdm import tqdm
 import osmnx as ox
 
+
 def classify_place(row):
     b = str(row.get("building", "")).lower()
     a = str(row.get("amenity", "")).lower()
@@ -390,7 +391,7 @@ class Town():
 
         with zipfile.ZipFile(graphmlz_name, "w", zipfile.ZIP_DEFLATED) as zf:
             zf.write(graphml_name, arcname="graph.graphml")
-        
+
         time.sleep(0.1)
         os.remove(graphml_name)
 
@@ -571,34 +572,36 @@ class Town():
         print("Town graph successfully built from input files!")
         return town
 
-    #TODO: Test this out
-    def save_to_files(self, file_prefix, overwrite = False):
+    # TODO: Test this out
+    def save_to_files(self, file_prefix, overwrite=False):
         """
         Save this Town object to GraphML and config files.
-        
+
         Parameters
         ----------
         file_prefix : str
             Prefix for the output files (will create {prefix}.graphmlz and {prefix}_config.json)
         overwrite : bool, default False
             Whether to overwrite existing files
-            
+
         Returns
         -------
         tuple[str, str]
             (graphml_path, config_path) - paths to the created files
         """
-        
+
         # Generate file paths
         graphml_path = f"{file_prefix}.graphmlz"
         config_path = f"{file_prefix}_config.json"
-        
+
         # Check if files exist and handle overwrite
         if not overwrite:
             if os.path.exists(graphml_path):
-                raise FileExistsError(f"GraphMLZ file already exists: {graphml_path}. Set overwrite=True to replace.")
+                raise FileExistsError(
+                    f"GraphMLZ file already exists: {graphml_path}. Set overwrite=True to replace.")
             if os.path.exists(config_path):
-                raise FileExistsError(f"Config file already exists: {config_path}. Set overwrite=True to replace.")
+                raise FileExistsError(
+                    f"Config file already exists: {config_path}. Set overwrite=True to replace.")
 
         # Save as .graphml first
         temp_graphml_path = f"{file_prefix}.graphml"
@@ -616,7 +619,7 @@ class Town():
 
         # Remove the uncompressed .graphml file
         os.remove(temp_graphml_path)
-        
+
         config_data = {
             "origin_point": [float(self.origin_point[0]), float(self.origin_point[1])],
             "dist": self.dist,
@@ -625,7 +628,7 @@ class Town():
             "found_place_types": list(self.found_place_types),
             "accommodation_nodes": list(self.accommodation_node_ids),
         }
-        
+
         # Save config file
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config_data, f, indent=2, ensure_ascii=False)

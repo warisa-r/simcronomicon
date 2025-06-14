@@ -11,6 +11,11 @@ class SEIQRDVModelParameters(AbstractModelParameters):
     compartmental model, including epidemiological rates, probabilities, and
     healthcare system constraints. It validates parameter types and ranges
     upon initialization.
+
+    Ghostine, R., Gharamti, M., Hassrouny, S., & Hoteit, I. (2021). 
+    An extended SEIR model with vaccination for forecasting the COVID-19 pandemic 
+    in Saudi Arabia using an ensemble Kalman filter. Mathematics, 9(6), 636. 
+    https://doi.org/10.3390/math9060636
     """
 
     def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity=float('inf')):
@@ -70,8 +75,6 @@ class SEIQRDVModelParameters(AbstractModelParameters):
                         f"{name} must be a positive integer, got {value}")
 
         super().__init__(max_energy)
-
-        # Adapted from https://www.mdpi.com/2227-7390/9/6/636
 
         # Rate of new population due to birth or migration etc.
         self.lam_cap = lam_cap
@@ -323,18 +326,37 @@ class FolkSEIQRDV(AbstractFolk):
             # We only apply the rate of planning to get vaccination on susceptible agents
             if model_params.alpha > dice:
                 self.want_vaccine = True
-        elif self.status == 'V':
-            # We set self.want_vaccine = False here (in sleep) instead of immediately in interact
-            # because if we set it in interact (right after conversion), it would change the order of the want_vaccine_list
-            # while we are still looping through folks at the healthcare facility in the same event.
-            # This could cause some agents to be skipped or processed incorrectly, since the list of agents wanting a vaccine
-            # would be modified during iteration. By deferring the reset of want_vaccine to the end-of-day (sleep),
-            # we ensure that all agents who wanted a vaccine at the start of the event are considered for vaccination,
-            # and the event logic remains consistent and fair.
-            self.want_vaccine = False
 
         if self.want_vaccine:
             self.priority_place_type.append('healthcare_facility')
+
+    def clear_previous_event_effect(self):
+        """
+        Reset vaccination-related attributes following step events.
+
+        This method updates vaccination-seeking behavior attributes after events
+        to maintain consistent state. It performs two key functions:
+
+        1. For vaccinated agents: Clears the 'want_vaccine' flag since 
+        they've already received vaccination
+
+        2. For other agents seeking vaccination: Ensures 'healthcare_facility'
+        remains in their priority places for the next day's movement
+
+        The method specifically handles:
+        - Resetting vaccination desire for already-vaccinated agents (status 'V')
+        - Maintaining healthcare facility priority for agents still seeking vaccination
+        (except those in recovered, dead, or quarantined states who cannot benefit)
+
+        Returns
+        -------
+        None
+        """
+        if self.want_vaccine:
+            if self.status == 'V':
+                self.want_vaccine = False
+            elif self.status not in ['R', 'D', 'Q']:
+                self.priority_place_type.append('healthcare_facility')
 
 
 class SEIQRDVModel(AbstractCompartmentalModel):

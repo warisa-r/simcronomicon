@@ -26,7 +26,7 @@ class TestSimulationInitializationGeneralized:
         sim, town, _ = setup_simulation(model_key, town_params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 spreaders = [row for row in log if row['timestep']
@@ -113,7 +113,7 @@ class TestStepEventFunctionality:
             model_key, town_params, step_events=step_events, timesteps=1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "stepevent_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # Check 'go_to_work' event
@@ -149,7 +149,7 @@ class TestSimulationUpdate:
         sim, _, _ = setup_simulation(model_key, town_params, timesteps=5)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_cons_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 for row in summary:
@@ -170,7 +170,7 @@ class TestSimulationUpdate:
             model_key, town_params, timesteps=2, override_params=params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_migration_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 step1 = summary[-2]
@@ -189,7 +189,7 @@ class TestSimulationUpdate:
             model_key, town_params, timesteps=1, override_params=params)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_death_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
@@ -215,7 +215,7 @@ class TestSimulationResults:
         ("seir", {"S": 94, "E": 2, "I": 0, "R": 4}),
         ("seisir", {"S": 0, "E": 0, "Is": 45, "Ir": 42, "R": 13}),
         ("seiqrdv", {"S": 0, "E": 0, "I": 0,
-         "Q": 0, "R": 7, "D": 13, "V": 80}),
+         "Q": 0, "R": 8, "D": 14, "V": 78}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):
         town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
@@ -225,7 +225,7 @@ class TestSimulationResults:
             model_key, town_params, step_events=step_events, timesteps=50, seed=True, override_params=None)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             self.assert_h5_structure(h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]

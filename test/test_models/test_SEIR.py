@@ -82,7 +82,7 @@ class TestSEIRModel:
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
 
             # Extract ABM results
             import h5py

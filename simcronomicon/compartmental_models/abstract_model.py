@@ -160,6 +160,21 @@ class AbstractFolk:
         self.status_step_streak += 1
         self.energy = rd.randint(0, self.max_energy)  # Reset social energy
 
+    def clear_previous_event_effect(self):
+        """
+        Reset or update agent attributes following step events.
+
+        This method is called at the end of each simulation step to clean up
+        temporary state changes caused by events and ensure the agent is
+        properly prepared for the next step. Subclasses should implement this
+        method to handle model-specific attribute resets.
+
+        Returns
+        -------
+        None
+        """
+        pass
+
 
 class AbstractCompartmentalModel:
     """

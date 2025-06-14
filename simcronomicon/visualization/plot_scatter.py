@@ -16,6 +16,7 @@ from .visualization_util import _set_plotly_renderer, _load_node_info_from_graph
 
 _set_plotly_renderer()
 
+
 def visualize_place_types_from_graphml(town_graph_path, town_config_path, colormap=None,):
     """
     Visualize nodes from a .graphmlz town graph with their classified place_type using Plotly and OpenStreetMap.
@@ -39,11 +40,11 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
 
     with open(town_config_path, 'r') as f:
         config = json.load(f)
-    
+
     # Get valid place types from config
     valid_place_types = config.get('place_types', [])
-    epsg_code = config["epsg_code"] # Also epsg code
-    
+    epsg_code = config["epsg_code"]  # Also epsg code
+
     # Default colormap
     default_colormap = {
         "accommodation": "#FFD700",      # Gold
@@ -51,13 +52,13 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
         "religious": "#9370DB",          # Medium Purple
         "education": "#00BFFF",          # Deep Sky Blue
         "workplace": "#4682B4",          # Steel Blue
-        "healthcare_facility": "#7FFFD4", # Aquamarine
+        "healthcare_facility": "#17EEA6",  # Aquamarine
     }
-    
+
     # Validate and merge colormaps
     color_map = _validate_and_merge_colormap(
-        default_colormap, 
-        colormap, 
+        default_colormap,
+        colormap,
         valid_place_types,
         "place type"
     )
@@ -75,7 +76,8 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
             "lat": lat,
             "lon": lon,
             "place_type": place_type,
-            "color": color_map.get(place_type, "#CCCCCC")  # Default gray for unknown types
+            # Default gray for unknown types
+            "color": color_map.get(place_type, "#CCCCCC")
         })
 
     df = pd.DataFrame(node_data_list)
@@ -145,8 +147,10 @@ def visualize_folks_on_map_from_sim(
 
     # Validate the user input time_interval
     if time_interval is not None:
-        assert isinstance(time_interval, (tuple, list)) and len(time_interval) == 2, "time_interval must be a tuple or list of two integers (start, end)"
-        assert all(isinstance(x, int) for x in time_interval), "time_interval must contain only integers"
+        assert isinstance(time_interval, (tuple, list)) and len(
+            time_interval) == 2, "time_interval must be a tuple or list of two integers (start, end)"
+        assert all(isinstance(x, int)
+                   for x in time_interval), "time_interval must contain only integers"
         assert time_interval[0] >= 0 and time_interval[1] > 0, "Timestep values in time_interval cannot be negative."
         assert time_interval[1] >= time_interval[0], "Start timestep cannot be greater than end timestep."
 
@@ -158,7 +162,7 @@ def visualize_folks_on_map_from_sim(
                 f"Plotting will only include timesteps up to {max_timestep_in_data}."
             )
             time_interval = (time_interval[0], max_timestep_in_data)
-            
+
             # Check again after adjustment - if start > adjusted end, it's an error
             if time_interval[0] > time_interval[1]:
                 raise ValueError(

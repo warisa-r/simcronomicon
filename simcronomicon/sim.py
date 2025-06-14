@@ -266,6 +266,10 @@ class Simulation:
         for i in range(len(self.town.town_graph.nodes)
                        ):
             self.town.town_graph.nodes[i]["folks"] = []
+
+        for person in self.folks:
+            person.clear_previous_event_effect()
+
         if step_event.event_type == EventType.SEND_HOME:
             for i in range(self.num_pop):
                 if not self.folks[i].alive:

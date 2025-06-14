@@ -91,7 +91,7 @@ class TestSEIQRDVModel:
         sim = scon.Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test_seiqrdv.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
 
             # Extract ABM results
             import h5py
@@ -162,12 +162,15 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
+        step_event = scon.StepEvent("chore", scon.FolkSEIQRDV.interact, scon.EventType.DISPERSE, 19000,
+                                    ['commercial', 'workplace', 'education', 'religious'])
+
         model = scon.SEIQRDVModel(
-            model_params, default_test_step_events(scon.FolkSEIQRDV))
+            model_params, step_event)
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
@@ -187,16 +190,16 @@ class TestSEIQRDVModel:
         )
 
         model = scon.SEIQRDVModel(
-            model_params, default_test_step_events(scon.FolkSEIQRDV))
+            model_params, step_event)
         sim = scon.Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_cap_test.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # Filter for the first step event where current_event is "greet_neighbors" and timestep == 1
                 first_step = log[(log['timestep'] == 1) & (
-                    log['event'] == b"greet_neighbors")]
+                    log['event'] == b"chore")]
                 # Count number of people at each healthcare node of interest
                 node_counts = {node: 0 for node in [26, 32, 40, 53]}
                 for row in first_step:
@@ -205,17 +208,17 @@ class TestSEIQRDVModel:
                     if row['address'] in node_counts and row['status'] != b'I':
                         node_counts[row['address']] += 1
                 expected = {26: 3, 32: 1, 40: 10, 53: 4}
-                print("Actual node counts at timestep 2, greet_neighbors:", node_counts)
+                print("Actual node counts at timestep 2, chore:", node_counts)
                 for node, count in node_counts.items():
                     assert count == expected[node], f"Node {node} has {count} people, expected {expected[node]}"
 
                 summary = h5file["status_summary/summary"][:]
-                last_step = summary[-1]
+                next_step = summary[-1]
                 # There are 4 healthcare_facility type nodes in the graph
                 # In this test case, they got allocated 3, 1, 5, 10
                 # Therefore the amount of vaccination they should get is 3 + 1 + 5 + 4 = 13
-                vaccinated_last = last_step["V"]
-                assert vaccinated_last == 13, f"Every former susceptible person should be vaccinated at timestep {last_step['timestep']}: got {vaccinated_last}, expected 14"
+                vaccinated_last = next_step["V"]
+                assert vaccinated_last == 13, f"Every former susceptible person should be vaccinated at timestep {next_step['timestep']}: got {vaccinated_last}, expected 14"
 
     def test_quarantine_and_dead_address_stable(self):
         # All agents start as spreaders, delta=1 so all go to quarantine after 1 day, no deaths or births
@@ -233,7 +236,7 @@ class TestSEIQRDVModel:
         sim = scon.Simulation(town, model, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "quarantine_address_stable.h5")
-            sim.run(hdf5_path=h5_path, silent = True)
+            sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
                 # For each folk, track the address when they first become Q or D
