@@ -6,6 +6,36 @@ import networkx as nx
 import plotly.io as pio
 from pyproj import Transformer
 from IPython import get_ipython
+import re
+import warnings
+
+def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_name):
+    # Start with default
+    result = default_map.copy()
+    
+    # If no user map, return defaults
+    if user_map is None:
+        return result
+    
+    # Check user entries
+    for key, color in user_map.items():
+        if key not in valid_keys:
+            warnings.warn(
+                f"Warning: '{key}' is not a valid {parameter_name}. "
+                f"Valid values are: {', '.join(valid_keys)}"
+            )
+        
+        # Basic validation for hex color codes
+        if not isinstance(color, str) or not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color):
+            warnings.warn(
+                f"Warning: '{color}' for {key} is not a valid hex color. "
+                "Expected format: '#RRGGBB' or '#RGB'"
+            )
+        
+        # Add to result anyway (user's responsibility)
+        result[key] = color
+    
+    return result
 
 
 def _set_plotly_renderer():

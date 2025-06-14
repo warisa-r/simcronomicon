@@ -12,11 +12,11 @@ import plotly.io as pio
 from pyproj import Transformer
 from IPython import get_ipython
 
-from .visualization_util import _set_plotly_renderer, _load_node_info_from_graphmlz
+from .visualization_util import _set_plotly_renderer, _load_node_info_from_graphmlz, _validate_and_merge_colormap
 
 _set_plotly_renderer()
 
-def visualize_place_types_from_graphml(town_graph_path, town_config_path):
+def visualize_place_types_from_graphml(town_graph_path, town_config_path, colormap=None,):
     """
     Visualize nodes from a .graphmlz town graph with their classified place_type using Plotly and OpenStreetMap.
 
@@ -37,34 +37,57 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path):
     assert town_config_path.endswith(
         ".json"), f"Expected a .json file for town_config_path, got {town_config_path}"
 
-    with open(town_config_path, "r") as f:
-        metadata = json.load(f)
-    epsg_code = metadata["epsg_code"]
+    with open(town_config_path, 'r') as f:
+        config = json.load(f)
+    
+    # Get valid place types from config
+    valid_place_types = config.get('place_types', [])
+    epsg_code = config["epsg_code"] # Also epsg code
+    
+    # Default colormap
+    default_colormap = {
+        "accommodation": "#FFD700",      # Gold
+        "commercial": "#FFA07A",         # Light Salmon
+        "religious": "#9370DB",          # Medium Purple
+        "education": "#00BFFF",          # Deep Sky Blue
+        "workplace": "#4682B4",          # Steel Blue
+        "healthcare_facility": "#7FFFD4", # Aquamarine
+    }
+    
+    # Validate and merge colormaps
+    color_map = _validate_and_merge_colormap(
+        default_colormap, 
+        colormap, 
+        valid_place_types,
+        "place type"
+    )
 
     node_positions, node_place_types = _load_node_info_from_graphmlz(
         town_graph_path, epsg_code, return_place_type=True
     )
 
     # Assemble DataFrame
-    data = []
+    node_data_list = []
     for node_id, (lat, lon) in node_positions.items():
         place_type = node_place_types.get(node_id, "unknown")
-        data.append({
+        node_data_list.append({
             "node_id": node_id,
             "lat": lat,
             "lon": lon,
-            "place_type": place_type
+            "place_type": place_type,
+            "color": color_map.get(place_type, "#CCCCCC")  # Default gray for unknown types
         })
 
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(node_data_list)
 
     fig = px.scatter_map(
         df,
         lat="lat",
         lon="lon",
         color="place_type",
-        hover_data=["node_id"],
-        zoom=14,
+        color_discrete_map=color_map,  # Use your colormap directly
+        hover_name="node_id",
+        zoom=13,
         height=700
     )
 

@@ -379,9 +379,9 @@ class Simulation:
             town_metadata = {
                 "origin_point": [
                     float(
-                        self.town.point[0]),
+                        self.town.origin_point[0]),
                     float(
-                        self.town.point[1])],
+                        self.town.origin_point[1])],
                 "dist": self.town.dist,
                 "epsg_code": self.town.epsg_code,
                 "accommodation_nodes": list(

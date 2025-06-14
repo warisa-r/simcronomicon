@@ -121,13 +121,10 @@ Study disease persistence with:
 
 ```
 simcronomicon/
-├── models/          # Disease models (SEIR, SEIQRDV)
-├── town/           # Geographic environment and agent management  
-├── folk/           # Individual agent behavior and characteristics
-├── simulation/     # Simulation engine and event handling
-├── visualization/  # Plotting and interactive visualizations
-├── analysis/       # Statistical analysis and metrics
-└── examples/       # Tutorial notebooks and example scenarios
+├── compartmental_models/          # Disease models (SEIR, SEIQRDV)
+├── town.py          # Geographic environment and agent management  
+├── sim.py          # Simulation engine and event handling
+└── visualization/  # Plotting and interactive visualizations
 ```
 
 ## Testing

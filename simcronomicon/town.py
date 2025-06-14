@@ -1,12 +1,17 @@
 import json
-import osmnx as ox
-import numpy as np
-import zipfile
+import gzip
 import os
 import tempfile
+import zipfile
+import time
+import copy
 
-from . import nx
-
+import networkx as nx
+from scipy.spatial import KDTree
+import numpy as np
+import igraph as ig
+from tqdm import tqdm
+import osmnx as ox
 
 def classify_place(row):
     b = str(row.get("building", "")).lower()
@@ -177,7 +182,7 @@ class Town():
       categorization system to specific research needs.
 
     - Town networks are automatically saved in compressed GraphMLZ format
-      along with JSON metadata for efficient storage and reuse. These output
+      along with JSON config_data for efficient storage and reuse. These output
       files serve as input files for the Simulation class, enabling rapid
       simulation setup without re-downloading or re-processing OpenStreetMap data.
 
@@ -229,7 +234,7 @@ class Town():
         self.all_place_types = all_place_types
         self.town_params = town_params
         self.classify_place_func = classify_place_func
-        self.point = point
+        self.origin_point = point
         self.dist = dist
 
         print("[2/10] Calculating EPSG code...")
@@ -238,21 +243,17 @@ class Town():
             f"326{utm_zone}" if point[0] >= 0 else f"327{utm_zone}")
 
     def _download_osm_data(self):
-        import osmnx as ox
 
         print("[3/10] Downloading OSM road network and building data...")
         G_raw = ox.graph.graph_from_point(
-            self.point, network_type="all", dist=self.dist)
+            self.origin_point, network_type="all", dist=self.dist)
         tags = {"building": True}
         self.G_projected = ox.project_graph(G_raw)
         buildings = ox.features.features_from_point(
-            self.point, tags, self.dist)
+            self.origin_point, tags, self.dist)
         self.buildings = buildings.to_crs(epsg=self.epsg_code)
 
     def _process_buildings(self):
-        from scipy.spatial import KDTree
-        import numpy as np
-
         print("[4/10] Processing building geometries...")
         is_polygon = self.buildings.geometry.geom_type.isin(
             ['Polygon', 'MultiPolygon'])
@@ -274,9 +275,6 @@ class Town():
         nx.set_node_attributes(self.G_projected, place_type_map, 'place_type')
 
     def _match_buildings_to_roads(self):
-        from scipy.spatial import KDTree
-        import numpy as np
-
         # Get projected coordinates of road nodes
         node_xy = {
             node: (data['x'], data['y'])
@@ -294,9 +292,6 @@ class Town():
         self.POI['nearest_node'] = [node_ids[i] for i in nearest_indices]
 
     def _build_spatial_network(self):
-        import igraph as ig
-        from tqdm import tqdm
-
         print("[8/10] Filtering out irrelevant nodes...")
         nodes_to_keep = [n for n, d in self.G_projected.nodes(data=True)
                          if d.get('place_type') is not None and d.get('place_type') != 'other']
@@ -310,10 +305,6 @@ class Town():
         self._compute_shortest_paths(G_filtered)
 
     def _compute_shortest_paths(self, G_filtered):
-        import igraph as ig
-        from tqdm import tqdm
-        import numpy as np
-
         # Convert G_projected to igraph for fast distance computation
         projected_nodes = list(self.G_projected.nodes)
         node_idx_map = {node: idx for idx, node in enumerate(projected_nodes)}
@@ -381,14 +372,10 @@ class Town():
             self.town_graph, 'place_type').values())
 
     def _save_files(self, file_prefix, save_dir):
-        import zipfile
-        import json
-        import os
-
-        print("[10/10] Saving a compressed graph and metadata...")
+        print("[10/10] Saving a compressed graph and config_data...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
         graphmlz_name = os.path.join(save_dir, f"{file_prefix}.graphmlz")
-        metadata_name = os.path.join(save_dir, f"{file_prefix}_config.json")
+        config_data_name = os.path.join(save_dir, f"{file_prefix}_config.json")
 
         nx.write_graphml_lxml(self.town_graph, graphml_name)
 
@@ -396,25 +383,28 @@ class Town():
             overwrite = input(
                 f"The file '{graphmlz_name}' already exists. Overwrite? (y/n): ").strip().lower()
             if overwrite != 'y':
+                os.remove(graphml_name)
                 print(
                     "Input file saving operation aborted to avoid overwriting the file. Returning town object...")
                 return
 
         with zipfile.ZipFile(graphmlz_name, "w", zipfile.ZIP_DEFLATED) as zf:
             zf.write(graphml_name, arcname="graph.graphml")
-        os.remove(graphml_name)  # Remove the unzipped file
+        
+        time.sleep(0.1)
+        os.remove(graphml_name)
 
-        # Save metadata
-        metadata = {
-            "origin_point": [float(self.point[0]), float(self.point[1])],
+        # Save config_data
+        config_data = {
+            "origin_point": [float(self.origin_point[0]), float(self.origin_point[1])],
             "dist": self.dist,
             "epsg_code": int(self.epsg_code),
             "all_place_types": self.all_place_types,
             "found_place_types": list(self.found_place_types),
             "accommodation_nodes": list(self.accommodation_node_ids),
         }
-        with open(metadata_name, "w") as f:
-            json.dump(metadata, f, indent=2)
+        with open(config_data_name, "w") as f:
+            json.dump(config_data, f, indent=2)
 
     def _finalize_town_setup(self):
         # Initialize folks list for all nodes
@@ -474,7 +464,7 @@ class Town():
         Returns
         -------
         Town
-            Town object with populated spatial network and metadata.
+            Town object with populated spatial network and config_data.
 
         Raises
         ------
@@ -495,11 +485,6 @@ class Town():
         ...     save_dir="./data"
         ... )
         """
-
-        import igraph as ig
-        from tqdm import tqdm
-        from scipy.spatial import KDTree
-
         town = cls()
         town._validate_inputs(point, classify_place_func, all_place_types)
         town._setup_basic_attributes(
@@ -516,44 +501,44 @@ class Town():
     @classmethod
     def from_files(cls, config_path, town_graph_path, town_params):
         """
-    Load a previously saved town network from compressed files.
+        Load a previously saved town network from compressed files.
 
-    Reconstructs a Town object from GraphMLZ and JSON configuration files created
-    by a previous call to from_point(). This method enables rapid simulation
-    setup without re-downloading or re-processing OpenStreetMap data.
+        Reconstructs a Town object from GraphMLZ and JSON configuration files created
+        by a previous call to from_point(). This method enables rapid simulation
+        setup without re-downloading or re-processing OpenStreetMap data.
 
-    Parameters
-    ----------
-    config_path : str
-        Path to the JSON configuration file containing town configuration and
-        place type information.
-    town_graph_path : str
-        Path to the compressed GraphMLZ file containing the spatial network.
-    town_params : TownParameters
-        Configuration object containing population size, initial spreader count,
-        and spreader node locations for the simulation.
+        Parameters
+        ----------
+        config_path : str
+            Path to the JSON configuration file containing town configuration and
+            place type information.
+        town_graph_path : str
+            Path to the compressed GraphMLZ file containing the spatial network.
+        town_params : TownParameters
+            Configuration object containing population size, initial spreader count,
+            and spreader node locations for the simulation.
 
-    Returns
-    -------
-    Town
-        Town object with loaded spatial network and metadata.
+        Returns
+        -------
+        Town
+            Town object with loaded spatial network and config_data.
 
-    Raises
-    ------
-    ValueError
-        If spreader nodes specified in town_params don't exist in the
-        loaded network.
-    FileNotFoundError
-        If the specified files don't exist.
+        Raises
+        ------
+        ValueError
+            If spreader nodes specified in town_params don't exist in the
+            loaded network.
+        FileNotFoundError
+            If the specified files don't exist.
 
-    Examples
-    --------
-    >>> town_params = TownParameters(num_pop=1000, num_init_spreader=5)
-    >>> town = Town.from_files(
-    ...     config_path="./data/aachen_dom_config.json",
-    ...     town_graph_path="./data/aachen_dom.graphmlz",
-    ...     town_params=town_params
-    ... )
+        Examples
+        --------
+        >>> town_params = TownParameters(num_pop=1000, num_init_spreader=5)
+        >>> town = Town.from_files(
+        ...     config_path="./data/aachen_dom_config.json",
+        ...     town_graph_path="./data/aachen_dom.graphmlz",
+        ...     town_params=town_params
+        ... )
     """
         # 1. Unzip the graphmlz to a temp folder
         print("[1/3] Decompressing the graphmlz file...")
@@ -564,24 +549,85 @@ class Town():
                 G = nx.read_graphml(graphml_path)
                 G = nx.relabel_nodes(G, lambda x: int(x))
 
-        # 2. Load metadata
-        print("[2/3] Load the metadata...")
+        # 2. Load config_data
+        print("[2/3] Load the config_data...")
         with open(config_path, "r") as f:
-            metadata = json.load(f)
+            config_data = json.load(f)
 
         # 3. Rebuild Town object
         print("[3/3] Rebuild the town object...")
         town = cls()
         town.town_graph = G
         town.town_params = town_params
-        town.epsg_code = metadata["epsg_code"]
-        town.point = metadata["origin_point"]
-        town.dist = metadata["dist"]
-        town.all_place_types = metadata["all_place_types"]
-        town.found_place_types = metadata["found_place_types"]
-        town.accommodation_node_ids = metadata["accommodation_nodes"]
+        town.epsg_code = config_data["epsg_code"]
+        town.origin_point = config_data["origin_point"]
+        town.dist = config_data["dist"]
+        town.all_place_types = config_data["all_place_types"]
+        town.found_place_types = config_data["found_place_types"]
+        town.accommodation_node_ids = config_data["accommodation_nodes"]
 
         town._finalize_town_setup()
 
         print("Town graph successfully built from input files!")
         return town
+
+    #TODO: Test this out
+    def save_to_files(self, file_prefix, overwrite = False):
+        """
+        Save this Town object to GraphML and config files.
+        
+        Parameters
+        ----------
+        file_prefix : str
+            Prefix for the output files (will create {prefix}.graphmlz and {prefix}_config.json)
+        overwrite : bool, default False
+            Whether to overwrite existing files
+            
+        Returns
+        -------
+        tuple[str, str]
+            (graphml_path, config_path) - paths to the created files
+        """
+        
+        # Generate file paths
+        graphml_path = f"{file_prefix}.graphmlz"
+        config_path = f"{file_prefix}_config.json"
+        
+        # Check if files exist and handle overwrite
+        if not overwrite:
+            if os.path.exists(graphml_path):
+                raise FileExistsError(f"GraphMLZ file already exists: {graphml_path}. Set overwrite=True to replace.")
+            if os.path.exists(config_path):
+                raise FileExistsError(f"Config file already exists: {config_path}. Set overwrite=True to replace.")
+
+        # Save as .graphml first
+        temp_graphml_path = f"{file_prefix}.graphml"
+        town_graph_copy = copy.deepcopy(self.town_graph)
+
+        # Since we can't save list in GraphML form, we need to remove
+        for node in town_graph_copy.nodes:
+            del town_graph_copy.nodes[node]["folks"]
+
+        nx.write_graphml(town_graph_copy, temp_graphml_path)
+
+        # Now compress it into a .zip file with .graphmlz extension
+        with zipfile.ZipFile(graphml_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.write(temp_graphml_path, arcname="graph.graphml")
+
+        # Remove the uncompressed .graphml file
+        os.remove(temp_graphml_path)
+        
+        config_data = {
+            "origin_point": [float(self.origin_point[0]), float(self.origin_point[1])],
+            "dist": self.dist,
+            "epsg_code": int(self.epsg_code),
+            "all_place_types": self.all_place_types,
+            "found_place_types": list(self.found_place_types),
+            "accommodation_nodes": list(self.accommodation_node_ids),
+        }
+        
+        # Save config file
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f, indent=2, ensure_ascii=False)
+
+        return graphml_path, config_path
