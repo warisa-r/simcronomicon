@@ -4,6 +4,7 @@ import h5py
 import tempfile
 import os
 import json
+import warnings
 import matplotlib
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -184,6 +185,118 @@ class TestPlotStatusSummary:
                 
                 plt.close(fig)  # Clean up
 
+class TestValidateAndMergeColormap:
+    def test_basic_merge(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
+        user_map = {"type2": "#0000FF", "type3": "#FFFF00"}
+        valid_keys = ["type1", "type2", "type3", "type4"]
+        
+        result = _validate_and_merge_colormap(default_map, user_map, valid_keys, "test param")
+        
+        # User values should override defaults, and new values should be added
+        assert result == {"type1": "#FF0000", "type2": "#0000FF", "type3": "#FFFF00"}
+    
+    def test_none_user_map(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
+        
+        result = _validate_and_merge_colormap(default_map, None, ["type1", "type2"], "test param")
+        
+        # Should return default map unchanged
+        assert result == default_map
+        assert result is not default_map  # Should be a copy, not the same object
+    
+    def test_empty_user_map(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
+        
+        result = _validate_and_merge_colormap(default_map, {}, ["type1", "type2"], "test param")
+        
+        # Should return default map unchanged
+        assert result == default_map
+    
+    def test_invalid_keys_warning(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
+        user_map = {"invalid_key": "#0000FF", "type1": "#FFFFFF"}
+        valid_keys = ["type1", "type2"]
+        
+        with pytest.warns(UserWarning, match=r"Warning: 'invalid_key' is not a valid test param"):
+            result = _validate_and_merge_colormap(default_map, user_map, valid_keys, "test param")
+        
+        # Invalid key should still be included in the result
+        assert result == {"type1": "#FFFFFF", "type2": "#00FF00", "invalid_key": "#0000FF"}
+    
+    def test_invalid_color_format_warning(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
+        user_map = {"type1": "not-a-color", "type2": 12345, "type3": "#FFFFFF"}
+        valid_keys = ["type1", "type2", "type3"]
+        
+        with pytest.warns(UserWarning) as record:
+            result = _validate_and_merge_colormap(default_map, user_map, valid_keys, "test param")
+        
+        # Should have 2 warnings for invalid colors
+        assert len(record) == 2
+        assert any("'not-a-color' for type1 is not a valid hex color" in str(w.message) for w in record)
+        assert any("'12345' for type2 is not a valid hex color" in str(w.message) for w in record)
+        
+        # Invalid colors should still be included in the result
+        assert result == {"type1": "not-a-color", "type2": 12345, "type3": "#FFFFFF"}
+    
+    def test_multiple_warnings(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
+        user_map = {"invalid_key": "bad-color", "type1": "#FFFFFF"}
+        valid_keys = ["type1", "type2"]
+        
+        with pytest.warns() as record:
+            result = _validate_and_merge_colormap(default_map, user_map, valid_keys, "test param")
+        
+        # Should have 2 warnings - one for invalid key, one for invalid color
+        assert len(record) == 2
+    
+    def test_valid_color_formats(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000"}
+        user_map = {
+            "type1": "#FFF",        # 3-digit hex
+            "type2": "#123456",     # 6-digit hex
+            "type3": "#abcdef",     # lowercase hex
+            "type4": "#ABCDEF"      # uppercase hex
+        }
+        valid_keys = ["type1", "type2", "type3", "type4"]
+        
+        # Should not raise any warnings for valid color formats
+        with warnings.catch_warnings(record=True) as record:
+            result = _validate_and_merge_colormap(default_map, user_map, valid_keys, "test param")
+            assert len(record) == 0
+        
+        # All valid colors should be in the result
+        assert result == user_map
+    
+    def test_case_sensitivity(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"Type1": "#FF0000", "type2": "#00FF00"}
+        user_map = {"type1": "#0000FF"}  # Note: lowercase vs uppercase
+        valid_keys = ["Type1", "type2"]
+        
+        with pytest.warns(UserWarning, match=r"Warning: 'type1' is not a valid test param"):
+            result = _validate_and_merge_colormap(default_map, user_map, valid_keys, "test param")
+        
+        # Original key should be preserved, and new key added
+        assert result == {"Type1": "#FF0000", "type2": "#00FF00", "type1": "#0000FF"}
+    
+    def test_parameter_name_in_warning(self):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+        default_map = {"type1": "#FF0000"}
+        user_map = {"invalid": "#00FF00"}
+        valid_keys = ["type1"]
+        param_name = "custom parameter"
+        
+        with pytest.warns(UserWarning, match=r"Warning: 'invalid' is not a valid custom parameter"):
+            _validate_and_merge_colormap(default_map, user_map, valid_keys, param_name)
 
 class TestVisualizeMap:
     def test_set_plotly_renderer_no_ipython_nameerror(self):
