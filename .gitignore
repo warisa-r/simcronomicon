@@ -43,6 +43,8 @@ docs/_build
 #*.graphml
 *.csv
 *.h5
+*.json
+*.graphmlz
 
 cache
 .venv

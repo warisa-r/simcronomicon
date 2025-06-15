@@ -225,7 +225,7 @@ class TestSimulationResults:
             model_key, town_params, step_events=step_events, timesteps=50, seed=True, override_params=None)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "out.h5")
-            sim.run(hdf5_path=h5_path, silent=True)
+            sim.run(hdf5_path=h5_path, silent=False)
             self.assert_h5_structure(h5_path)
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]

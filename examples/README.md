@@ -17,7 +17,12 @@ This folder contains hands-on tutorials and examples demonstrating the capabilit
   - Explore different mobility models (log-normal, exponential)
 
 ### Specialized Models
-- **[`standard_disease_spread_vaccination.py`](disease_spread_vaccation_and_quarantine.ipynb)** - SEIQRDV model with vaccination strategies
+- **[`disease_spread_vaccation_and_quarantine.ipynb`](disease_spread_vaccation_and_quarantine.ipynb)** - SEIQRDV model with vaccination strategies
+  - Vaccination campaign modeling
+  - Hospital capacity constraints
+  - Quarantine policy implementation
+
+- **[`town_manipulation.ipynb`](town_manipulation.ipynb)** - SEIQRDV model with vaccination strategies
   - Vaccination campaign modeling
   - Hospital capacity constraints
   - Quarantine policy implementation
