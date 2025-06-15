@@ -33,7 +33,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -c conda-forge pytest pytest-cov autopep8 sphinx sphinx-rtd-theme ghp-import
-          pip install -e .
+          pip install .
           
       # Run tests
       - name: Run tests with coverage

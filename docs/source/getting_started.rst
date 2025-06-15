@@ -11,13 +11,26 @@ so that you might have a better grasp of how epidemic agent-based modelling look
 Installation
 ------------
 
-Install simcronomicon and its dependencies by cloning the repository and install locally:
+We recommend using conda to install simcronomicon and its dependencies:
 
 .. code-block:: bash
 
-   git clone https://github.com/yourusername/simcronomicon.git
+   # Clone the repository (if you haven't already)
+   git clone https://github.com/warisa-r/simcronomicon.git
    cd simcronomicon
-   pip install -e .
+
+   # Create and activate the conda environment
+   conda env create -f environment.yml
+   conda activate simcronomicon-env
+
+   pip install .
+
+   # Verify the installation
+   python -c "import simcronomicon; print(simcronomicon.__version__)"
+
+.. note::
+   This will install all dependencies specified in ``environment.yml`` and set up your environment for development and testing.
+   If you only want to use the software (not develop), you can skip the ``pip install -e .`` step.
 
 Basic Workflow
 --------------
