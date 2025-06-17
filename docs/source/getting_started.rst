@@ -28,10 +28,6 @@ We recommend using conda to install simcronomicon and its dependencies:
    # Verify the installation
    python -c "import simcronomicon; print(simcronomicon.__version__)"
 
-.. note::
-   This will install all dependencies specified in ``environment.yml`` and set up your environment for development and testing.
-   If you only want to use the software (not develop), you can skip the ``pip install -e .`` step.
-
 Basic Workflow
 --------------
 

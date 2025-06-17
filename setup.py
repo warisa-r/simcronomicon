@@ -2,10 +2,7 @@ import os
 import sys
 import yaml
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 def get_conda_pip_dependencies():
     with open('environment.yml') as f:
@@ -37,9 +34,7 @@ setup(
     author='Warisa Roongaraya',
     author_email='compund555@gmail.com',
     url='https://github.com/warisa-r/simcronomicon',
-    packages=[
-        'simcronomicon',
-    ],
+    packages=find_packages(),  # This will find and include all packages
     package_dir={'simcronomicon': 'simcronomicon'},
     include_package_data=True,
     install_requires=get_conda_pip_dependencies(),
