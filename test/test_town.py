@@ -4,8 +4,6 @@ import shutil
 import pyproj
 import numpy as np
 import tempfile
-from scipy.spatial import KDTree
-from pyproj import Transformer
 
 # Import all the necessary packages for testing
 import networkx as nx
@@ -27,7 +25,6 @@ class TestTown:
         self._cleanup_all_files()
 
     def _cleanup_all_files(self):
-        """Centralized cleanup for all test artifacts."""
         # OSMnx cache cleanup
         cache_dirs = [
             os.path.expanduser("~/.osmnx"),
@@ -67,6 +64,7 @@ class TestTown:
         # Case 2: custom classify_place_func but all_place_types is None
         def dummy_classify(row):
             return "workplace"
+        
         with pytest.raises(ValueError, match="If you pass a custom `classify_place_func`, you must also provide `all_place_types`."):
             scon.Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
@@ -278,3 +276,70 @@ class TestTown:
                 f"Distance to Theresienkirche deviates by more than {tolerance}m (got {dist_theresienkirche_2000:.2f}m)"
             assert abs(dist_hausarzt_2000 - expected_hausarzt) < tolerance, \
                 f"Distance to Hausarzt deviates by more than {tolerance}m (got {dist_hausarzt_2000:.2f}m)"
+            
+    def test_save_to_files(self):
+        # Create a temporary directory for the test
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a town using from_point
+            original_town = scon.Town.from_point(
+                POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix="original", save_dir=tmpdir)
+            
+            # Modify some node attributes (first accommodation node)
+            first_node = original_town.accommodation_node_ids[0]
+            original_town.town_graph.nodes[first_node]["custom_node_attr"] = 123
+            original_town.town_graph.nodes[first_node]["modified"] = True
+            
+            # Swap place types of two nodes if we have different types
+            place_types = list(original_town.found_place_types)
+            if len(place_types) >= 2 and "accommodation" in place_types:
+                other_type = next(pt for pt in place_types if pt != "accommodation")
+                
+                # Find one node of each type
+                acc_node = original_town.accommodation_node_ids[0]
+                other_nodes = [n for n, d in original_town.town_graph.nodes(data=True) 
+                            if d.get("place_type") == other_type]
+                
+                if other_nodes:
+                    other_node = other_nodes[0]
+                    # Swap place types
+                    original_place_types = {
+                        acc_node: original_town.town_graph.nodes[acc_node]["place_type"],
+                        other_node: original_town.town_graph.nodes[other_node]["place_type"]
+                    }
+                    original_town.town_graph.nodes[acc_node]["place_type"] = other_type
+                    original_town.town_graph.nodes[other_node]["place_type"] = "accommodation"
+                    
+                    # Update accommodation_node_ids
+                    original_town.accommodation_node_ids.remove(acc_node)
+                    original_town.accommodation_node_ids.append(other_node)
+            
+            # Set a specific file prefix for save_to_files
+            custom_prefix = os.path.join(tmpdir, "custom_town")
+            
+            # Save the town using save_to_files
+            graphml_path, config_path = original_town.save_to_files(custom_prefix)
+            
+            # Test loading the saved files
+            loaded_town = scon.Town.from_files(
+                config_path=config_path,
+                town_graph_path=graphml_path,
+                town_params=DEFAULT_TOWN_PARAMS
+            )
+            
+            # Verify basic structure
+            assert len(loaded_town.town_graph.nodes) == len(original_town.town_graph.nodes)
+            assert len(loaded_town.town_graph.edges) == len(original_town.town_graph.edges)
+        
+            
+            # Check node attribute modifications were preserved
+            assert "custom_node_attr" in loaded_town.town_graph.nodes[first_node]
+            assert loaded_town.town_graph.nodes[first_node]["custom_node_attr"]== 123
+            assert loaded_town.town_graph.nodes[first_node]["modified"] == True
+            
+            # Check place type swapping if we did it
+            if 'original_place_types' in locals():
+                for node, original_type in original_place_types.items():
+                    assert loaded_town.town_graph.nodes[node]["place_type"] != original_type
+            
+            # Verify accommodation_node_ids reflect our changes
+            assert set(loaded_town.accommodation_node_ids) == set(original_town.accommodation_node_ids)

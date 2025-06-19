@@ -12,7 +12,7 @@ simcronomicon.visualization.plot\_status\_summary module
    :show-inheritance:
    :undoc-members:
 
-simcronomicon.visualization.visualize\_map module
+simcronomicon.visualization.plot_scatter module
 -------------------------------------------------
 
 .. automodule:: simcronomicon.visualization.plot_scatter

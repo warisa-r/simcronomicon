@@ -34,22 +34,37 @@
 
 ## Quick Start
 
-### Installation
+## Installation with conda
 
-You can install the package by running:
+1. Clone the repository (if you haven't already):
 
 ```bash
 git clone https://github.com/warisa-r/simcronomicon.git
 cd simcronomicon
+```
+
+2. Create and activate the conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate simcronomicon-env
+```
+
+3. Install the package normally, use:
+```bash
+pip install .
+```
+
+Install the package in development mode (if you want to edit the code):
+
+```bash
 pip install -e .
 ```
 
-### Dependencies
+4. Verify the installation:
 
-You can install all the dependency by running:
-
-```bash
-pip install -r requirements.txt
+```bash 
+python -c "import simcronomicon; print(simcronomicon.__version__)"
 ```
 
 ### Basic Usage
