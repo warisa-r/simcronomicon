@@ -248,8 +248,8 @@ class Simulation:
                         new_node = np.random.choice(candidates, p=probs)
                     else:
                         new_node = rd.choice(candidates)
-                # Update person's address
-                person.address = new_node
+                    # Update person's address
+                    person.address = new_node
             self.town.town_graph.nodes[person.address]["folks"].append(person)
 
         # Reset active_node_indices and update consistently
