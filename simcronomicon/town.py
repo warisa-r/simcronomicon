@@ -53,6 +53,73 @@ def classify_place(row):
 
 
 class TownParameters():
+    """
+    Parameters for town network initialization and agent placement.
+
+    Validates and stores population size, initial spreader count, and optional
+    spreader node locations for the simulation set up.
+
+    Parameters
+    ----------
+    num_pop : int
+        Total population size for the simulation. Must be a positive integer (> 0).
+        Determines the number of agents that will be created and distributed across
+        accommodation nodes in the town network.
+        
+    num_init_spreader : int
+        Number of initial disease spreaders at simulation start. Must be a positive
+        integer (> 0) and cannot exceed num_pop. These agents begin the simulation
+        in an infected state to seed the epidemic spread.
+        
+    spreader_initial_nodes : list of int, optional
+        Specific node IDs where initial spreaders should be placed. This list can be:
+        
+        - **Empty** (default): All spreaders will be randomly assigned to accommodation nodes
+        - **Partial**: Contains fewer nodes than num_init_spreader; remaining spreaders 
+          will be randomly assigned to accommodation nodes
+        - **Complete**: Contains exactly num_init_spreader nodes for full control
+        - **With duplicates**: Same node ID can appear multiple times to place multiple 
+          spreaders at the same location
+        
+        Node IDs must be integers or convertible to integers. The list length must not
+        exceed num_init_spreader (len(spreader_initial_nodes) ≤ num_init_spreader).
+
+    Attributes
+    ----------
+    num_pop : int
+        Validated total population size.
+    num_init_spreader : int
+        Validated number of initial spreaders.
+    spreader_initial_nodes : list
+        Validated list of spreader node locations.
+
+    Raises
+    ------
+    TypeError
+        If parameters are not of expected types or nodes not convertible to int.
+    ValueError
+        If values are non-positive, spreaders exceed population, or too many
+        node locations specified.
+
+    Examples
+    --------
+    >>> # Basic configuration
+    >>> params = TownParameters(num_pop=1000, num_init_spreader=10)
+    
+    >>> # With specific spreader locations
+    >>> params = TownParameters(
+    ...     num_pop=1000, 
+    ...     num_init_spreader=3, 
+    ...     spreader_initial_nodes=[5, 12, 47]
+    ... )
+    
+    >>> # Partial specification with duplicates
+    >>> params = TownParameters(
+    ...     num_pop=1000, 
+    ...     num_init_spreader=5, 
+    ...     spreader_initial_nodes=[10, 10, 25]  # 3 of 5 spreaders specified
+    ... )
+    """
     def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes=[]):
 
         print(num_pop)

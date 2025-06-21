@@ -122,15 +122,12 @@ Assess quarantine effectiveness:
 ### Long-term Endemic Patterns
 Study disease persistence with:
 - **Population turnover**: Immigration and natural deaths
-- **Seasonal patterns**: Time-varying transmission rates
-- **Intervention sustainability**: Long-term vaccination maintenance
 
 ## Documentation
 
 - **[Full Documentation](https://warisa-r.github.io/simcronomicon/)**: Complete API reference and tutorials
 - **[Tutorial Notebooks](examples/)**: Step-by-step examples for common use cases
 - **[Model Parameters Guide](docs/models.md)**: Detailed parameter explanations
-- **[Data Format Specification](docs/data_formats.md)**: Input/output file formats
 
 ## Architecture
 
