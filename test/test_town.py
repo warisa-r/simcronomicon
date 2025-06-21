@@ -5,8 +5,6 @@ import pyproj
 import numpy as np
 import tempfile
 
-# Import all the necessary packages for testing
-import networkx as nx
 import osmnx as ox
 
 import simcronomicon as scon
@@ -15,6 +13,54 @@ from test.test_helper import (
     get_nearest_node, get_shortest_path_length, DEFAULT_TOWN_PARAMS
 )
 
+class TestTownParameters:
+    
+    @pytest.mark.parametrize(
+        "num_pop, num_init_spreader, spreader_nodes, expected_nodes",
+        [
+            (1000, 10, [], []),
+            (1000, 3, [5, 12, 47], [5, 12, 47]),
+            (1000, 5, [10, 25], [10, 25]),  # Partial specification
+            (100, 4, [7, 7, 15, 15], [7, 7, 15, 15]),  # Duplicates
+            (100, 2, ["1", "2"], ["1", "2"]),  # String convertible
+            (100, 3, [1, "2", 3.0], [1, "2", 3.0]),  # Mixed types
+            (100, 2, [-1, -5], [-1, -5]),  # Negative node IDs
+        ]
+    )
+    def test_valid_parameters(self, num_pop, num_init_spreader, spreader_nodes, expected_nodes):
+        params = scon.TownParameters(
+            num_pop=num_pop,
+            num_init_spreader=num_init_spreader,
+            spreader_initial_nodes=spreader_nodes
+        )
+        assert params.num_pop == num_pop
+        assert params.num_init_spreader == num_init_spreader
+        assert params.spreader_initial_nodes == expected_nodes
+
+    @pytest.mark.parametrize(
+        "kwargs, error, match",
+        [
+            # Type Errors
+            ({"num_pop": "1000", "num_init_spreader": 10}, TypeError, "num_pop must be an integer"),
+            ({"num_pop": 1000, "num_init_spreader": 10.5}, TypeError, "num_init_spreader must be an integer"),
+            ({"num_pop": 1000, "num_init_spreader": 2, "spreader_initial_nodes": (1, 2)}, TypeError, "spreader_initial_nodes must be a list"),
+
+            # Value Errors for num_pop
+            ({"num_pop": 0, "num_init_spreader": 1}, ValueError, "num_pop must be positive, got 0"),
+            ({"num_pop": -5, "num_init_spreader": 1}, ValueError, "num_pop must be positive, got -5"),
+
+            # Value Errors for num_init_spreader - FIXED: Match actual error messages
+            ({"num_pop": 100, "num_init_spreader": 0}, ValueError, "num_init_spreader must be positive, got 0"),
+            ({"num_pop": 100, "num_init_spreader": -1}, ValueError, "num_init_spreader must be positive, got -1"),
+            ({"num_pop": 100, "num_init_spreader": 150}, ValueError, "num_init_spreader \\(150\\) cannot exceed num_pop \\(100\\)"),
+            
+            # Too many spreader locations - 4 locations for 2 spreaders should fail
+            ({"num_pop": 100, "num_init_spreader": 2, "spreader_initial_nodes": [1, 2, 3, 4]}, ValueError, "There cannot be more locations"),
+        ]
+    )
+    def test_invalid_parameters(self, kwargs, error, match):
+        with pytest.raises(error, match=match):
+            scon.TownParameters(**kwargs)
 
 class TestTown:
     def setup_method(self):
@@ -43,14 +89,6 @@ class TestTown:
             if os.path.exists(filename):
                 os.remove(filename)
                 print(f"Cleaned up: {filename}")
-
-    def teardown_method(self):
-        # Repeat cleanup after each test
-        cache_dir = os.path.expanduser("~/.osmnx")
-        if os.path.exists(cache_dir):
-            shutil.rmtree(cache_dir)
-        if os.path.exists("cache"):
-            shutil.rmtree("cache")
 
     def test_town_invalid_inputs(self):
         # Case 1: classify_place_func is not a function

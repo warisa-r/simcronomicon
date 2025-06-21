@@ -35,24 +35,6 @@ class TestSimulationInitializationGeneralized:
                 spreader_addresses = [row['address'] for row in spreaders]
                 assert sorted(spreader_addresses) == sorted(spreader_nodes)
 
-    @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
-    def test_spreader_initial_nodes_assertion(self, model_key):
-        _, model_params_class, _, _, config_path, graphmlz_path = MODEL_MATRIX[model_key]
-        # Case 1: More initial spreader nodes than num_init_spreader (should raise)
-        town_params = scon.TownParameters(num_pop=100, num_init_spreader=2)
-        town_params.spreader_initial_nodes = [1, 2, 3]
-        model_params = model_params_class(**MODEL_MATRIX[model_key][3])
-        model = MODEL_MATRIX[model_key][0](model_params)
-        town = scon.Town.from_files(config_path, graphmlz_path, town_params)
-        with pytest.raises(AssertionError):
-            model.initialize_sim_population(town)
-        # Case 2: num_init_spreader is more than the number of given nodes (should pass)
-        town_params = scon.TownParameters(num_pop=100, num_init_spreader=5)
-        town_params.spreader_initial_nodes = [1, 2]
-        model = MODEL_MATRIX[model_key][0](model_params)
-        town = scon.Town.from_files(config_path, graphmlz_path, town_params)
-        model.initialize_sim_population(town)
-
     @pytest.mark.parametrize("model_key", ["seiqrdv"])
     def test_missing_required_place_type(self, model_key):
         # Use test data that does NOT contain 'healthcare_facility' in found_place_types

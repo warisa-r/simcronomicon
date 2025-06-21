@@ -345,19 +345,12 @@ class AbstractCompartmentalModel:
             - household_node_indices : set - Empty set for household node tracking
             - assignments : list - Empty list for agent assignments
 
-        Raises
-        ------
-        AssertionError
-            If there are more spreader locations than total number of spreaders.
-
         Notes
         -----
         This method only initializes data structures and validates configuration.
         Actual agent creation and placement is handled by the Simulation class.
         """
         num_init_spreader_nodes = len(town.town_params.spreader_initial_nodes)
-        assert town.town_params.num_init_spreader >= num_init_spreader_nodes, \
-            "There cannot be more locations of the initial spreaders than the number of initial spreaders"
 
         num_init_spreader = town.town_params.num_init_spreader
         num_pop = town.town_params.num_pop

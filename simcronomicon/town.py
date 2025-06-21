@@ -53,12 +53,34 @@ def classify_place(row):
 
 
 class TownParameters():
-    # TODO: Throw error here when appropriate
     def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes=[]):
+
+        print(num_pop)
+        # Validate num_pop
+        if not isinstance(num_pop, int):
+            raise TypeError(f"num_pop must be an integer, got {type(num_pop).__name__}")
+        if num_pop <= 0:
+            raise ValueError(f"num_pop must be positive, got {num_pop}")
+        
+        # Validate num_init_spreader
+        if not isinstance(num_init_spreader, int):
+            raise TypeError(f"num_init_spreader must be an integer, got {type(num_init_spreader).__name__}")
+        if num_init_spreader <= 0:
+            raise ValueError(f"num_init_spreader must be positive, got {num_init_spreader}")
+        if num_init_spreader > num_pop:
+            raise ValueError(f"num_init_spreader ({num_init_spreader}) cannot exceed num_pop ({num_pop})")
+        
+        # Validate spreader_initial_nodes
+        if not isinstance(spreader_initial_nodes, list):
+            raise TypeError(f"spreader_initial_nodes must be a list, got {type(spreader_initial_nodes).__name__}")
+        
+        if num_init_spreader < len(spreader_initial_nodes):
+            raise ValueError("There cannot be more locations of the initial spreaders than the number of initial spreaders")
+                
+        # Store validated values
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
         self.spreader_initial_nodes = spreader_initial_nodes
-
 
 class Town():
     """
