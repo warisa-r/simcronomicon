@@ -9,6 +9,7 @@ from simcronomicon import Town, TownParameters, Simulation
 from simcronomicon.compartmental_models import StepEvent, EventType
 from simcronomicon.compartmental_models.SEIsIrR_model import SEIsIrRModel, SEIsIrRModelParameters, FolkSEIsIrR
 
+
 class TestSEIsIrRModel:
     def test_invalid_seisir_model_parameters(self):
         # gamma not a float or int

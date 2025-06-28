@@ -10,6 +10,7 @@ from simcronomicon import Town, TownParameters, Simulation
 from simcronomicon.compartmental_models import StepEvent, EventType
 from simcronomicon.compartmental_models.SEIQRDV_model import SEIQRDVModel, SEIQRDVModelParameters, FolkSEIQRDV
 
+
 class TestSEIQRDVModel:
     @classmethod
     def setup_class(cls):
@@ -165,7 +166,7 @@ class TestSEIQRDVModel:
         )
 
         step_event = StepEvent("chore", FolkSEIQRDV.interact, EventType.DISPERSE, 19000,
-                                    ['commercial', 'workplace', 'education', 'religious'])
+                               ['commercial', 'workplace', 'education', 'religious'])
 
         model = SEIQRDVModel(
             model_params, step_event)

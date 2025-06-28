@@ -6,9 +6,9 @@ import h5py
 import pandas as pd
 import plotly.express as px
 
-from .visualization_util import (_load_node_info_from_graphmlz, 
-                                _set_plotly_renderer, 
-                                _validate_and_merge_colormap)
+from .visualization_util import (_load_node_info_from_graphmlz,
+                                 _set_plotly_renderer,
+                                 _validate_and_merge_colormap)
 _set_plotly_renderer()
 
 

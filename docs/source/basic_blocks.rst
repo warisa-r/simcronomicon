@@ -2,6 +2,8 @@ Understanding Agent Behavior and Simulation Flow
 ================================================
 
 This section explains the fundamental building blocks of how individual agents work and how multiple agents interact in the simulation environment. Understanding these core concepts will help you grasp the advanced features covered in later tutorials.
+We will go through the code in the library so that you can understand better how this library works!
+But if you are not planning to write a custom model of your own, it might not be necessary to go through this section!
 
 The Agent (Folk) Architecture
 -----------------------------

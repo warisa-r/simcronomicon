@@ -65,22 +65,22 @@ class TownParameters():
         Total population size for the simulation. Must be a positive integer (> 0).
         Determines the number of agents that will be created and distributed across
         accommodation nodes in the town network.
-        
+
     num_init_spreader : int
         Number of initial disease spreaders at simulation start. Must be a positive
         integer (> 0) and cannot exceed num_pop. These agents begin the simulation
         in an infected state to seed the epidemic spread.
-        
+
     spreader_initial_nodes : list of int, optional
         Specific node IDs where initial spreaders should be placed. This list can be:
-        
+
         - **Empty** (default): All spreaders will be randomly assigned to accommodation nodes
         - **Partial**: Contains fewer nodes than num_init_spreader; remaining spreaders 
           will be randomly assigned to accommodation nodes
         - **Complete**: Contains exactly num_init_spreader nodes for full control
         - **With duplicates**: Same node ID can appear multiple times to place multiple 
           spreaders at the same location
-        
+
         Node IDs must be integers or convertible to integers. The list length must not
         exceed num_init_spreader (len(spreader_initial_nodes) ≤ num_init_spreader).
 
@@ -105,14 +105,14 @@ class TownParameters():
     --------
     >>> # Basic configuration
     >>> params = TownParameters(num_pop=1000, num_init_spreader=10)
-    
+
     >>> # With specific spreader locations
     >>> params = TownParameters(
     ...     num_pop=1000, 
     ...     num_init_spreader=3, 
     ...     spreader_initial_nodes=[5, 12, 47]
     ... )
-    
+
     >>> # Partial specification with duplicates
     >>> params = TownParameters(
     ...     num_pop=1000, 
@@ -120,32 +120,40 @@ class TownParameters():
     ...     spreader_initial_nodes=[10, 10, 25]  # 3 of 5 spreaders specified
     ... )
     """
+
     def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes=[]):
         # Validate num_pop
         if not isinstance(num_pop, int):
-            raise TypeError(f"num_pop must be an integer, got {type(num_pop).__name__}")
+            raise TypeError(
+                f"num_pop must be an integer, got {type(num_pop).__name__}")
         if num_pop <= 0:
             raise ValueError(f"num_pop must be positive, got {num_pop}")
-        
+
         # Validate num_init_spreader
         if not isinstance(num_init_spreader, int):
-            raise TypeError(f"num_init_spreader must be an integer, got {type(num_init_spreader).__name__}")
+            raise TypeError(
+                f"num_init_spreader must be an integer, got {type(num_init_spreader).__name__}")
         if num_init_spreader <= 0:
-            raise ValueError(f"num_init_spreader must be positive, got {num_init_spreader}")
+            raise ValueError(
+                f"num_init_spreader must be positive, got {num_init_spreader}")
         if num_init_spreader > num_pop:
-            raise ValueError(f"num_init_spreader ({num_init_spreader}) cannot exceed num_pop ({num_pop})")
-        
+            raise ValueError(
+                f"num_init_spreader ({num_init_spreader}) cannot exceed num_pop ({num_pop})")
+
         # Validate spreader_initial_nodes
         if not isinstance(spreader_initial_nodes, list):
-            raise TypeError(f"spreader_initial_nodes must be a list, got {type(spreader_initial_nodes).__name__}")
-        
+            raise TypeError(
+                f"spreader_initial_nodes must be a list, got {type(spreader_initial_nodes).__name__}")
+
         if num_init_spreader < len(spreader_initial_nodes):
-            raise ValueError("There cannot be more locations of the initial spreaders than the number of initial spreaders")
-                
+            raise ValueError(
+                "There cannot be more locations of the initial spreaders than the number of initial spreaders")
+
         # Store validated values
         self.num_init_spreader = num_init_spreader
         self.num_pop = num_pop
         self.spreader_initial_nodes = spreader_initial_nodes
+
 
 class Town():
     """

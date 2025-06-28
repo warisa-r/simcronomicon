@@ -21,20 +21,36 @@ Basic Step Event Creation
 
 .. code-block:: python
 
-   import simcronomicon as scon
+   from simcronomicon import Simulation, Town, TownParameters
+
+    from simcronomicon.compartmental_models import (
+        SEIRModel, SEIRModelParameters, FolkSEIR,
+        StepEvent, EventType,
+    )
+
+    from simcronomicon.visualization import (
+        plot_status_summary_from_hdf5,
+        visualize_place_types_from_graphml,
+        visualize_folks_on_map_from_sim
+    )
+
+    from simcronomicon.compartmental_models import (
+        log_normal_mobility,
+        energy_exponential_mobility
+    )
 
    # Simple end-of-day event (SEND_HOME)
    # This event exists by default at the end of step_events list without your input.
-   sleep_event = scon.StepEvent(
+   sleep_event = StepEvent(
        name="end_day",
-       folk_action=scon.FolkSEIR.sleep
+       folk_action=FolkSEIR.sleep
    )
 
    # Basic movement event (DISPERSE)
-   work_event = scon.StepEvent(
+   work_event = StepEvent(
        name="work_commute",
-       folk_action=scon.FolkSEIR.interact,
-       event_type=scon.EventType.DISPERSE,
+       folk_action=FolkSEIR.interact,
+       event_type=EventType.DISPERSE,
        max_distance=15000,  # 15km max travel
        place_types=['workplace']
    )
@@ -55,15 +71,15 @@ The simcronomicon framework automatically appends an "end_day" event to your ste
 
    # DON'T do this - the end_day event is added automatically!
    step_events = [
-       scon.StepEvent("work", scon.FolkSEIR.interact, ...),
-       scon.StepEvent("shopping", scon.FolkSEIR.interact, ...),
-       # scon.StepEvent("end_day", scon.FolkSEIR.sleep)  # ← NOT NEEDED!
+       StepEvent("work", FolkSEIR.interact, ...),
+       StepEvent("shopping", FolkSEIR.interact, ...),
+       # StepEvent("end_day", FolkSEIR.sleep)  # ← NOT NEEDED!
    ]
 
    # DO this - just define your activity events
    step_events = [
-       scon.StepEvent("work", scon.FolkSEIR.interact, ...),
-       scon.StepEvent("shopping", scon.FolkSEIR.interact, ...)
+       StepEvent("work", FolkSEIR.interact, ...),
+       StepEvent("shopping", FolkSEIR.interact, ...)
        # End-of-day automatically added by the model
    ]
 
@@ -102,13 +118,13 @@ Models realistic human travel patterns based on research literature. Best for:
 .. code-block:: python
 
    # Log-normal mobility with intuitive parameters
-   shopping_event = scon.StepEvent(
+   shopping_event = StepEvent(
        name="shopping",
-       folk_action=scon.FolkSEIR.interact,
-       event_type=scon.EventType.DISPERSE,
+       folk_action=FolkSEIR.interact,
+       event_type=EventType.DISPERSE,
        max_distance=8000,
        place_types=['commercial'],
-       probability_func=lambda distances, agent: scon.log_normal_mobility(
+       probability_func=lambda distances, agent: log_normal_mobility(
            distances, agent, median_distance=2000, sigma=1.2)
    )
 
@@ -121,13 +137,13 @@ Models agent movement based on current energy levels. Best for:
 .. code-block:: python
 
    # Energy-dependent mobility with distance scaling
-   social_event = scon.StepEvent(
+   social_event = StepEvent(
        name="evening_social",
-       folk_action=scon.FolkSEIR.interact,
-       event_type=scon.EventType.DISPERSE,
+       folk_action=FolkSEIR.interact,
+       event_type=EventType.DISPERSE,
        max_distance=15000,
        place_types=['commercial', 'entertainment'],
-       probability_func=lambda distances, agent: scon.energy_exponential_mobility(
+       probability_func=lambda distances, agent: energy_exponential_mobility(
            distances, agent, distance_scale=2000)
    )
 
@@ -173,10 +189,10 @@ Here is an example of how you can define your own simple probability function:
             probs = np.ones_like(distances)
 
    # Use custom function
-   exploration_event = scon.StepEvent(
+   exploration_event = StepEvent(
        name="exploration",
-       folk_action=scon.FolkSEIR.interact, 
-       event_type=scon.EventType.DISPERSE,
+       folk_action=FolkSEIR.interact, 
+       event_type=EventType.DISPERSE,
        max_distance=20000,
        place_types=['commercial', 'religious', 'education'],
        probability_func=lambda dists: distance_preference(dists, "far")
@@ -222,32 +238,32 @@ Complete Example: Daily Routine
    def create_daily_events():
        return [
            # Morning commute - log-normal for realistic work travel
-           scon.StepEvent(
+           StepEvent(
                "morning_commute",
-               scon.FolkSEIR.interact,
-               scon.EventType.DISPERSE,
+               FolkSEIR.interact,
+               EventType.DISPERSE,
                max_distance=20000,
                place_types=['workplace', 'education'],
-               probability_func=lambda distances, agent: scon.log_normal_mobility(
+               probability_func=lambda distances, agent: log_normal_mobility(
                    distances, agent, median_distance=5000, sigma=1.0)
            ),
            
            # Lunch break - energy-dependent for tired workers
-           scon.StepEvent(
+           StepEvent(
                "lunch_break", 
-               scon.FolkSEIR.interact,
-               scon.EventType.DISPERSE,
+               FolkSEIR.interact,
+               EventType.DISPERSE,
                max_distance=3000,
                place_types=['commercial'],
-               probability_func=lambda distances, agent: scon.energy_exponential_mobility(
+               probability_func=lambda distances, agent: energy_exponential_mobility(
                    distances, agent, distance_scale=800)
            ),
            
            # Evening activities - custom preference function
-           scon.StepEvent(
+           StepEvent(
                "evening_social",
-               scon.FolkSEIR.interact,
-               scon.EventType.DISPERSE, 
+               FolkSEIR.interact,
+               EventType.DISPERSE, 
                max_distance=15000,
                place_types=['commercial', 'religious', 'entertainment'],
                probability_func=lambda distances, agent: distance_preference_mobility(
@@ -257,7 +273,7 @@ Complete Example: Daily Routine
 
    # Use in simulation
    step_events = create_daily_events()
-   model = scon.SEIRModel(model_params, step_events)
+   model = SEIRModel(model_params, step_events)
 
 Tips for Effective Step Events
 ------------------------------
@@ -296,12 +312,12 @@ Tips for Effective Step Events
    test_agent = TestAgent()
    
    # Test log-normal mobility
-   log_probs = scon.log_normal_mobility(test_distances, test_agent, 
+   log_probs = log_normal_mobility(test_distances, test_agent, 
                                        median_distance=1500, sigma=1.0)
    print(f"Log-normal probabilities: {log_probs}")
    
    # Test energy exponential mobility  
-   energy_probs = scon.energy_exponential_mobility(test_distances, test_agent,
+   energy_probs = energy_exponential_mobility(test_distances, test_agent,
                                                   distance_scale=1000)
    print(f"Energy exponential probabilities: {energy_probs}")
 

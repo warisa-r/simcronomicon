@@ -36,7 +36,7 @@ If you are proposing a feature:
 
 - Explain in detail how it would work.
 - Keep the scope as narrow as possible, to make it easier to implement.
-- Remember that this is a volunteer-driven project, and that contributions are welcome :)
+- Remember that this is a volunteer-driven project, and that contributions are most welcome!
 
 ---
 
@@ -74,10 +74,3 @@ Before you submit a pull request, check that it meets these guidelines:
 3. The pull request should work for Python 3.12.
 
 ---
-
-## Tips
-
-To run a subset of tests:
-
-```bash
-py.test test

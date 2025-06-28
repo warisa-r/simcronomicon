@@ -9,6 +9,7 @@ from simcronomicon import Town, TownParameters, Simulation
 from simcronomicon.compartmental_models import StepEvent, EventType
 from simcronomicon.compartmental_models.SEIR_model import SEIRModel, SEIRModelParameters, FolkSEIR
 
+
 class TestSEIRModel:
     def test_invalid_seir_model_parameters(self):
         # beta out of range

@@ -54,9 +54,24 @@ in OpenStreetMap data.
 
 .. code-block:: python
     
-    import simcronomicon as scon
+    from simcronomicon import Simulation, Town, TownParameters
 
-    town = scon.Town.from_point(
+    from simcronomicon.compartmental_models import (
+        SEIRModel, SEIRModelParameters, FolkSEIR,
+        StepEvent, EventType,
+    )
+
+    from simcronomicon.visualization import (
+        plot_status_summary_from_hdf5,
+        visualize_place_types_from_graphml,
+        visualize_folks_on_map_from_sim
+    )
+
+    from simcronomicon.compartmental_models import (
+        log_normal_mobility,
+    )
+
+    town = Town.from_point(
         point=[50.7753, 6.0839],  # Aachen Dom
         dist=1000,
         town_params=town_params,
@@ -74,7 +89,7 @@ Note that we have not talked about `town_params`. `town_params` can be defined w
 
 .. code-block:: python
 
-    town_params = scon.TownParameters(num_pop=1000, num_init_spreader=3, spreader_initial_nodes = [1, 2, 2])
+    town_params = TownParameters(num_pop=1000, num_init_spreader=3, spreader_initial_nodes = [1, 2, 2])
 
 With these parameters, you get 997 agents that are susceptible to the spread and 3 that are infectious.
 2 of the infectious agents are placed at node of ID 2 in the to-be-constructed graph. The other one is located at node 1.
@@ -94,10 +109,10 @@ the input files with different initial conditions. You can do so by the function
 
    import simcronomicon as scon
 
-   town_params = scon.TownParameters(num_pop=1000, num_init_spreader=10)
+   town_params = TownParameters(num_pop=1000, num_init_spreader=10)
    town_graph_path = "../test/test_data/aachen_dom_500m.graphmlz"
    town_config_path = "../test/test_data/aachen_dom_500m_config.json"
-   town = scon.Town.from_files(
+   town = Town.from_files(
        config_path=town_config_path,
        town_graph_path=town_graph_path,
        town_params=town_params
@@ -113,7 +128,7 @@ It is very important to note that unclassified nodes or the grey nodes that are 
 
 .. code-block:: python
 
-   scon.visualize_place_types_from_graphml(town_graph_path, town_config_path)
+   visualize_place_types_from_graphml(town_graph_path, town_config_path)
 
 
 .. image:: images/aachen_mitte_classification.png
@@ -133,16 +148,16 @@ afterwards. In these event steps, if the agents have enough energy, they will go
 .. code-block:: python
 
    step_events = [
-       scon.StepEvent(
+       StepEvent(
            "greet_neighbors",
-           scon.FolkSEIR.interact,
-           scon.EventType.DISPERSE,
+           FolkSEIR.interact,
+           EventType.DISPERSE,
            5000,
            ['accommodation']),
-       scon.StepEvent(
+       StepEvent(
            "chore",
-           scon.FolkSEIR.interact,
-           scon.EventType.DISPERSE,
+           FolkSEIR.interact,
+           EventType.DISPERSE,
            19000,
            [
                'commercial',
@@ -150,7 +165,7 @@ afterwards. In these event steps, if the agents have enough energy, they will go
                'education',
                'religious'
            ],
-           scon.log_normal_mobility
+           log_normal_mobility
        )
    ]
 
@@ -201,9 +216,9 @@ This is through defining proper model parameters. Here, `beta` governs how conta
 
 .. code-block:: python
 
-   model_params = scon.SEIRModelParameters(
+   model_params = SEIRModelParameters(
        max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200)
-   model = scon.SEIRModel(model_params, step_events)
+   model = SEIRModel(model_params, step_events)
 
 ---
 
@@ -216,7 +231,7 @@ in it anymore.
 
 .. code-block:: python
 
-   sim = scon.Simulation(town, model, 100)
+   sim = Simulation(town, model, 100)
    sim.run()
 
 After the simulation finish running, an output file `simulation_output.h5` will be generated in the following structure:
@@ -241,7 +256,7 @@ For visualization, we provide 2 functions to see how your spread develops.
 
 .. code-block:: python
 
-   scon.plot_status_summary_from_hdf5("simulation_output.h5")
+   plot_status_summary_from_hdf5("simulation_output.h5")
 
 .. image:: images/SEIR_plot_summary.png
    :width: 500px
@@ -254,7 +269,7 @@ For visualization, we provide 2 functions to see how your spread develops.
 
 .. code-block:: python
 
-   scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
+   visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
 
 .. image:: images/SEIR_scatter_plot.png
    :width: 750px

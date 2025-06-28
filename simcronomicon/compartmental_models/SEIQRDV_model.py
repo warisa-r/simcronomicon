@@ -18,8 +18,8 @@ public health intervention strategies.
 
 import random as rd
 
-from .abstract_model import (AbstractCompartmentalModel, AbstractFolk, 
-                           AbstractModelParameters)
+from .abstract_model import (AbstractCompartmentalModel, AbstractFolk,
+                             AbstractModelParameters)
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):

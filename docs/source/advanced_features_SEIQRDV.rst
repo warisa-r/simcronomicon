@@ -31,15 +31,15 @@ Then we define the model parameters.
    import simcronomicon as scon
 
    # Load a town with healthcare facilities
-   town_params = scon.TownParameters(2000, 10)
-   town = scon.Town.from_files(
+   town_params = TownParameters(2000, 10)
+   town = Town.from_files(
        config_path="town_config.json",
        town_graph_path="town_graph.graphmlz",
        town_params=town_params
    )
 
    # SEIQRDV model with vaccination and population dynamics
-   model_params = scon.SEIQRDVModelParameters(
+   model_params = SEIQRDVModelParameters(
        max_energy=5,
        lam_cap=0.01,      # 1% population growth rate
        beta=0.4,          # Transmission probability
@@ -189,16 +189,16 @@ Example: Population Dynamics Simulation
 
    # Simulate population changes over time
    step_events = [
-       scon.StepEvent(
+       StepEvent(
            "daily_life",
-           scon.FolkSEIQRDV.interact,
-           scon.EventType.DISPERSE,
+           FolkSEIQRDV.interact,
+           EventType.DISPERSE,
            10000,
            ['commercial', 'workplace', 'education', 'healthcare_facility']
        )
    ]
 
-   model_params = scon.SEIQRDVModelParameters(
+   model_params = SEIQRDVModelParameters(
        max_energy=3,
        lam_cap=0.02,    # 2% growth rate
        beta=0.3,
@@ -209,8 +209,8 @@ Example: Population Dynamics Simulation
        hospital_capacity=30
    )
 
-   model = scon.SEIQRDVModel(model_params, step_events)
-   sim = scon.Simulation(town, model, 200)
+   model = SEIQRDVModel(model_params, step_events)
+   sim = Simulation(town, model, 200)
    sim.run()
 
 Putting It All Together: Complete Example
@@ -224,8 +224,8 @@ Here's a complete simulation showcasing all advanced SEIQRDV features:
    import matplotlib.pyplot as plt
 
    # Setup town and model
-   town_params = scon.TownParameters(1500, 5)
-   town = scon.Town.from_files(
+   town_params = TownParameters(1500, 5)
+   town = Town.from_files(
        config_path="town_config.json",
        town_graph_path="town_graph.graphmlz", 
        town_params=town_params
@@ -233,25 +233,25 @@ Here's a complete simulation showcasing all advanced SEIQRDV features:
 
    # Complex step events including healthcare visits
    step_events = [
-       scon.StepEvent(
+       StepEvent(
            "morning_routine",
-           scon.FolkSEIQRDV.interact,
-           scon.EventType.DISPERSE,
+           FolkSEIQRDV.interact,
+           EventType.DISPERSE,
            6000,
            ['accommodation']
        ),
-       scon.StepEvent(
+       StepEvent(
            "daily_activities", 
-           scon.FolkSEIQRDV.interact,
-           scon.EventType.DISPERSE,
+           FolkSEIQRDV.interact,
+           EventType.DISPERSE,
            18000,
            ['commercial', 'workplace', 'education', 'healthcare_facility'],
-           scon.log_normal_mobility
+           log_normal_mobility
        )
    ]
 
    # Model with realistic parameters
-   model_params = scon.SEIQRDVModelParameters(
+   model_params = SEIQRDVModelParameters(
        max_energy=4,
        lam_cap=0.015,        # 1.5% population growth
        beta=0.35,            # Moderate transmission
@@ -263,13 +263,13 @@ Here's a complete simulation showcasing all advanced SEIQRDV features:
    )
 
    # Run simulation
-   model = scon.SEIQRDVModel(model_params, step_events)
-   sim = scon.Simulation(town, model, 365)  # One year simulation
+   model = SEIQRDVModel(model_params, step_events)
+   sim = Simulation(town, model, 365)  # One year simulation
    sim.run()
 
    # Analyze results
-   scon.plot_status_summary_from_hdf5("simulation_output.h5")
-   scon.visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
+   plot_status_summary_from_hdf5("simulation_output.h5")
+   visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
 
 Key Takeaways
 -------------

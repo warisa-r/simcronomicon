@@ -411,7 +411,7 @@ class Simulation:
                 # Save initial individual logs
                 indiv_group = h5file.create_group("individual_logs")
                 folk_dtype = [("timestep", 'i4'), ("event", 'S32'),
-                            ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
+                              ("folk_id", 'i4'), ("status", 'S8'), ("address", 'i4')]
                 indiv_data = [
                     (0, b"", folk.id, bytes(folk.status, 'utf-8'), folk.address)
                     for folk in self.folks

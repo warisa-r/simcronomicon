@@ -4,10 +4,11 @@ import yaml
 
 from setuptools import setup, find_packages
 
+
 def get_conda_pip_dependencies():
     with open('environment.yml') as f:
         env_yaml = yaml.safe_load(f)
-    
+
     # Get pip dependencies from environment.yml
     pip_deps = []
     if 'dependencies' in env_yaml:
@@ -16,7 +17,8 @@ def get_conda_pip_dependencies():
                 # Extract just the package names without versions
                 for pip_dep in dep['pip']:
                     # Remove version specifiers for setup.py
-                    package = pip_dep.split('==')[0].split('>=')[0].split('<=')[0]
+                    package = pip_dep.split('==')[0].split('>=')[
+                        0].split('<=')[0]
                     if package and not package.startswith('-e'):
                         pip_deps.append(package)
     return pip_deps

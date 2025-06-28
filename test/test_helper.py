@@ -99,9 +99,9 @@ MODEL_MATRIX = {
 def default_test_step_events(folk_class):
     return [
         compartmental_models.StepEvent("greet_neighbors", folk_class.interact, compartmental_models.EventType.DISPERSE, 5000, [
-                       'accommodation'], compartmental_models.energy_exponential_mobility),
+            'accommodation'], compartmental_models.energy_exponential_mobility),
         compartmental_models.StepEvent("chore", folk_class.interact, compartmental_models.EventType.DISPERSE, 19000,
-                       ['commercial', 'workplace', 'education', 'religious'], compartmental_models.log_normal_mobility)
+                                       ['commercial', 'workplace', 'education', 'religious'], compartmental_models.log_normal_mobility)
     ]
 
 

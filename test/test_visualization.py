@@ -334,7 +334,7 @@ class TestVisualizeMap:
         try:
             # Import the function first to make the patch target clear
             from simcronomicon.visualization.visualization_util import _set_plotly_renderer
-            
+
             # Mock NameError when get_ipython is not available
             with patch('simcronomicon.visualization.visualization_util.get_ipython', side_effect=NameError("name 'get_ipython' is not defined")):
                 _set_plotly_renderer()
@@ -387,7 +387,8 @@ class TestVisualizeMap:
 
     def test_visualize_place_types_invalid_file_extensions(self):
         with pytest.raises(AssertionError, match="Expected a .graphmlz file"):
-            plot_scatter.visualize_place_types_from_graphml("wrong.txt", "config.json")
+            plot_scatter.visualize_place_types_from_graphml(
+                "wrong.txt", "config.json")
 
         with pytest.raises(AssertionError, match="Expected a .json file"):
             plot_scatter.visualize_place_types_from_graphml(
@@ -411,7 +412,8 @@ class TestVisualizeMap:
             try:
                 # Mock plotly show to prevent actual display
                 with patch('plotly.graph_objects.Figure.show') as mock_show:
-                    plot_scatter.visualize_folks_on_map_from_sim(h5_path, graphml_path)
+                    plot_scatter.visualize_folks_on_map_from_sim(
+                        h5_path, graphml_path)
                     mock_show.assert_called_once()
             finally:
                 # Cleanup
@@ -421,7 +423,8 @@ class TestVisualizeMap:
 
     def test_visualize_folks_invalid_file_extensions(self):
         with pytest.raises(AssertionError, match="Expected a .h5 file"):
-            plot_scatter.visualize_folks_on_map_from_sim("wrong.txt", "graph.graphmlz")
+            plot_scatter.visualize_folks_on_map_from_sim(
+                "wrong.txt", "graph.graphmlz")
 
         with pytest.raises(AssertionError, match="Expected a .graphmlz file"):
             plot_scatter.visualize_folks_on_map_from_sim("sim.h5", "wrong.txt")
@@ -557,7 +560,8 @@ class TestVisualizationUtilities:
                     captured_fig = self
 
                 with patch.object(go.Figure, 'show', capture_figure):
-                    plot_scatter.visualize_folks_on_map_from_sim(h5_path, graphml_path)
+                    plot_scatter.visualize_folks_on_map_from_sim(
+                        h5_path, graphml_path)
 
                 # Verify the figure has data
                 assert captured_fig is not None, "Figure should be created"

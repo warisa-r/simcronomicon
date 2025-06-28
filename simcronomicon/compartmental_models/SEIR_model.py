@@ -21,8 +21,8 @@ modeling diseases with temporary immunity like influenza or seasonal coronavirus
 
 import random as rd
 
-from .abstract_model import (AbstractCompartmentalModel, AbstractFolk, 
-                           AbstractModelParameters)
+from .abstract_model import (AbstractCompartmentalModel, AbstractFolk,
+                             AbstractModelParameters)
 
 
 class SEIRModelParameters(AbstractModelParameters):

@@ -249,8 +249,8 @@ Create a simple test script to validate your implementation:
        
        # Create a simple town
        point = (50.7753, 6.0839)  # Aachen coordinates
-       town_params = scon.TownParameters(100, 5)  # 100 people, 5 initial infected
-       town = scon.Town.from_point(point, 500, "test_sir", town_params)
+       town_params = TownParameters(100, 5)  # 100 people, 5 initial infected
+       town = Town.from_point(point, 500, "test_sir", town_params)
        
        # Configure SIR model
        sir_params = SIRModelParameters(
@@ -261,7 +261,7 @@ Create a simple test script to validate your implementation:
        
        # Create model and simulation
        sir_model = SIRModel(sir_params)
-       simulation = scon.Simulation(town, sir_model, timesteps=50)
+       simulation = Simulation(town, sir_model, timesteps=50)
        
        # Run simulation
        print("Running SIR simulation...")
@@ -271,7 +271,7 @@ Create a simple test script to validate your implementation:
        print("SIR simulation completed successfully!")
        
        # Visualize results
-       scon.plot_status_summary_from_hdf5("simulation_output.h5")
+       plot_status_summary_from_hdf5("simulation_output.h5")
        
        return True
 
@@ -350,18 +350,18 @@ Custom Movement Patterns
 
    # Add custom step events for different behaviors
    sir_step_events = [
-       scon.StepEvent(
+       StepEvent(
            "morning_commute",
            FolkSIR.interact,
-           scon.EventType.DISPERSE,
+           EventType.DISPERSE,
            10000,  # Travel up to 10km
            ['workplace', 'education'],
-           scon.log_normal_mobility  # Distance-based probability
+           log_normal_mobility  # Distance-based probability
        ),
-       scon.StepEvent(
+       StepEvent(
            "evening_social",
            FolkSIR.interact,
-           scon.EventType.DISPERSE,
+           EventType.DISPERSE,
            5000,
            ['commercial', 'religious']
        )
