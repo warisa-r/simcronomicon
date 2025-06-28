@@ -1,13 +1,13 @@
 import os
+import re
 import tempfile
+import warnings
 import zipfile
 
 import networkx as nx
 import plotly.io as pio
-from pyproj import Transformer
 from IPython import get_ipython
-import re
-import warnings
+from pyproj import Transformer
 
 
 def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_name):

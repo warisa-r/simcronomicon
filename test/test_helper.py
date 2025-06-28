@@ -1,4 +1,4 @@
-import simcronomicon as scon
+from simcronomicon import Town, TownParameters, Simulation, compartmental_models
 from pyproj import Transformer
 
 # Common coordinates
@@ -9,7 +9,7 @@ COORDS_HAUSARZT = (50.76943, 6.081437)
 COORDS_SUPERC = (50.77828, 6.078571)
 
 # Default town parameters for `test_town.py`
-DEFAULT_TOWN_PARAMS = scon.TownParameters(100, 10)
+DEFAULT_TOWN_PARAMS = TownParameters(100, 10)
 
 DEFAULT_TEST_TOWN_CONFIG = {
     'point': (50.7753, 6.0839),  # POINT_DOM
@@ -23,12 +23,12 @@ def create_test_town_files(prefix="test_viz", **kwargs):
     # Merge defaults with provided overrides
     config = {**DEFAULT_TEST_TOWN_CONFIG, **kwargs}
 
-    town_params = scon.TownParameters(
+    town_params = TownParameters(
         num_pop=config['num_pop'],
         num_init_spreader=config['num_init_spreader']
     )
 
-    town = scon.Town.from_point(
+    town = Town.from_point(
         config['point'],
         config['distance'],
         town_params,
@@ -68,26 +68,26 @@ def get_shortest_path_length(town, node_a, node_b):
 
 MODEL_MATRIX = {
     "seir": (
-        scon.SEIRModel,
-        scon.SEIRModelParameters,
-        scon.FolkSEIR,
+        compartmental_models.SEIRModel,
+        compartmental_models.SEIRModelParameters,
+        compartmental_models.FolkSEIR,
         dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=20),
         "test/test_data/aachen_dom_500m_config.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
     "seisir": (
-        scon.SEIsIrRModel,
-        scon.SEIsIrRModelParameters,
-        scon.FolkSEIsIrR,
+        compartmental_models.SEIsIrRModel,
+        compartmental_models.SEIsIrRModelParameters,
+        compartmental_models.FolkSEIsIrR,
         dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.9,
              phi=0.5, theta=0.8, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
         "test/test_data/aachen_dom_500m_config.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
     "seiqrdv": (
-        scon.SEIQRDVModel,
-        scon.SEIQRDVModelParameters,
-        scon.FolkSEIQRDV,
+        compartmental_models.SEIQRDVModel,
+        compartmental_models.SEIQRDVModelParameters,
+        compartmental_models.FolkSEIQRDV,
         dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3,
              delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
         "test/test_data/uniklinik_500m_config.json",
@@ -98,10 +98,10 @@ MODEL_MATRIX = {
 
 def default_test_step_events(folk_class):
     return [
-        scon.StepEvent("greet_neighbors", folk_class.interact, scon.EventType.DISPERSE, 5000, [
-                       'accommodation'], scon.energy_exponential_mobility),
-        scon.StepEvent("chore", folk_class.interact, scon.EventType.DISPERSE, 19000,
-                       ['commercial', 'workplace', 'education', 'religious'], scon.log_normal_mobility)
+        compartmental_models.StepEvent("greet_neighbors", folk_class.interact, compartmental_models.EventType.DISPERSE, 5000, [
+                       'accommodation'], compartmental_models.energy_exponential_mobility),
+        compartmental_models.StepEvent("chore", folk_class.interact, compartmental_models.EventType.DISPERSE, 19000,
+                       ['commercial', 'workplace', 'education', 'religious'], compartmental_models.log_normal_mobility)
     ]
 
 
@@ -113,5 +113,5 @@ def setup_simulation(model_key, town_params, step_events=None, timesteps=1, seed
         params.update(override_params)
     model_params = model_params_class(**params)
     model = model_class(model_params, step_events=step_events)
-    town = scon.Town.from_files(config_path, graphmlz_path, town_params)
-    return scon.Simulation(town, model, timesteps=timesteps, seed=seed), town, model
+    town = Town.from_files(config_path, graphmlz_path, town_params)
+    return Simulation(town, model, timesteps=timesteps, seed=seed), town, model

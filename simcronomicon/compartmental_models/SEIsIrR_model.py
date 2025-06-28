@@ -1,6 +1,7 @@
 """
-This module implements rumor spreading dynamics with considerations for
-credibility, correlation, and crowd personality-based classification.
+This module implements the adaptation of rumor spreading dynamics with considerations for
+credibility, correlation, and crowd personality-based classification or the so-called
+SEIsIrR model in the paper mentioned below.
 
 The implementation is based on:
 
@@ -9,10 +10,10 @@ Rumor spreading model considering rumor credibility, correlation and crowd class
 *Scientific Reports*, 10, 5887. https://doi.org/10.1038/s41598-020-62585-9
 """
 
-from .abstract_model import AbstractModelParameters, AbstractFolk, AbstractCompartmentalModel
-from .step_event import StepEvent, EventType
 import random as rd
 
+from .abstract_model import (AbstractCompartmentalModel, AbstractFolk, 
+                           AbstractModelParameters)
 
 class SEIsIrRModelParameters(AbstractModelParameters):
     """

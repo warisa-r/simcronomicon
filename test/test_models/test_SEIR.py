@@ -1,47 +1,49 @@
 import numpy as np
-import simcronomicon as scon
 from scipy.integrate import solve_ivp
 import tempfile
 import os
 import pytest
 from ..test_helper import default_test_step_events
 
+from simcronomicon import Town, TownParameters, Simulation
+from simcronomicon.compartmental_models import StepEvent, EventType
+from simcronomicon.compartmental_models.SEIR_model import SEIRModel, SEIRModelParameters, FolkSEIR
 
 class TestSEIRModel:
     def test_invalid_seir_model_parameters(self):
         # beta out of range
         with pytest.raises(TypeError, match="beta must be a float between 0 and 1 \\(exclusive\\)!"):
-            scon.SEIRModelParameters(
+            SEIRModelParameters(
                 max_energy=5, beta=1.2, sigma=6, gamma=5, xi=200
             )
 
         # beta negative
         with pytest.raises(TypeError, match="beta must be a float between 0 and 1 \\(exclusive\\)!"):
-            scon.SEIRModelParameters(
+            SEIRModelParameters(
                 max_energy=5, beta=-0.1, sigma=6, gamma=5, xi=200
             )
 
         # sigma not positive integer
         with pytest.raises(TypeError, match="sigma must be a positive integer since it is a value that described duration, got 0"):
-            scon.SEIRModelParameters(
+            SEIRModelParameters(
                 max_energy=5, beta=0.4, sigma=0, gamma=5, xi=200
             )
 
         # gamma not positive integer
         with pytest.raises(TypeError, match="gamma must be a positive integer since it is a value that described duration, got -2"):
-            scon.SEIRModelParameters(
+            SEIRModelParameters(
                 max_energy=5, beta=0.4, sigma=6, gamma=-2, xi=200
             )
 
         # xi not positive integer
         with pytest.raises(TypeError, match="xi must be a positive integer since it is a value that described duration, got 0"):
-            scon.SEIRModelParameters(
+            SEIRModelParameters(
                 max_energy=5, beta=0.4, sigma=6, gamma=5, xi=0
             )
 
     def test_seir_abm_vs_ode_error(self):
         # ODE solution
-        model_params = scon.SEIRModelParameters(
+        model_params = SEIRModelParameters(
             max_energy=5, beta=0.4, sigma=6, gamma=5, xi=200)
 
         def rhs_func(t, y):
@@ -69,17 +71,17 @@ class TestSEIRModel:
 
         # Perform ABM simulation
         total_pop = 1000
-        town_params = scon.TownParameters(total_pop, 10)
+        town_params = TownParameters(total_pop, 10)
         town_graph_path = "test/test_data/aachen_dom_500m.graphmlz"
         town_config_path = "test/test_data/aachen_dom_500m_config.json"
-        town = scon.Town.from_files(
+        town = Town.from_files(
             config_path=town_config_path,
             town_graph_path=town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIRModel(
-            model_params, default_test_step_events(scon.FolkSEIR))
-        sim = scon.Simulation(town, model, t_end)
+        model = SEIRModel(
+            model_params, default_test_step_events(FolkSEIR))
+        sim = Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")
             sim.run(hdf5_path=h5_path, silent=True)

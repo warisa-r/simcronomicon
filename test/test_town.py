@@ -7,7 +7,7 @@ import tempfile
 
 import osmnx as ox
 
-import simcronomicon as scon
+from simcronomicon import Town, TownParameters
 from test.test_helper import (
     POINT_DOM, POINT_UNIKLINIK, COORDS_THERESIENKIRCHE, COORDS_HAUSARZT, COORDS_SUPERC,
     get_nearest_node, get_shortest_path_length, DEFAULT_TOWN_PARAMS
@@ -28,7 +28,7 @@ class TestTownParameters:
         ]
     )
     def test_valid_parameters(self, num_pop, num_init_spreader, spreader_nodes, expected_nodes):
-        params = scon.TownParameters(
+        params = TownParameters(
             num_pop=num_pop,
             num_init_spreader=num_init_spreader,
             spreader_initial_nodes=spreader_nodes
@@ -60,7 +60,7 @@ class TestTownParameters:
     )
     def test_invalid_parameters(self, kwargs, error, match):
         with pytest.raises(error, match=match):
-            scon.TownParameters(**kwargs)
+            TownParameters(**kwargs)
 
 class TestTown:
     def setup_method(self):
@@ -93,7 +93,7 @@ class TestTown:
     def test_town_invalid_inputs(self):
         # Case 1: classify_place_func is not a function
         with pytest.raises(TypeError, match="`classify_place_func` must be a function."):
-            scon.Town.from_point(
+            Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
                 classify_place_func="not_a_function",
                 all_place_types=["accommodation", "workplace"]
@@ -104,7 +104,7 @@ class TestTown:
             return "workplace"
         
         with pytest.raises(ValueError, match="If you pass a custom `classify_place_func`, you must also provide `all_place_types`."):
-            scon.Town.from_point(
+            Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
                 classify_place_func=dummy_classify,
                 all_place_types=None
@@ -112,7 +112,7 @@ class TestTown:
 
         # Case 3: custom classify_place_func but "accommodation" missing in all_place_types
         with pytest.raises(ValueError, match="Your `all_place_types` must include 'accommodation' type buildings."):
-            scon.Town.from_point(
+            Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
                 classify_place_func=dummy_classify,
                 all_place_types=["workplace", "education"]
@@ -120,20 +120,20 @@ class TestTown:
 
         # Edge Case 1: point is not a tuple/list
         with pytest.raises(ValueError, match="`point` must be a list or tuple in the format \\[latitude, longitude\\]."):
-            scon.Town.from_point(
+            Town.from_point(
                 "not_a_tuple", 500, DEFAULT_TOWN_PARAMS
             )
 
         # Edge Case 2: point is not valid lat/lon
         with pytest.raises(ValueError, match="`point` values must represent valid latitude and longitude coordinates."):
-            scon.Town.from_point(
+            Town.from_point(
                 (200, 500), 500, DEFAULT_TOWN_PARAMS
             )
 
         # Edge Case 3: "No relevant nodes remain after filtering. The resulting town graph would be empty."
         with pytest.raises(ValueError, match="No relevant nodes remain after filtering. The resulting town graph would be empty."):
             # Use point a bit further off from Dom and decrease the radius to trigger this error
-            scon.Town.from_point((50.7853, 6.0839), 100, DEFAULT_TOWN_PARAMS)
+            Town.from_point((50.7853, 6.0839), 100, DEFAULT_TOWN_PARAMS)
 
     def test_graphmlz_file_saved_and_overwrite_prompt_and_abort(self):
         import builtins
@@ -142,7 +142,7 @@ class TestTown:
             graphmlz_path = os.path.join(tmpdir, f"{file_prefix}.graphmlz")
 
             # First save: file should be created
-            town = scon.Town.from_point(
+            town = Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
             assert os.path.exists(
                 graphmlz_path), "GraphMLZ file was not saved in the specified directory"
@@ -159,7 +159,7 @@ class TestTown:
             original_input = builtins.input
             builtins.input = fake_input_yes
             try:
-                town2 = scon.Town.from_point(
+                town2 = Town.from_point(
                     POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
             finally:
                 builtins.input = original_input
@@ -167,7 +167,7 @@ class TestTown:
             assert any(
                 "already exists. Overwrite?" in p for p in prompts), "Overwrite prompt was not shown for 'y'"
             assert isinstance(
-                town2, scon.Town), "Town object was not returned after overwrite"
+                town2, Town), "Town object was not returned after overwrite"
 
             # Case 2: User types 'n' (abort)
             prompts.clear()
@@ -184,7 +184,7 @@ class TestTown:
             original_print = builtins.print
             builtins.print = fake_print
             try:
-                town3 = scon.Town.from_point(
+                town3 = Town.from_point(
                     POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
             finally:
                 builtins.input = original_input
@@ -195,25 +195,25 @@ class TestTown:
             assert any("aborted" in str(p).lower()
                        for p in printed), "Abort message was not printed"
             assert isinstance(
-                town3, scon.Town), "Town object was not returned after abort"
+                town3, Town), "Town object was not returned after abort"
 
     def test_spreader_initial_nodes_assertion_error(self):
         test_graphmlz = "test/test_data/aachen_dom_500m.graphmlz"
         test_metadata = "test/test_data/aachen_dom_500m_config.json"
 
         # Set spreader_initial_nodes to include non-existent nodes (350, 750)
-        town_params_spreader = scon.TownParameters(100, 4, [1, 350, 750])
+        town_params_spreader = TownParameters(100, 4, [1, 350, 750])
 
         expected_error_msg = "Some spreader_initial_nodes do not exist in the town graph: \\[350, 750\\]"
 
         with tempfile.TemporaryDirectory() as tmpdir:
             with pytest.raises(ValueError, match=expected_error_msg):
-                scon.Town.from_point(
+                Town.from_point(
                     POINT_DOM, 500, town_params_spreader, save_dir=tmpdir)
 
         # from_files test remains the same (doesn't create new files)
         with pytest.raises(ValueError, match=expected_error_msg):
-            scon.Town.from_files(
+            Town.from_files(
                 config_path=test_metadata,
                 town_graph_path=test_graphmlz,
                 town_params=town_params_spreader
@@ -221,9 +221,9 @@ class TestTown:
 
     def test_healthcare_presence_and_all_types(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            town_dom = scon.Town.from_point(
+            town_dom = Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix="dom", save_dir=tmpdir)
-            town_uniklinik = scon.Town.from_point(
+            town_uniklinik = Town.from_point(
                 POINT_UNIKLINIK, 500, DEFAULT_TOWN_PARAMS, file_prefix="uniklinik", save_dir=tmpdir)
 
             assert 'healthcare_facility' not in town_dom.found_place_types, \
@@ -236,7 +236,7 @@ class TestTown:
 
     def test_superc_is_classified_as_education(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            town = scon.Town.from_point(
+            town = Town.from_point(
                 POINT_DOM, 750, DEFAULT_TOWN_PARAMS, file_prefix="dom_750m", save_dir=tmpdir)
 
             # Project lat/lon to same CRS as town graph
@@ -276,9 +276,9 @@ class TestTown:
             # We have to construct with from_point since we always want to make sure that
             # our algorithm of shortest path construction works with the most recent
             # open street map information
-            town_2000 = scon.Town.from_point(
+            town_2000 = Town.from_point(
                 POINT_DOM, 2000, DEFAULT_TOWN_PARAMS, file_prefix="dom_2000m", save_dir=tmpdir)
-            town_750 = scon.Town.from_point(
+            town_750 = Town.from_point(
                 POINT_DOM, 750, DEFAULT_TOWN_PARAMS, file_prefix="dom_750m", save_dir=tmpdir)
 
             node_theresienkirche_2000 = get_nearest_node(
@@ -319,7 +319,7 @@ class TestTown:
         # Create a temporary directory for the test
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a town using from_point
-            original_town = scon.Town.from_point(
+            original_town = Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix="original", save_dir=tmpdir)
             
             # Modify some node attributes (first accommodation node)
@@ -358,7 +358,7 @@ class TestTown:
             graphml_path, config_path = original_town.save_to_files(custom_prefix)
             
             # Test loading the saved files
-            loaded_town = scon.Town.from_files(
+            loaded_town = Town.from_files(
                 config_path=config_path,
                 town_graph_path=graphml_path,
                 town_params=DEFAULT_TOWN_PARAMS

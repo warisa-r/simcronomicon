@@ -1,5 +1,4 @@
 import numpy as np
-import simcronomicon as scon
 import h5py
 from scipy.integrate import solve_ivp
 import tempfile
@@ -7,6 +6,9 @@ import os
 import pytest
 from ..test_helper import default_test_step_events
 
+from simcronomicon import Town, TownParameters, Simulation
+from simcronomicon.compartmental_models import StepEvent, EventType
+from simcronomicon.compartmental_models.SEIQRDV_model import SEIQRDVModel, SEIQRDVModelParameters, FolkSEIQRDV
 
 class TestSEIQRDVModel:
     @classmethod
@@ -17,31 +19,31 @@ class TestSEIQRDVModel:
     def test_invalid_seiqrdv_model_parameters(self):
         # lam_cap out of range
         with pytest.raises(TypeError, match="lam_cap must be a float between 0 and 1!"):
-            scon.SEIQRDVModelParameters(
+            SEIQRDVModelParameters(
                 max_energy=10, lam_cap=1.5, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
             )
 
         # beta negative
         with pytest.raises(TypeError, match="beta must be a float between 0 and 1!"):
-            scon.SEIQRDVModelParameters(
+            SEIQRDVModelParameters(
                 max_energy=10, lam_cap=0.1, beta=-0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
             )
 
         # gamma not positive integer
         with pytest.raises(TypeError, match="gamma must be a positive integer, got -4"):
-            scon.SEIQRDVModelParameters(
+            SEIQRDVModelParameters(
                 max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=-4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
             )
 
         # hospital_capacity not int or inf
         with pytest.raises(TypeError, match="hospital_capacity must be a positive integer or a value of infinity"):
-            scon.SEIQRDVModelParameters(
+            SEIQRDVModelParameters(
                 max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01, hospital_capacity="a lot"
             )
 
     def test_seiqrdv_abm_vs_ode_error(self):
         # ODE solution
-        model_params = scon.SEIQRDVModelParameters(
+        model_params = SEIQRDVModelParameters(
             max_energy=2, lam_cap=0.01, beta=0.7, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.002, hospital_capacity=float('Inf')
         )
 
@@ -79,16 +81,16 @@ class TestSEIQRDVModel:
         )
 
         # Perform ABM simulation
-        town_params = scon.TownParameters(num_pop=2000, num_init_spreader=20)
-        town = scon.Town.from_files(
+        town_params = TownParameters(num_pop=2000, num_init_spreader=20)
+        town = Town.from_files(
             config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(
-            model_params, default_test_step_events(scon.FolkSEIQRDV))
-        sim = scon.Simulation(town, model, t_end)
+        model = SEIQRDVModel(
+            model_params, default_test_step_events(FolkSEIQRDV))
+        sim = Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test_seiqrdv.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -151,23 +153,23 @@ class TestSEIQRDVModel:
             assert err_V < 0.03, f"Vaccinated compartment error too high: {err_V:.4f}"
 
     def test_vaccination(self):
-        model_params = scon.SEIQRDVModelParameters(
+        model_params = SEIQRDVModelParameters(
             max_energy=10, lam_cap=0, beta=0, alpha=1.0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=float('Inf')
         )
 
-        town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
-        town = scon.Town.from_files(
+        town_params = TownParameters(num_pop=10, num_init_spreader=1)
+        town = Town.from_files(
             config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
 
-        step_event = scon.StepEvent("chore", scon.FolkSEIQRDV.interact, scon.EventType.DISPERSE, 19000,
+        step_event = StepEvent("chore", FolkSEIQRDV.interact, EventType.DISPERSE, 19000,
                                     ['commercial', 'workplace', 'education', 'religious'])
 
-        model = scon.SEIQRDVModel(
+        model = SEIQRDVModel(
             model_params, step_event)
-        sim = scon.Simulation(town, model, 1)
+        sim = Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_test.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -178,20 +180,20 @@ class TestSEIQRDVModel:
                 vaccinated_last = last_step["V"]
                 assert vaccinated_last == 9, f"Every former susceptible person should be vaccinated at timestep {last_step['timestep']}: got {vaccinated_last}, expected 9"
 
-        model_params = scon.SEIQRDVModelParameters(
+        model_params = SEIQRDVModelParameters(
             max_energy=10, lam_cap=0, beta=0, alpha=1.0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=5
         )
 
-        town_params = scon.TownParameters(num_pop=21, num_init_spreader=1)
-        town = scon.Town.from_files(
+        town_params = TownParameters(num_pop=21, num_init_spreader=1)
+        town = Town.from_files(
             config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
 
-        model = scon.SEIQRDVModel(
+        model = SEIQRDVModel(
             model_params, step_event)
-        sim = scon.Simulation(town, model, 1)
+        sim = Simulation(town, model, 1)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_vaccination_cap_test.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -222,18 +224,18 @@ class TestSEIQRDVModel:
 
     def test_quarantine_and_dead_address_stable(self):
         # All agents start as spreaders, delta=1 so all go to quarantine after 1 day, no deaths or births
-        model_params = scon.SEIQRDVModelParameters(
+        model_params = SEIQRDVModelParameters(
             max_energy=10, lam_cap=0, beta=0, alpha=0, gamma=4, delta=1, lam=7, rho=2, kappa=1, mu=0, hospital_capacity=5
         )
-        town_params = scon.TownParameters(num_pop=10, num_init_spreader=10)
-        town = scon.Town.from_files(
+        town_params = TownParameters(num_pop=10, num_init_spreader=10)
+        town = Town.from_files(
             config_path=self.town_config_path,
             town_graph_path=self.town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIQRDVModel(
-            model_params, default_test_step_events(scon.FolkSEIQRDV))
-        sim = scon.Simulation(town, model, 10)
+        model = SEIQRDVModel(
+            model_params, default_test_step_events(FolkSEIQRDV))
+        sim = Simulation(town, model, 10)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "quarantine_address_stable.h5")
             sim.run(hdf5_path=h5_path, silent=True)

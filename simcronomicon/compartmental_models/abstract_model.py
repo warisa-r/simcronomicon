@@ -1,5 +1,6 @@
 import random as rd
-from .step_event import StepEvent, EventType
+
+from .step_event import EventType, StepEvent
 
 
 class AbstractModelParameters:

@@ -1,10 +1,8 @@
-from . import nx
-
-import numpy as np
-import random as rd
-import h5py
 import json
-import os
+import random as rd
+
+import h5py
+import numpy as np
 
 from .compartmental_models import EventType
 

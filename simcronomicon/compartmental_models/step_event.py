@@ -1,6 +1,7 @@
-from enum import Enum
-import numpy as np
 import inspect
+from enum import Enum
+
+import numpy as np
 
 
 def log_normal_mobility(distances, folk, median_distance=2000, sigma=1.0):

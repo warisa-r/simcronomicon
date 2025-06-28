@@ -2,8 +2,6 @@
 
 This folder contains hands-on tutorials and examples demonstrating the capabilities of the `simcronomicon` package for agent-based epidemiological modeling on spatial networks.
 
-**We mostly use interactive plots via Plotly. Please make sure you have Plotly in your PC!**
-
 ## Available Tutorials
 
 ### Core Disease Modeling
@@ -28,4 +26,6 @@ This folder contains hands-on tutorials and examples demonstrating the capabilit
   - Quarantine policy implementation
 
 ### Custom Models
-- **[`custom_compartmental_model.ipynb`](custom_compartmental_model.ipynb)** - How to create a SIR model as the easiest model to implement
+- **[`custom_compartmental_model.ipynb`](custom_compartmental_model.ipynb)** - An example of how you can create your own model
+  - Simple SIR model implemented as a user-customized model
+  - Show what you have to do in order for your model to work in our simulation flow

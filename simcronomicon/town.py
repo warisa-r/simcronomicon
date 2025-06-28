@@ -1,17 +1,17 @@
-import json
+import copy
 import gzip
+import json
 import os
 import tempfile
-import zipfile
 import time
-import copy
+import zipfile
 
-import networkx as nx
-from scipy.spatial import KDTree
-import numpy as np
 import igraph as ig
-from tqdm import tqdm
+import networkx as nx
+import numpy as np
 import osmnx as ox
+from scipy.spatial import KDTree
+from tqdm import tqdm
 
 
 def classify_place(row):
@@ -121,8 +121,6 @@ class TownParameters():
     ... )
     """
     def __init__(self, num_pop, num_init_spreader, spreader_initial_nodes=[]):
-
-        print(num_pop)
         # Validate num_pop
         if not isinstance(num_pop, int):
             raise TypeError(f"num_pop must be an integer, got {type(num_pop).__name__}")

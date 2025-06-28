@@ -1,5 +1,4 @@
 import pytest
-import simcronomicon as scon
 import h5py
 import tempfile
 import os
@@ -9,6 +8,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from unittest.mock import patch, MagicMock
+
+from simcronomicon import Town, TownParameters, Simulation
+from simcronomicon.visualization import plot_status_summary_from_hdf5, plot_scatter
 from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation, create_test_town_files
 
 # Use non-interactive backend for matplotlib in tests
@@ -20,7 +22,7 @@ class TestPlotStatusSummary:
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
     def test_plot_status_summary_all_statuses(self, model_key):
         with tempfile.TemporaryDirectory() as tmpdir:
-            town_params = scon.TownParameters(num_pop=50, num_init_spreader=5)
+            town_params = TownParameters(num_pop=50, num_init_spreader=5)
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -32,7 +34,7 @@ class TestPlotStatusSummary:
 
             # Mock plt.show() to prevent actual display during testing
             with patch('matplotlib.pyplot.show') as mock_show:
-                scon.plot_status_summary_from_hdf5(h5_path)
+                plot_status_summary_from_hdf5(h5_path)
                 mock_show.assert_called_once()
 
     @pytest.mark.parametrize("model_key,status", [
@@ -43,7 +45,7 @@ class TestPlotStatusSummary:
     ])
     def test_plot_status_summary_single_status(self, model_key, status):
         with tempfile.TemporaryDirectory() as tmpdir:
-            town_params = scon.TownParameters(num_pop=50, num_init_spreader=5)
+            town_params = TownParameters(num_pop=50, num_init_spreader=5)
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -54,7 +56,7 @@ class TestPlotStatusSummary:
             sim.run(hdf5_path=h5_path, silent=True)
 
             with patch('matplotlib.pyplot.show') as mock_show:
-                scon.plot_status_summary_from_hdf5(h5_path, status_type=status)
+                plot_status_summary_from_hdf5(h5_path, status_type=status)
                 mock_show.assert_called_once()
 
     @pytest.mark.parametrize("model_key,status_list", [
@@ -64,7 +66,7 @@ class TestPlotStatusSummary:
     ])
     def test_plot_status_summary_multiple_statuses(self, model_key, status_list):
         with tempfile.TemporaryDirectory() as tmpdir:
-            town_params = scon.TownParameters(num_pop=50, num_init_spreader=5)
+            town_params = TownParameters(num_pop=50, num_init_spreader=5)
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -75,13 +77,13 @@ class TestPlotStatusSummary:
             sim.run(hdf5_path=h5_path, silent=True)
 
             with patch('matplotlib.pyplot.show') as mock_show:
-                scon.plot_status_summary_from_hdf5(
+                plot_status_summary_from_hdf5(
                     h5_path, status_type=status_list)
                 mock_show.assert_called_once()
 
     def test_plot_status_summary_invalid_status_type(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            town_params = scon.TownParameters(num_pop=50, num_init_spreader=5)
+            town_params = TownParameters(num_pop=50, num_init_spreader=5)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -93,17 +95,17 @@ class TestPlotStatusSummary:
 
             # Test invalid string
             with pytest.raises(ValueError, match="Invalid status_type 'INVALID'"):
-                scon.plot_status_summary_from_hdf5(
+                plot_status_summary_from_hdf5(
                     h5_path, status_type="INVALID")
 
             # Test invalid list
             with pytest.raises(ValueError, match="Invalid status types"):
-                scon.plot_status_summary_from_hdf5(
+                plot_status_summary_from_hdf5(
                     h5_path, status_type=["S", "INVALID"])
 
             # Test invalid type
             with pytest.raises(TypeError, match="status_type must be None, str, or list of str"):
-                scon.plot_status_summary_from_hdf5(h5_path, status_type=123)
+                plot_status_summary_from_hdf5(h5_path, status_type=123)
 
     def test_plot_status_summary_empty_data(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -125,7 +127,7 @@ class TestPlotStatusSummary:
                 )
 
             with pytest.raises(ValueError, match="No status data found in HDF5 file"):
-                scon.plot_status_summary_from_hdf5(empty_h5_path)
+                plot_status_summary_from_hdf5(empty_h5_path)
 
     def test_plot_status_summary_zero_population(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -146,13 +148,13 @@ class TestPlotStatusSummary:
                 )
 
             with pytest.raises(ValueError, match="Total population in metadata is zero"):
-                scon.plot_status_summary_from_hdf5(zero_pop_h5_path)
+                plot_status_summary_from_hdf5(zero_pop_h5_path)
 
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
     def test_plot_status_summary_has_data(self, model_key):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation output
-            town_params = scon.TownParameters(num_pop=50, num_init_spreader=5)
+            town_params = TownParameters(num_pop=50, num_init_spreader=5)
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -164,7 +166,7 @@ class TestPlotStatusSummary:
 
             # Capture the current figure instead of just mocking show
             with patch('matplotlib.pyplot.show'):
-                scon.plot_status_summary_from_hdf5(h5_path)
+                plot_status_summary_from_hdf5(h5_path)
 
                 # Get the current figure
                 fig = plt.gcf()
@@ -330,8 +332,11 @@ class TestVisualizeMap:
         original_renderer = pio.renderers.default
 
         try:
+            # Import the function first to make the patch target clear
+            from simcronomicon.visualization.visualization_util import _set_plotly_renderer
+            
             # Mock NameError when get_ipython is not available
-            with patch('simcronomicon.visualization.plot_scatter.get_ipython', side_effect=NameError("name 'get_ipython' is not defined")):
+            with patch('simcronomicon.visualization.visualization_util.get_ipython', side_effect=NameError("name 'get_ipython' is not defined")):
                 _set_plotly_renderer()
                 # Should set browser renderer when not in IPython
                 assert pio.renderers.default == "browser"
@@ -371,7 +376,7 @@ class TestVisualizeMap:
         try:
             # Mock plotly show to prevent actual display
             with patch('plotly.graph_objects.Figure.show') as mock_show:
-                scon.visualize_place_types_from_graphml(
+                plot_scatter.visualize_place_types_from_graphml(
                     graphml_path, config_path)
                 mock_show.assert_called_once()
         finally:
@@ -382,16 +387,16 @@ class TestVisualizeMap:
 
     def test_visualize_place_types_invalid_file_extensions(self):
         with pytest.raises(AssertionError, match="Expected a .graphmlz file"):
-            scon.visualize_place_types_from_graphml("wrong.txt", "config.json")
+            plot_scatter.visualize_place_types_from_graphml("wrong.txt", "config.json")
 
         with pytest.raises(AssertionError, match="Expected a .json file"):
-            scon.visualize_place_types_from_graphml(
+            plot_scatter.visualize_place_types_from_graphml(
                 "graph.graphmlz", "wrong.txt")
 
     def test_visualize_folks_on_map_from_sim(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation output
-            town_params = scon.TownParameters(num_pop=20, num_init_spreader=2)
+            town_params = TownParameters(num_pop=20, num_init_spreader=2)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -406,7 +411,7 @@ class TestVisualizeMap:
             try:
                 # Mock plotly show to prevent actual display
                 with patch('plotly.graph_objects.Figure.show') as mock_show:
-                    scon.visualize_folks_on_map_from_sim(h5_path, graphml_path)
+                    plot_scatter.visualize_folks_on_map_from_sim(h5_path, graphml_path)
                     mock_show.assert_called_once()
             finally:
                 # Cleanup
@@ -416,10 +421,10 @@ class TestVisualizeMap:
 
     def test_visualize_folks_invalid_file_extensions(self):
         with pytest.raises(AssertionError, match="Expected a .h5 file"):
-            scon.visualize_folks_on_map_from_sim("wrong.txt", "graph.graphmlz")
+            plot_scatter.visualize_folks_on_map_from_sim("wrong.txt", "graph.graphmlz")
 
         with pytest.raises(AssertionError, match="Expected a .graphmlz file"):
-            scon.visualize_folks_on_map_from_sim("sim.h5", "wrong.txt")
+            plot_scatter.visualize_folks_on_map_from_sim("sim.h5", "wrong.txt")
 
     @pytest.mark.parametrize("time_interval,should_pass,expected_error", [
         ((0, 2), True, None),
@@ -433,7 +438,7 @@ class TestVisualizeMap:
     def test_visualize_folks_time_interval_validation(self, time_interval, should_pass, expected_error):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation output
-            town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
+            town_params = TownParameters(num_pop=10, num_init_spreader=1)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -448,13 +453,13 @@ class TestVisualizeMap:
             try:
                 if should_pass:
                     with patch('plotly.graph_objects.Figure.show') as mock_show:
-                        scon.visualize_folks_on_map_from_sim(
+                        plot_scatter.visualize_folks_on_map_from_sim(
                             h5_path, graphml_path, time_interval=time_interval
                         )
                         mock_show.assert_called_once()
                 else:
                     with pytest.raises(expected_error):
-                        scon.visualize_folks_on_map_from_sim(
+                        plot_scatter.visualize_folks_on_map_from_sim(
                             h5_path, graphml_path, time_interval=time_interval
                         )
             finally:
@@ -466,7 +471,7 @@ class TestVisualizeMap:
     def test_visualize_folks_time_interval_exceeds_data(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation with only 3 timesteps
-            town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
+            town_params = TownParameters(num_pop=10, num_init_spreader=1)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -484,7 +489,7 @@ class TestVisualizeMap:
                     import warnings
                     with warnings.catch_warnings(record=True) as w:
                         warnings.simplefilter("always")
-                        scon.visualize_folks_on_map_from_sim(
+                        plot_scatter.visualize_folks_on_map_from_sim(
                             h5_path, graphml_path, time_interval=(0, 10)
                         )
 
@@ -502,7 +507,7 @@ class TestVisualizeMap:
     def test_visualize_folks_no_data_in_interval(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation output
-            town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
+            town_params = TownParameters(num_pop=10, num_init_spreader=1)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -517,7 +522,7 @@ class TestVisualizeMap:
             try:
                 # Request time interval with start > max timestep should raise ValueError
                 with pytest.raises(ValueError, match="Start timestep .* is greater than maximum available timestep"):
-                    scon.visualize_folks_on_map_from_sim(
+                    plot_scatter.visualize_folks_on_map_from_sim(
                         h5_path, graphml_path, time_interval=(100, 200)
                     )
             finally:
@@ -532,7 +537,7 @@ class TestVisualizationUtilities:
     def test_visualize_folks_has_data_flexible(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation and town data
-            town_params = scon.TownParameters(num_pop=20, num_init_spreader=2)
+            town_params = TownParameters(num_pop=20, num_init_spreader=2)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
@@ -552,7 +557,7 @@ class TestVisualizationUtilities:
                     captured_fig = self
 
                 with patch.object(go.Figure, 'show', capture_figure):
-                    scon.visualize_folks_on_map_from_sim(h5_path, graphml_path)
+                    plot_scatter.visualize_folks_on_map_from_sim(h5_path, graphml_path)
 
                 # Verify the figure has data
                 assert captured_fig is not None, "Figure should be created"

@@ -1,8 +1,7 @@
-import h5py
 import json
 
+import h5py
 import matplotlib.pyplot as plt
-
 
 def _plot_status_summary_data(
         status_keys,

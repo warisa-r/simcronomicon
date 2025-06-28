@@ -1,8 +1,10 @@
 import pytest
-import simcronomicon as scon
 import h5py
 import tempfile
 import os
+
+from simcronomicon import Town, TownParameters, Simulation
+from simcronomicon.compartmental_models import StepEvent, EventType
 from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation
 
 
@@ -14,9 +16,9 @@ class TestSimulationInitializationGeneralized:
     ])
     def test_initial_spreaders_placement(self, model_key, spreader_status):
         _, _, _, _, _, _ = MODEL_MATRIX[model_key]
-        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town_params = TownParameters(num_pop=100, num_init_spreader=10)
         # Use first 5 accommodation nodes, repeated twice
-        town = scon.Town.from_files(
+        town = Town.from_files(
             config_path=MODEL_MATRIX[model_key][4],
             town_graph_path=MODEL_MATRIX[model_key][5],
             town_params=town_params
@@ -40,53 +42,53 @@ class TestSimulationInitializationGeneralized:
         # Use test data that does NOT contain 'healthcare_facility' in found_place_types
         config_path = "test/test_data/aachen_dom_500m_config.json"
         graphmlz_path = "test/test_data/aachen_dom_500m.graphmlz"
-        town_params = scon.TownParameters(num_pop=10, num_init_spreader=1)
-        town = scon.Town.from_files(config_path, graphmlz_path, town_params)
+        town_params = TownParameters(num_pop=10, num_init_spreader=1)
+        town = Town.from_files(config_path, graphmlz_path, town_params)
         model_params_class = MODEL_MATRIX[model_key][1]
         model_params = model_params_class(**MODEL_MATRIX[model_key][3])
         model = MODEL_MATRIX[model_key][0](model_params)
         # Should raise ValueError due to missing 'healthcare_facility'
         with pytest.raises(ValueError, match="Missing required place types"):
-            scon.Simulation(town, model, timesteps=1)
+            Simulation(town, model, timesteps=1)
 
 
 class TestStepEventFunctionality:
     def test_step_event_invalid_parameters(self):
         # Test SEND_HOME with probability_func (should raise ValueError)
         with pytest.raises(ValueError, match="You cannot define a mobility probability function for an event that does not disperse people"):
-            scon.StepEvent(
+            StepEvent(
                 "invalid_send_home",
                 lambda folk: None,
-                scon.EventType.SEND_HOME,
+                EventType.SEND_HOME,
                 probability_func=lambda x: 0.5
             )
 
         # Test non-callable probability_func (should raise ValueError)
         with pytest.raises(ValueError, match="probability_func must be a callable function"):
-            scon.StepEvent(
+            StepEvent(
                 "invalid_prob_func",
                 lambda folk: None,
-                scon.EventType.DISPERSE,
+                EventType.DISPERSE,
                 probability_func="not_a_function"
             )
 
         with pytest.raises(ValueError, match=r"Could not inspect probability_func signature: probability_func must have exactly 2 non-default arguments, got 1\. Expected signature: func\(distances, agent, \*\*kwargs\)"):
-            scon.StepEvent(
+            StepEvent(
                 "invalid_prob_func_without_folk",
                 lambda folk: None,
-                scon.EventType.DISPERSE,
+                EventType.DISPERSE,
                 probability_func=lambda x: 0.5
             )
 
     @pytest.mark.parametrize("model_key", ["seir", "seisir"])
     def test_disperse_and_end_day_events(self, model_key):
         _, _, folk_class, _, _, _ = MODEL_MATRIX[model_key]
-        town_params = scon.TownParameters(num_pop=5, num_init_spreader=1)
+        town_params = TownParameters(num_pop=5, num_init_spreader=1)
         step_events = [
-            scon.StepEvent(
+            StepEvent(
                 "go_to_work",
                 folk_class.interact,
-                scon.EventType.DISPERSE,
+                EventType.DISPERSE,
                 10000,
                 ['workplace']
             )
@@ -127,7 +129,7 @@ class TestSimulationUpdate:
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])
     def test_population_conservation(self, model_key):
         _, _, _, _, _, _ = MODEL_MATRIX[model_key]
-        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town_params = TownParameters(num_pop=100, num_init_spreader=10)
         sim, _, _ = setup_simulation(model_key, town_params, timesteps=5)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "pop_cons_test.h5")
@@ -143,7 +145,7 @@ class TestSimulationUpdate:
         # Only SEIQRDV truly updates population size after each day
         model_key = "seiqrdv"
         _, _, _, extra_params, _, _ = MODEL_MATRIX[model_key]
-        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town_params = TownParameters(num_pop=100, num_init_spreader=10)
         # Test migration (lam_cap=1, mu=0)
         params = dict(extra_params)
         params['lam_cap'] = 1
@@ -200,7 +202,7 @@ class TestSimulationResults:
          "Q": 0, "R": 8, "D": 14, "V": 78}),
     ])
     def test_status_summary_last_step(self, model_key, expected_status):
-        town_params = scon.TownParameters(num_pop=100, num_init_spreader=10)
+        town_params = TownParameters(num_pop=100, num_init_spreader=10)
         folk_class = MODEL_MATRIX[model_key][2]
         step_events = default_test_step_events(folk_class)
         sim, _, _ = setup_simulation(

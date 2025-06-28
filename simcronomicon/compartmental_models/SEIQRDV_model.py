@@ -1,6 +1,25 @@
-from .abstract_model import AbstractModelParameters, AbstractFolk, AbstractCompartmentalModel
-from .step_event import *
+"""
+This module implements the SEIQRDV compartmental model for epidemic simulation with vaccination.
+
+The implementation is based on:
+
+Ghostine, R., Gharamti, M., Hassrouny, S., & Hoteit, I. (2021).
+An extended SEIR model with vaccination for forecasting the COVID-19 pandemic
+in Saudi Arabia using an ensemble Kalman filter.
+*Mathematics*, 9(6), 636. https://doi.org/10.3390/math9060636
+
+The SEIQRDV model extends the classic SEIR framework by incorporating three additional
+compartments: Quarantine (Q) for isolated infectious individuals, Death (D) for
+disease-related mortality, and Vaccination (V) for immunized individuals. This model
+is particularly suited for simulating epidemics where quarantine measures, vaccination
+campaigns, and mortality dynamics are critical factors in disease progression and
+public health intervention strategies.
+"""
+
 import random as rd
+
+from .abstract_model import (AbstractCompartmentalModel, AbstractFolk, 
+                           AbstractModelParameters)
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):
@@ -11,11 +30,6 @@ class SEIQRDVModelParameters(AbstractModelParameters):
     compartmental model, including epidemiological rates, probabilities, and
     healthcare system constraints. It validates parameter types and ranges
     upon initialization.
-
-    Ghostine, R., Gharamti, M., Hassrouny, S., & Hoteit, I. (2021). 
-    An extended SEIR model with vaccination for forecasting the COVID-19 pandemic 
-    in Saudi Arabia using an ensemble Kalman filter. Mathematics, 9(6), 636. 
-    https://doi.org/10.3390/math9060636
     """
 
     def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity=float('inf')):

@@ -1,19 +1,14 @@
 import json
-import os
-import tempfile
 import warnings
-import zipfile
 from itertools import product
 
 import h5py
 import pandas as pd
 import plotly.express as px
-import plotly.io as pio
-from pyproj import Transformer
-from IPython import get_ipython
 
-from .visualization_util import _set_plotly_renderer, _load_node_info_from_graphmlz, _validate_and_merge_colormap
-
+from .visualization_util import (_load_node_info_from_graphmlz, 
+                                _set_plotly_renderer, 
+                                _validate_and_merge_colormap)
 _set_plotly_renderer()
 
 

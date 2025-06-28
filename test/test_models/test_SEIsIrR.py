@@ -5,37 +5,39 @@ import tempfile
 import os
 import pytest
 from ..test_helper import default_test_step_events
-
+from simcronomicon import Town, TownParameters, Simulation
+from simcronomicon.compartmental_models import StepEvent, EventType
+from simcronomicon.compartmental_models.SEIsIrR_model import SEIsIrRModel, SEIsIrRModelParameters, FolkSEIsIrR
 
 class TestSEIsIrRModel:
     def test_invalid_seisir_model_parameters(self):
         # gamma not a float or int
         with pytest.raises(TypeError, match="gamma must be a float or int"):
-            scon.SEIsIrRModelParameters(
+            SEIsIrRModelParameters(
                 max_energy=4, literacy=0.7, gamma="bad", alpha=0.5, lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1
             )
 
         # alpha out of range
         with pytest.raises(TypeError, match="alpha must be a float or int"):
-            scon.SEIsIrRModelParameters(
+            SEIsIrRModelParameters(
                 max_energy=4, literacy=0.7, gamma=0.9, alpha="bad", lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1
             )
 
         # lam negative
         with pytest.raises(TypeError, match="lam must be a float or int"):
-            scon.SEIsIrRModelParameters(
+            SEIsIrRModelParameters(
                 max_energy=4, literacy=0.7, gamma=0.9, alpha=0.5, lam="bad", phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1
             )
 
         # mem_span not int > 1
         with pytest.raises(TypeError, match="mem_span must be an integer greater or equal to 1, got 1.03"):
-            scon.SEIsIrRModelParameters(
+            SEIsIrRModelParameters(
                 max_energy=4, literacy=0.7, gamma=0.9, alpha=0.5, lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1, mem_span=1.03
             )
 
     def test_SEIsIrR_abm_vs_ode_error(self):
         # ODE solution
-        model_params = scon.SEIsIrRModelParameters(
+        model_params = SEIsIrRModelParameters(
             4, 0.7, 0.9, 0.5, 0.5, 0.5, 0.7, 0.62, 0.1, 0.1)
 
         def rhs_func(t, y):
@@ -86,17 +88,17 @@ class TestSEIsIrRModel:
 
         # Perform ABM simulation
         total_pop = 2000
-        town_params = scon.TownParameters(total_pop, 20)
+        town_params = TownParameters(total_pop, 20)
         town_graph_path = "test/test_data/aachen_dom_500m.graphmlz"
         town_config_path = "test/test_data/aachen_dom_500m_config.json"
-        town = scon.Town.from_files(
+        town = Town.from_files(
             config_path=town_config_path,
             town_graph_path=town_graph_path,
             town_params=town_params
         )
-        model = scon.SEIsIrRModel(
-            model_params, default_test_step_events(scon.FolkSEIsIrR))
-        sim = scon.Simulation(town, model, t_end)
+        model = SEIsIrRModel(
+            model_params, default_test_step_events(FolkSEIsIrR))
+        sim = Simulation(town, model, t_end)
         with tempfile.TemporaryDirectory() as tmpdir:
             h5_path = os.path.join(tmpdir, "abm_vs_ode_test.h5")
             sim.run(hdf5_path=h5_path, silent=True)
