@@ -10,27 +10,31 @@
 ## Key Features
 
 ### Advanced Disease Models
+The packages allows you to simulate:
 - **SEIR Model**: Classic Susceptible-Exposed-Infectious-Recovered compartmental modeling
 - **SEIQRDV Model**: Extended model with Quarantine, Death, and Vaccination compartments
 - **Spatial Dynamics**: Realistic agent movement patterns on real-world geographical networks
 - **Population Dynamics**: Immigration, natural deaths, and birth rate modeling
 
 ### Realistic Simulation Environment
-- **Real Geographic Data**: Import from OpenStreetMap via GraphML format
+The packages allows you to simulate:
+- **Real Geographic Data**: Import from OpenStreetMap
 - **Complex Place Types**: Hospitals, schools, restaurants, accommodations, and more
 - **Agent Heterogeneity**: Individual characteristics affecting disease transmission and movement
 - **Priority Places**: Agents actively seek specific locations (e.g., healthcare for vaccination)
 
 ### Intervention Modeling
+You can use a built-in model to simulate these following complexities:
 - **Vaccination Campaigns**: Limited hospital capacity, queue management, and vaccination seeking behavior
 - **Quarantine Policies**: Movement restrictions for symptomatic individuals
 - **Population Controls**: Immigration policies and natural population dynamics
 
 ### Analysis & Visualization
+We have these following features to help you understand the results of your simulation:
+
 - **Real-time Tracking**: Individual agent status and location logging
 - **Interactive Visualizations**: Agent movement on maps, disease progression charts
-- **Statistical Analysis**: Infection rates, vaccination effectiveness, quarantine outcomes
-- **Data Export**: HDF5 format for detailed analysis and reproducibility
+- **Data Export**: HDF5 format
 
 ## Quick Start
 
@@ -121,26 +125,26 @@ visualize_folks_on_map_from_sim("simulation_output.h5", "town.graphmlz")
 ## Example Applications
 
 ### Vaccination Campaign Analysis
-Model the effectiveness of different vaccination strategies:
-- **Hospital capacity constraints**: How do limited resources affect vaccination rates?
+With this pacakge, you can model the effectiveness of different vaccination strategies:
+- **Hospital capacity constraints**: How do limited number of healthcare facilities and capacities affect vaccination rates?
 - **Geographic accessibility**: Which areas have poor healthcare access?
 - **Population behavior**: How does vaccination seeking behavior impact outcomes?
 
 ### Quarantine Policy Evaluation
-Assess quarantine effectiveness:
-- **Timing**: Optimal days from symptom onset to quarantine
-- **Compliance**: Movement restriction effectiveness
+With this package, you can assess quarantine effectiveness:
+- **Timing**: Optimal or realistic days from symptom onset to case confirmation and quarantine
 - **Mortality outcomes**: Recovery vs. death rates in quarantine
 
 ### Long-term Endemic Patterns
-Study disease persistence with:
+Simcronomicon also can also simulate
 - **Population turnover**: Immigration and natural deaths
 
 ## Documentation
 
+We provide a comprehensive guide to modeling spatial spread!
+
 - **[Full Documentation](https://warisa-r.github.io/simcronomicon/)**: Complete API reference and tutorials
 - **[Tutorial Notebooks](examples/)**: Step-by-step examples for common use cases
-- **[Model Parameters Guide](docs/models.md)**: Detailed parameter explanations
 
 ## Architecture
 
@@ -195,7 +199,7 @@ See [AUTHORS.md](AUTHORS.md) for the full list of contributors.
 If you use simcronomicon in your research, please cite:
 
 ```bibtex
-@software{simcronomicon2024,
+@software{simcronomicon2025,
   title={simcronomicon: Agent-based Epidemiological Simulation Framework},
   author={Roongaraya, Warisa},
   year={2025},
