@@ -63,8 +63,8 @@ in OpenStreetMap data.
 
     from simcronomicon.visualization import (
         plot_status_summary_from_hdf5,
-        visualize_place_types_from_graphml,
-        visualize_folks_on_map_from_sim
+        plot_place_types_scatter,
+        plot_agents_scatter
     )
 
     from simcronomicon.compartmental_models import (
@@ -123,12 +123,12 @@ the input files with different initial conditions. You can do so by the function
 Visualizing the Town
 --------------------
 
-By calling the function `visualize_place_types_from_graphml`, you can see the classification of `place_types` of the location you are interested in.
+By calling the function `plot_place_types_scatter`, you can see the classification of `place_types` of the location you are interested in.
 It is very important to note that unclassified nodes or the grey nodes that are tagged `other` will not be processed in the simulation.
 
 .. code-block:: python
 
-   visualize_place_types_from_graphml(town_graph_path, town_config_path)
+   plot_place_types_scatter(town_graph_path, town_config_path)
 
 
 .. image:: images/aachen_mitte_classification.png
@@ -269,7 +269,7 @@ For visualization, we provide 2 functions to see how your spread develops.
 
 .. code-block:: python
 
-   visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
+   plot_agents_scatter("simulation_output.h5", town_graph_path)
 
 .. image:: images/SEIR_scatter_plot.png
    :width: 750px

@@ -9,24 +9,49 @@ import plotly.express as px
 from .visualization_util import (_load_node_info_from_graphmlz,
                                  _set_plotly_renderer,
                                  _validate_and_merge_colormap)
-_set_plotly_renderer()
 
 
-def visualize_place_types_from_graphml(town_graph_path, town_config_path, colormap=None,):
+def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     """
-    Visualize nodes from a .graphmlz town graph with their classified place_type using Plotly and OpenStreetMap.
+    Visualizes nodes from a .graphmlz town graph file as colored points with colors representing 
+    different place types (e.g., accommodation, commercial, education), using Plotly and OpenStreetMap..
 
     Parameters
     ----------
     town_graph_path : str
-        Path to the .graphmlz file containing the town graph.
+        Path to the .graphmlz file containing the town graph with node coordinates 
+        and place_type classifications.
     town_config_path : str
-        Path to the .json file containing town metadata (must include 'epsg_code').
+        Path to the .json file containing town metadata with 'epsg_code' for coordinate 
+        conversion and 'place_types' list defining valid place types.
+    colormap : dict, optional
+        Custom color mapping {'place_type': '#HEXCOLOR'}. If None, uses defaults.
+        Custom colors override defaults for matching place types.
 
     Returns
     -------
     None
-        Displays an interactive Plotly map of nodes colored by place type.
+        Displays an interactive Plotly scatter map with colored points, legend, 
+        and hover information showing node IDs.
+
+    Raises
+    ------
+    AssertionError
+        If file extensions are incorrect (.graphmlz and .json required).
+    KeyError
+        If town_config_path doesn't contain required 'epsg_code' field.
+    ValueError
+        If colormap doesn't provide colors for all place types defined in 
+        town_config_path's 'place_types' list.
+    FileNotFoundError
+        If specified file paths don't exist.
+
+    Notes
+    -----
+    - Default colors provided for: accommodation, commercial, religious, education, 
+      workplace, healthcare_facility
+    - Nodes with undefined place types are colored gray (#CCCCCC)
+    - Requires internet connection for OpenStreetMap tiles
     """
     assert town_graph_path.endswith(
         ".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
@@ -35,6 +60,9 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
 
     with open(town_config_path, 'r') as f:
         config = json.load(f)
+
+    # Set a correct render for the environment the script is being run
+    _set_plotly_renderer()
 
     # Get valid place types from config
     valid_place_types = config.get('place_types', [])
@@ -65,13 +93,13 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
     # Assemble DataFrame
     node_data_list = []
     for node_id, (lat, lon) in node_positions.items():
-        place_type = node_place_types.get(node_id, "unknown")
+        place_type = node_place_types.get(node_id, "other")
         node_data_list.append({
             "node_id": node_id,
             "lat": lat,
             "lon": lon,
             "place_type": place_type,
-            # Default gray for unknown types
+            # Default gray for 'other' or unknown types
             "color": color_map.get(place_type, "#CCCCCC")
         })
 
@@ -82,7 +110,7 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
         lat="lat",
         lon="lon",
         color="place_type",
-        color_discrete_map=color_map,  # Use your colormap directly
+        color_discrete_map=color_map,
         hover_name="node_id",
         zoom=13,
         height=700
@@ -98,12 +126,12 @@ def visualize_place_types_from_graphml(town_graph_path, town_config_path, colorm
     fig.show()
 
 
-def visualize_folks_on_map_from_sim(
+def plot_agents_scatter(
         output_hdf5_path,
         town_graph_path,
         time_interval=None):
     """
-    Visualize the movement and status of agents over time on a map using simulation output.
+    Visualize the movement and status of agents over time on a map using simulation output using Plotly and OpenStreetMap.
 
     Parameters
     ----------
@@ -117,12 +145,20 @@ def visualize_folks_on_map_from_sim(
     Returns
     -------
     None
-        Displays an animated Plotly map showing agent locations and statuses over time.
+        Displays an Plotly map with a time slider showing agent locations and statuses over time.
+
+    Notes
+    -----
+    - Each status is represented by a random color (A colormap parameter is a to-be-implemented)
+    - Requires internet connection for OpenStreetMap tiles
     """
     assert output_hdf5_path.endswith(
         ".h5"), f"Expected a .h5 file for output_hdf5_path, got {output_hdf5_path}"
     assert town_graph_path.endswith(
         ".graphmlz"), f"Expected a .graphmlz file for town_graph_path, got {town_graph_path}"
+
+    # Set a correct render for the environment the script is being run
+    _set_plotly_renderer()
 
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:

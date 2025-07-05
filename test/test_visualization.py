@@ -195,132 +195,102 @@ class TestPlotStatusSummary:
 
 
 class TestValidateAndMergeColormap:
-    def test_basic_merge(self):
+
+    @pytest.mark.parametrize("default_map,user_map,valid_keys,parameter_name,expected_missing", [
+        # Test case: Default map missing colors for valid keys
+        ({"type1": "#FF0000", "type2": "#00FF00"}, None,
+         ["type1", "type2", "type3", "type4"], "test param", ["type3", "type4"]),
+
+        # Test case: Even after merging user map, there are still some missing colors
+        ({"type1": "#FF0000"}, {"type2": "#00FF00"},
+         ["type1", "type2", "type3"], "test param", ["type3"]),
+
+        # Test case: User map provided but doesn't cover all missing
+        ({"x": "#FF0000"}, {"y": "#00FF00", "z": "#0000FF"},
+         ["x", "y", "z", "w", "v"], "category", ["v", "w"]),
+    ])
+    def test_missing_colors_raises_value_error(self, default_map, user_map, valid_keys, parameter_name, expected_missing):
         from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
-        user_map = {"type2": "#0000FF", "type3": "#FFFF00"}
-        valid_keys = ["type1", "type2", "type3", "type4"]
 
-        result = _validate_and_merge_colormap(
-            default_map, user_map, valid_keys, "test param")
+        # Sort expected missing colors to match function behavior
+        expected_missing_sorted = sorted(expected_missing)
+        expected_error_pattern = rf"Missing colors for valid {parameter_name}\(s\): {', '.join(expected_missing_sorted)}"
 
-        # User values should override defaults, and new values should be added
-        assert result == {"type1": "#FF0000",
-                          "type2": "#0000FF", "type3": "#FFFF00"}
-
-    def test_none_user_map(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
-
-        result = _validate_and_merge_colormap(
-            default_map, None, ["type1", "type2"], "test param")
-
-        # Should return default map unchanged
-        assert result == default_map
-        assert result is not default_map  # Should be a copy, not the same object
-
-    def test_empty_user_map(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
-
-        result = _validate_and_merge_colormap(
-            default_map, {}, ["type1", "type2"], "test param")
-
-        # Should return default map unchanged
-        assert result == default_map
-
-    def test_invalid_keys_warning(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
-        user_map = {"invalid_key": "#0000FF", "type1": "#FFFFFF"}
-        valid_keys = ["type1", "type2"]
-
-        with pytest.warns(UserWarning, match=r"Warning: 'invalid_key' is not a valid test param"):
-            result = _validate_and_merge_colormap(
-                default_map, user_map, valid_keys, "test param")
-
-        # Invalid key should still be included in the result
-        assert result == {"type1": "#FFFFFF",
-                          "type2": "#00FF00", "invalid_key": "#0000FF"}
-
-    def test_invalid_color_format_warning(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
-        user_map = {"type1": "not-a-color", "type2": 12345, "type3": "#FFFFFF"}
-        valid_keys = ["type1", "type2", "type3"]
-
-        with pytest.warns(UserWarning) as record:
-            result = _validate_and_merge_colormap(
-                default_map, user_map, valid_keys, "test param")
-
-        # Should have 2 warnings for invalid colors
-        assert len(record) == 2
-        assert any("'not-a-color' for type1 is not a valid hex color" in str(w.message)
-                   for w in record)
-        assert any("'12345' for type2 is not a valid hex color" in str(
-            w.message) for w in record)
-
-        # Invalid colors should still be included in the result
-        assert result == {"type1": "not-a-color",
-                          "type2": 12345, "type3": "#FFFFFF"}
-
-    def test_multiple_warnings(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000", "type2": "#00FF00"}
-        user_map = {"invalid_key": "bad-color", "type1": "#FFFFFF"}
-        valid_keys = ["type1", "type2"]
-
-        with pytest.warns() as record:
-            result = _validate_and_merge_colormap(
-                default_map, user_map, valid_keys, "test param")
-
-        # Should have 2 warnings - one for invalid key, one for invalid color
-        assert len(record) == 2
-
-    def test_valid_color_formats(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000"}
-        user_map = {
-            "type1": "#FFF",        # 3-digit hex
-            "type2": "#123456",     # 6-digit hex
-            "type3": "#abcdef",     # lowercase hex
-            "type4": "#ABCDEF"      # uppercase hex
-        }
-        valid_keys = ["type1", "type2", "type3", "type4"]
-
-        # Should not raise any warnings for valid color formats
-        with warnings.catch_warnings(record=True) as record:
-            result = _validate_and_merge_colormap(
-                default_map, user_map, valid_keys, "test param")
-            assert len(record) == 0
-
-        # All valid colors should be in the result
-        assert result == user_map
-
-    def test_case_sensitivity(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"Type1": "#FF0000", "type2": "#00FF00"}
-        user_map = {"type1": "#0000FF"}  # Note: lowercase vs uppercase
-        valid_keys = ["Type1", "type2"]
-
-        with pytest.warns(UserWarning, match=r"Warning: 'type1' is not a valid test param"):
-            result = _validate_and_merge_colormap(
-                default_map, user_map, valid_keys, "test param")
-
-        # Original key should be preserved, and new key added
-        assert result == {"Type1": "#FF0000",
-                          "type2": "#00FF00", "type1": "#0000FF"}
-
-    def test_parameter_name_in_warning(self):
-        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
-        default_map = {"type1": "#FF0000"}
-        user_map = {"invalid": "#00FF00"}
-        valid_keys = ["type1"]
-        param_name = "custom parameter"
-
-        with pytest.warns(UserWarning, match=r"Warning: 'invalid' is not a valid custom parameter"):
+        with pytest.raises(ValueError, match=expected_error_pattern):
             _validate_and_merge_colormap(
-                default_map, user_map, valid_keys, param_name)
+                default_map, user_map, valid_keys, parameter_name)
+
+    @pytest.mark.parametrize("default_map,user_map,valid_keys,parameter_name,expected_result", [
+        # All these test cases shouldn't produce any error
+        # Test case: All valid keys have colors.
+        ({"type1": "#FF0000", "type2": "#00FF00"}, {"type3": "#0000FF"},
+         ["type1", "type2", "type3"], "test param",
+         {"type1": "#FF0000", "type2": "#00FF00", "type3": "#0000FF"}),
+
+        # Test case: User map overrides defaults
+        ({"type1": "#FF0000", "type2": "#00FF00"}, {"type1": "#FFFFFF"},
+         ["type1", "type2"], "test param",
+         {"type1": "#FFFFFF", "type2": "#00FF00"}),
+
+        # Test case: Only defaults, all covered
+        ({"a": "#FF0000", "b": "#00FF00"}, None,
+         ["a", "b"], "status",
+         {"a": "#FF0000", "b": "#00FF00"}),
+
+        # Test case: Only user map, all covered
+        ({}, {"x": "#FF0000", "y": "#00FF00"},
+         ["x", "y"], "category",
+         {"x": "#FF0000", "y": "#00FF00"}),
+
+        # Test case: Complex merge with overrides
+        ({"a": "#FF0000", "b": "#00FF00", "c": "#0000FF"}, {"b": "#FFFFFF", "d": "#FFFF00"},
+         ["a", "b", "c", "d"], "type",
+         {"a": "#FF0000", "b": "#FFFFFF", "c": "#0000FF", "d": "#FFFF00"}),
+    ])
+    def test_successful_color_mapping(self, default_map, user_map, valid_keys, parameter_name, expected_result):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+
+        # Should not raise an error
+        result = _validate_and_merge_colormap(
+            default_map, user_map, valid_keys, parameter_name)
+        assert result == expected_result
+
+    @pytest.mark.parametrize("default_map,user_map,valid_keys,parameter_name,expected_warnings", [
+        # Test case: User provides invalid key
+        ({"type1": "#FF0000"}, {"invalid_key": "#00FF00", "type1": "#FFFFFF"},
+         ["type1"], "test param",
+         ["Warning: 'invalid_key' is not a valid test param"]),
+
+        # Test case: Invalid color format
+        ({"type1": "#FF0000"}, {"type1": "not_a_color"},
+         ["type1"], "test param",
+         ["Warning: 'not_a_color' for type1 is not a valid hex color"]),
+
+        # Test case: Both invalid key and invalid color
+        ({"type1": "#FF0000"}, {"invalid_key": "bad_color", "type1": "#FFFFFF"},
+         ["type1"], "test param",
+         ["Warning: 'invalid_key' is not a valid test param",
+          "Warning: 'bad_color' for invalid_key is not a valid hex color"]),
+    ])
+    def test_warnings_for_invalid_inputs(self, default_map, user_map, valid_keys, parameter_name, expected_warnings):
+        from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            # This should generate warnings but not raise an error (if all valid keys are covered)
+            try:
+                _validate_and_merge_colormap(
+                    default_map, user_map, valid_keys, parameter_name)
+            except ValueError:
+                pass  # Ignore ValueError for this test, we're only testing warnings
+
+            # Check that expected warnings were issued
+            warning_messages = [str(warning.message) for warning in w]
+
+            for expected_warning in expected_warnings:
+                assert any(expected_warning in msg for msg in warning_messages), \
+                    f"Expected warning '{expected_warning}' not found in {warning_messages}"
 
 
 class TestVisualizeMap:
@@ -370,13 +340,13 @@ class TestVisualizeMap:
             # Restore original renderer
             pio.renderers.default = original_renderer
 
-    def test_visualize_place_types_from_graphml(self):
+    def test_plot_place_types_scatter(self):
         graphml_path, config_path, town = create_test_town_files()
 
         try:
             # Mock plotly show to prevent actual display
             with patch('plotly.graph_objects.Figure.show') as mock_show:
-                plot_scatter.visualize_place_types_from_graphml(
+                plot_scatter.plot_place_types_scatter(
                     graphml_path, config_path)
                 mock_show.assert_called_once()
         finally:
@@ -387,14 +357,14 @@ class TestVisualizeMap:
 
     def test_visualize_place_types_invalid_file_extensions(self):
         with pytest.raises(AssertionError, match="Expected a .graphmlz file"):
-            plot_scatter.visualize_place_types_from_graphml(
+            plot_scatter.plot_place_types_scatter(
                 "wrong.txt", "config.json")
 
         with pytest.raises(AssertionError, match="Expected a .json file"):
-            plot_scatter.visualize_place_types_from_graphml(
+            plot_scatter.plot_place_types_scatter(
                 "graph.graphmlz", "wrong.txt")
 
-    def test_visualize_folks_on_map_from_sim(self):
+    def test_plot_agents_scatter(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation output
             town_params = TownParameters(num_pop=20, num_init_spreader=2)
@@ -412,7 +382,7 @@ class TestVisualizeMap:
             try:
                 # Mock plotly show to prevent actual display
                 with patch('plotly.graph_objects.Figure.show') as mock_show:
-                    plot_scatter.visualize_folks_on_map_from_sim(
+                    plot_scatter.plot_agents_scatter(
                         h5_path, graphml_path)
                     mock_show.assert_called_once()
             finally:
@@ -423,11 +393,11 @@ class TestVisualizeMap:
 
     def test_visualize_folks_invalid_file_extensions(self):
         with pytest.raises(AssertionError, match="Expected a .h5 file"):
-            plot_scatter.visualize_folks_on_map_from_sim(
+            plot_scatter.plot_agents_scatter(
                 "wrong.txt", "graph.graphmlz")
 
         with pytest.raises(AssertionError, match="Expected a .graphmlz file"):
-            plot_scatter.visualize_folks_on_map_from_sim("sim.h5", "wrong.txt")
+            plot_scatter.plot_agents_scatter("sim.h5", "wrong.txt")
 
     @pytest.mark.parametrize("time_interval,should_pass,expected_error", [
         ((0, 2), True, None),
@@ -456,13 +426,13 @@ class TestVisualizeMap:
             try:
                 if should_pass:
                     with patch('plotly.graph_objects.Figure.show') as mock_show:
-                        plot_scatter.visualize_folks_on_map_from_sim(
+                        plot_scatter.plot_agents_scatter(
                             h5_path, graphml_path, time_interval=time_interval
                         )
                         mock_show.assert_called_once()
                 else:
                     with pytest.raises(expected_error):
-                        plot_scatter.visualize_folks_on_map_from_sim(
+                        plot_scatter.plot_agents_scatter(
                             h5_path, graphml_path, time_interval=time_interval
                         )
             finally:
@@ -492,11 +462,11 @@ class TestVisualizeMap:
                     import warnings
                     with warnings.catch_warnings(record=True) as w:
                         warnings.simplefilter("always")
-                        plot_scatter.visualize_folks_on_map_from_sim(
+                        plot_scatter.plot_agents_scatter(
                             h5_path, graphml_path, time_interval=(0, 10)
                         )
 
-                        # Check that warning was issued
+                        # Check that warning was there
                         assert len(w) == 1
                         assert "exceeds maximum timestep" in str(w[0].message)
 
@@ -513,7 +483,7 @@ class TestVisualizeMap:
             town_params = TownParameters(num_pop=10, num_init_spreader=1)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
-            sim, town, _ = setup_simulation(
+            sim, _, _ = setup_simulation(
                 "seir", town_params, step_events=step_events, timesteps=3, seed=True
             )
 
@@ -525,7 +495,7 @@ class TestVisualizeMap:
             try:
                 # Request time interval with start > max timestep should raise ValueError
                 with pytest.raises(ValueError, match="Start timestep .* is greater than maximum available timestep"):
-                    plot_scatter.visualize_folks_on_map_from_sim(
+                    plot_scatter.plot_agents_scatter(
                         h5_path, graphml_path, time_interval=(100, 200)
                     )
             finally:
@@ -560,7 +530,7 @@ class TestVisualizationUtilities:
                     captured_fig = self
 
                 with patch.object(go.Figure, 'show', capture_figure):
-                    plot_scatter.visualize_folks_on_map_from_sim(
+                    plot_scatter.plot_agents_scatter(
                         h5_path, graphml_path)
 
                 # Verify the figure has data
@@ -568,7 +538,7 @@ class TestVisualizationUtilities:
                 assert len(
                     captured_fig.data) > 0, "Figure should have data traces"
 
-                # Look for any traces with coordinate data (flexible approach)
+                # Look for any traces with coordinate data
                 coordinate_traces = []
                 for trace in captured_fig.data:
                     has_coords = False
@@ -590,7 +560,7 @@ class TestVisualizationUtilities:
                     f"Should have traces with coordinate data. Found {len(captured_fig.data)} traces of types: " \
                     f"{[trace.type for trace in captured_fig.data]}"
 
-                # Additional check: verify the figure has a layout (indicates proper setup)
+                # Verify the figure has a layout
                 assert hasattr(
                     captured_fig, 'layout'), "Figure should have layout"
 

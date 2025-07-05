@@ -269,7 +269,7 @@ Here's a complete simulation showcasing all advanced SEIQRDV features:
 
    # Analyze results
    plot_status_summary_from_hdf5("simulation_output.h5")
-   visualize_folks_on_map_from_sim("simulation_output.h5", town_graph_path)
+   plot_agents_scatter("simulation_output.h5", town_graph_path)
 
 Key Takeaways
 -------------

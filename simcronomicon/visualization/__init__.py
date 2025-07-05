@@ -1,2 +1,2 @@
 from .plot_status_summary import plot_status_summary_from_hdf5
-from .plot_scatter import visualize_folks_on_map_from_sim, visualize_place_types_from_graphml
+from .plot_scatter import plot_agents_scatter, plot_place_types_scatter

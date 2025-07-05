@@ -85,8 +85,8 @@ from simcronomicon.compartmental_models import (
 
 from simcronomicon.visualization import (
     plot_status_summary_from_hdf5,
-    visualize_place_types_from_graphml,
-    visualize_folks_on_map_from_sim
+    plot_place_types_scatter,
+    plot_agents_scatter
 )
 
 # Load town from real geographic data
@@ -119,7 +119,7 @@ simulation.run()
 
 # Analyze results
 plot_status_summary_from_hdf5("simulation_output.h5")
-visualize_folks_on_map_from_sim("simulation_output.h5", "town.graphmlz")
+plot_agents_scatter("simulation_output.h5", "town.graphmlz")
 ```
 
 ## Example Applications
@@ -190,7 +190,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Authors
 
-- **Warisa Roongaraya** - *Development Lead* - [GitHub](https://github.com/warisa-r)
+- **Warisa Roongaraya** - [GitHub](https://github.com/warisa-r)
 
 See [AUTHORS.md](AUTHORS.md) for the full list of contributors.
 

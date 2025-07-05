@@ -30,8 +30,8 @@ Basic Step Event Creation
 
     from simcronomicon.visualization import (
         plot_status_summary_from_hdf5,
-        visualize_place_types_from_graphml,
-        visualize_folks_on_map_from_sim
+        plot_place_types_scatter,
+        plot_agents_scatter
     )
 
     from simcronomicon.compartmental_models import (
