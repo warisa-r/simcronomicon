@@ -125,6 +125,9 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     fig.update_traces(marker=dict(size=9, opacity=0.8))
     fig.show()
 
+# TODO: Customize colormap here but if it doesn't correspond with all the status available, fall back to default
+# random plotly colors
+
 
 def plot_agents_scatter(
         output_hdf5_path,

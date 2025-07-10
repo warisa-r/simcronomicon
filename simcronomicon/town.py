@@ -1,5 +1,4 @@
 import copy
-import gzip
 import json
 import os
 import tempfile
@@ -13,8 +12,111 @@ import osmnx as ox
 from scipy.spatial import KDTree
 from tqdm import tqdm
 
+# Default place type categories used throughout the simulation
+PLACE_TYPES = [
+    "accommodation",
+    "healthcare_facility",
+    "commercial",
+    "workplace",
+    "education",
+    "religious",
+    "other"
+]
+
+# Default classification criteria for OpenStreetMap tags to place types
+PLACE_TYPE_CRITERIA = {
+    "accommodation": {
+        "building": {
+            'residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace',
+            'allotment_house', 'bungalow', 'semidetached_house', 'hut'
+        }
+    },
+    "healthcare_facility": {
+        "building": {'hospital', 'dentist'},
+        "healthcare": {'hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'},
+        "amenity": {'hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'},
+        "shop": {'medical_supply'},
+        "emergency": {'yes'}
+    },
+    "commercial": {
+        "building": {'commercial', 'retail', 'supermarket', 'shop', 'service', 'sports_centre'},
+        "amenity": {'restaurant', 'bar', 'cafe', 'bank', 'fast_food'},
+        "landuse": {'commercial'}
+    },
+    "workplace": {
+        "building": {'office', 'factory', 'industrial', 'government'},
+        "amenity": {'office', 'factory', 'industry'},
+        "landuse": {'industrial', 'office'}
+    },
+    "education": {
+        "building": {'school', 'university', 'kindergarten'},
+        "amenity": {'university', 'kindergarten'}
+    },
+    "religious": {
+        "building": {'chapel', 'church', 'temple', 'mosque', 'synagogue'},
+        "amenity": {'chapel', 'church', 'temple', 'mosque', 'synagogue'},
+        "landuse": {'religious'}
+    }
+    # "other" is the default fallback when no criteria match
+}
+
 
 def classify_place(row):
+    """
+    Classify an OpenStreetMap point of interest into a place type category.
+
+    This default function examines OSM tags for buildings, amenities, land use, etc.
+    and determines the appropriate functional category for simulation purposes.
+
+    Parameters
+    ----------
+    row : pandas.Series
+        A row from a GeoDataFrame containing OpenStreetMap tags.
+
+    Returns
+    -------
+    str
+        Place type category from PLACE_TYPES list.
+
+    Notes
+    -----
+    Classification hierarchy:
+
+    1. accommodation*compulsory for every model): Residential buildings where agents live
+       - Identified by building tags like 'residential', 'apartments', 'house', etc.
+
+    2. healthcare_facility(compulsory for models with vaccination and/or symptom treatments): 
+        Hospitals, clinics, pharmacies
+       - Identified by building, healthcare, amenity tags, or emergency=yes
+
+    3. commercial: Shops, restaurants, banks
+       - Identified by retail/service building types or commercial amenities
+
+    4. workplace: Offices, factories, industrial areas
+       - Identified by office/industrial buildings and land use
+
+    5. education: Schools, universities
+       - Identified by educational building and amenity types
+
+    6. religious: Churches, mosques, temples
+       - Identified by religious building types or land use
+
+    7. other: Default fallback for unclassified locations
+       - Any point that doesn't match the above criteria
+        We are not going to consider these unclassified locations in general.
+        You can, however, with your own custom classification, assign the
+        unknown nodes to be any other plaec types randomly if you wish to also
+        include them in the simulation.
+
+    Classification uses the PLACE_TYPE_CRITERIA dictionary that maps
+    place types to relevant OSM tags.
+
+    It is also important to note that you can also customize your own classification
+    function according to OSM taggings in your area of interest if you
+    have more place types you want to use in your simulation or that you notice that
+    our classification criteria isn't inclusive enough for your area of interest.
+    """
+    # Extract and normalize OSM tags
     b = str(row.get("building", "")).lower()
     a = str(row.get("amenity", "")).lower()
     l = str(row.get("landuse", "")).lower()
@@ -22,34 +124,18 @@ def classify_place(row):
     s = str(row.get("shop", "")).lower()
     e = str(row.get("emergency", "")).lower()
 
-    if b in {
-        'residential', 'apartments', 'house', 'detached', 'dormitory', 'terrace',
-        'allotment_house', 'bungalow', 'semidetached_house', 'hut'
-    }:
-        return 'accommodation'
-    elif b in {'hospital', 'dentist'} or \
-         h in {'hospital', 'clinic', 'doctor', 'doctors', 'pharmacy', 'laboratory'} or \
-         a in {'hospital', 'clinic', 'doctors', 'pharmacy', 'dentist'} or \
-         s in {'medical_supply'} or \
-         e == 'yes':
-        return 'healthcare_facility'
-    elif b in {'commercial', 'retail', 'supermarket', 'shop', 'service', 'sports_centre'} or \
-         a in {'restaurant', 'bar', 'cafe', 'bank', 'fast_food'} or \
-         l in {'commercial'}:
-        return 'commercial'
-    elif b in {'office', 'factory', 'industrial', 'government'} or \
-         a in {'office', 'factory', 'industry'} or \
-         l in {'industrial', 'office'}:
-        return 'workplace'
-    elif b in {'school', 'university', 'kindergarten'} or \
-         a in {'university', 'kindergarten'}:
-        return 'education'
-    elif b in {'chapel', 'church', 'temple', 'mosque', 'synagogue'} or \
-         a in {'chapel', 'church', 'temple', 'mosque', 'synagogue'} or \
-         l in {'religious'}:
-        return 'religious'
-    else:
-        return 'other'
+    # Check each place type's criteria
+    for place_type, criteria in PLACE_TYPE_CRITERIA.items():
+        # Check if the row matches any of the criteria for this place type
+        if ("building" in criteria and b in criteria["building"]) or \
+           ("amenity" in criteria and a in criteria["amenity"]) or \
+           ("landuse" in criteria and l in criteria["landuse"]) or \
+           ("healthcare" in criteria and h in criteria["healthcare"]) or \
+           ("shop" in criteria and s in criteria["shop"]) or \
+           ("emergency" in criteria and e in criteria["emergency"]):
+            return place_type
+
+    return "other"
 
 
 class TownParameters():
@@ -433,8 +519,6 @@ class Town():
         self._build_final_graph(G_filtered, filtered_nodes, dist_matrix)
 
     def _build_final_graph(self, G_filtered, filtered_nodes, dist_matrix):
-        from tqdm import tqdm
-
         self.town_graph = nx.Graph()
         id_map = {old_id: new_id for new_id,
                   old_id in enumerate(filtered_nodes)}
