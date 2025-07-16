@@ -23,7 +23,7 @@ Basic Step Event Creation
 
    from simcronomicon import Simulation, Town, TownParameters
 
-    from simcronomicon.compartmental_models import (
+    from simcronomicon.infection_models import (
         SEIRModel, SEIRModelParameters, FolkSEIR,
         StepEvent, EventType,
     )
@@ -34,7 +34,7 @@ Basic Step Event Creation
         plot_agents_scatter
     )
 
-    from simcronomicon.compartmental_models import (
+    from simcronomicon.infection_models import (
         log_normal_mobility,
         energy_exponential_mobility
     )

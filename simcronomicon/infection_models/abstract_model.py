@@ -5,9 +5,9 @@ from .step_event import EventType, StepEvent
 
 class AbstractModelParameters:
     """
-    Base class for compartmental model parameters.
+    Base class for infection model parameters.
 
-    This abstract class defines the common interface for all compartmental model
+    This abstract class defines the common interface for all infection model
     parameter classes. It provides basic energy management and requires subclasses
     to implement metadata serialization for simulation persistence.
 
@@ -64,7 +64,7 @@ class AbstractFolk:
 
     AbstractFolk objects represent individual agents that move through the town network,
     interact with other agents, and undergo status transitions according to
-    compartmental model rules. Each agent has energy, status, location, and
+    infection model rules. Each agent has energy, status, location, and
     behavioral attributes that influence their participation in simulation events.
 
     Parameters
@@ -76,7 +76,7 @@ class AbstractFolk:
     max_energy : int
         Maximum social energy. Limits the number of events an agent can attend daily.
     status : str
-        Initial compartmental status of the agent (e.g., 'S', 'I', 'R').
+        Initial infection status of the agent (e.g., 'S', 'I', 'R').
 
     Attributes
     ----------
@@ -91,7 +91,7 @@ class AbstractFolk:
     energy : int
         Current social energy (randomly initialized between 0 and max_energy).
     status : str
-        Current compartmental status.
+        Current infection status.
     status_step_streak : int
         Number of consecutive timesteps in current status.
     movement_restricted : bool
@@ -177,14 +177,14 @@ class AbstractFolk:
         pass
 
 
-class AbstractCompartmentalModel:
+class AbstractInfectionModel:
     """
-    Abstract base class for all compartmental epidemic models.
+    Abstract base class for all infection epidemic models.
 
-    This class provides the foundation for implementing compartmental models
+    This class provides the foundation for implementing infection models
     (e.g., SIR, SEIR, SEIQRDV) in agent-based simulations. It handles agent
     creation, step event management, population initialization, and defines
-    the interface that all compartmental models must implement.
+    the interface that all infection models must implement.
 
     Parameters
     ----------
@@ -217,7 +217,7 @@ class AbstractCompartmentalModel:
 
     def __init__(self, model_params):
         """
-        Initialize the abstract compartmental model.
+        Initialize the abstract infection model.
 
         Parameters
         ----------
@@ -297,7 +297,7 @@ class AbstractCompartmentalModel:
         # the software will stick with the commonly used statuses
         if len(self.all_statuses) < 3:
             raise ValueError(
-                "A compartmental model must consist of at least 3 different statuses.")
+                "A infection model must consist of at least 3 different statuses.")
 
         # Append end_day event to the existing day events given by the user
         end_day = StepEvent("end_day", self.folk_class.sleep)

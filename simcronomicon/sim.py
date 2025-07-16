@@ -4,7 +4,7 @@ import random as rd
 import h5py
 import numpy as np
 
-from .compartmental_models import EventType
+from .infection_models import EventType
 
 
 class Simulation:
@@ -12,9 +12,9 @@ class Simulation:
     Agent-based simulation engine for epidemic modeling in spatial networks.
 
     The Simulation class implements an agent-based modeling (ABM) framework that applies
-    transition rules according to user-defined compartmental models. Agents move through
+    transition rules according to user-defined infection models. Agents move through
     a spatial town network, interact with each other and their environment, and undergo
-    state transitions based on the rules defined in the chosen compartmental model.
+    state transitions based on the rules defined in the chosen infection model.
 
     Purpose
     -------
@@ -25,9 +25,9 @@ class Simulation:
        on step events that define mobility patterns and destination preferences.
 
     3. **Agent Interactions**: Enable agent-to-agent and agent-to-environment interactions
-       at each location according to the rules defined in the compartmental model.
+       at each location according to the rules defined in the infection model.
 
-    4. **State Transitions**: Apply compartmental model transition rules (e.g., S→E→I→R)
+    4. **State Transitions**: Apply infection model transition rules (e.g., S→E→I→R)
        based on agent interactions, environmental factors, and time-dependent processes.
 
     5. **Temporal Dynamics**: Execute simulation in discrete timesteps, where each step
@@ -40,7 +40,7 @@ class Simulation:
     1. **Event Execution**: For each step event in the current timestep:
        - Reset agent locations (clear previous positions)
        - Execute event-specific movement (DISPERSE) or actions (SEND_HOME)
-       - Apply compartmental model rules for agent interactions
+       - Apply infection model rules for agent interactions
        - Record population status and individual agent states
 
     2. **Agent Movement**: During DISPERSE events:
@@ -49,7 +49,7 @@ class Simulation:
        - Probability functions can influence destination selection
 
     3. **Interactions**: At each active location:
-       - Agents interact according to compartmental model rules
+       - Agents interact according to infection model rules
        - Environmental factors (place type) influence interaction outcomes
        - State transitions occur based on model-specific probabilities
 
@@ -60,8 +60,8 @@ class Simulation:
     town : Town
         The Town object representing the spatial network with nodes (locations)
         and edges (travel routes) where the simulation takes place.
-    compartmental_model : AbstractCompartmentalModel
-        The compartmental model instance (e.g., SEIRModel, SEIQRDVModel) that
+    infection_model : AbstractInfectionModel
+        The infection model instance (e.g., SEIRModel, SEIQRDVModel) that
         defines agent states, transition rules, and interaction behaviors.
     timesteps : int
         Number of discrete timesteps to run the simulation.
@@ -76,8 +76,8 @@ class Simulation:
         List of AbstractFolk (agent) objects representing the population.
     town : Town
         The spatial network where agents live and move.
-    model : AbstractCompartmentalModel
-        The compartmental model governing agent behavior and transitions.
+    model : AbstractInfectionModel
+        The infection model governing agent behavior and transitions.
     step_events : list
         Sequence of events that occur in each timestep.
     active_node_indices : set
@@ -88,7 +88,7 @@ class Simulation:
     Raises
     ------
     ValueError
-        If required place types for the chosen compartmental model are missing
+        If required place types for the chosen infection model are missing
         in the town data. This ensures model-specific locations (e.g., healthcare
         facilities for medical models) are available in the spatial network.
 
@@ -122,7 +122,7 @@ class Simulation:
     def __init__(
             self,
             town,
-            compartmental_model,
+            infection_model,
             timesteps,
             seed=True,
             seed_value=5710):
@@ -133,8 +133,8 @@ class Simulation:
         ----------
         town : Town
             The Town object representing the simulation environment.
-        compartmental_model : AbstractCompartmentalModel
-            The compartmental model instance (e.g., SEIRModel) to use for the simulation.
+        infection_model : AbstractInfectionModel
+            The infection model instance (e.g., SEIRModel) to use for the simulation.
         timesteps : int
             Number of timesteps to run the simulation.
         seed : bool, optional
@@ -151,9 +151,9 @@ class Simulation:
         self.status_dicts = []
         self.town = town
         self.num_pop = town.town_params.num_pop
-        self.model = compartmental_model
-        self.model_params = compartmental_model.model_params
-        self.step_events = compartmental_model.step_events
+        self.model = infection_model
+        self.model_params = infection_model.model_params
+        self.step_events = infection_model.step_events
         self.current_timestep = 0
         self.timesteps = timesteps
         self.active_node_indices = set()

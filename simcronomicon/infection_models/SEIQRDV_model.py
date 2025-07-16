@@ -1,5 +1,5 @@
 """
-This module implements the SEIQRDV compartmental model for epidemic simulation with vaccination.
+This module implements the SEIQRDV infection model for epidemic simulation with vaccination.
 
 The implementation is based on:
 
@@ -18,16 +18,16 @@ public health intervention strategies.
 
 import random as rd
 
-from .abstract_model import (AbstractCompartmentalModel, AbstractFolk,
+from .abstract_model import (AbstractInfectionModel, AbstractFolk,
                              AbstractModelParameters)
 
 
 class SEIQRDVModelParameters(AbstractModelParameters):
     """
-    Model parameters for the SEIQRDV compartmental model.
+    Model parameters for the SEIQRDV infection model.
 
     This class encapsulates all tunable parameters required for the SEIQRDV
-    compartmental model, including epidemiological rates, probabilities, and
+    infection model, including epidemiological rates, probabilities, and
     healthcare system constraints. It validates parameter types and ranges
     upon initialization.
     """
@@ -129,7 +129,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
 class FolkSEIQRDV(AbstractFolk):
     """
-    Agent class for the SEIQRDV compartmental model with vaccination and mortality dynamics.
+    Agent class for the SEIQRDV infection model with vaccination and mortality dynamics.
     FolkSEIQRDV agents extend the basic AbstractFolk with two critical attributes for epidemic modeling: 
     `will_die` and `want_vaccine`. The `will_die` attribute is probabilistically set when an agent enters 
     quarantine and determines their eventual outcome (recovery or death), 
@@ -373,9 +373,9 @@ class FolkSEIQRDV(AbstractFolk):
                 self.priority_place_type.append('healthcare_facility')
 
 
-class SEIQRDVModel(AbstractCompartmentalModel):
+class SEIQRDVModel(AbstractInfectionModel):
     """
-    SEIQRDV compartmental model implementation for epidemic simulation with vaccination.
+    SEIQRDV infection model implementation for epidemic simulation with vaccination.
 
     The SEIQRDV model extends the classic SEIR model by adding three additional compartments:
     Quarantine (Q), Death (D), and Vaccination (V). This model is particularly suited for

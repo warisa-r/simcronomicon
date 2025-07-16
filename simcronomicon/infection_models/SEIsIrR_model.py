@@ -12,7 +12,7 @@ Rumor spreading model considering rumor credibility, correlation and crowd class
 
 import random as rd
 
-from .abstract_model import (AbstractCompartmentalModel, AbstractFolk,
+from .abstract_model import (AbstractInfectionModel, AbstractFolk,
                              AbstractModelParameters)
 
 
@@ -143,7 +143,7 @@ class FolkSEIsIrR(AbstractFolk):
     """
     Agent class for the SEIsIrR rumor spreading model.
 
-    This class represents individual agents in the SEIsIrR compartmental model,
+    This class represents individual agents in the SEIsIrR infection model,
     handling transitions between Susceptible (S), Exposed (E), Ignorant spreaders (Is),
     Intelligent spreaders (Ir), and Recovered/Stifler (R) states based on rumor
     credibility, literacy levels, and social interactions.
@@ -163,7 +163,7 @@ class FolkSEIsIrR(AbstractFolk):
         max_energy : int
             Maximum social energy for the agent.
         status : str
-            Initial compartmental status ('S', 'E', 'Is', 'Ir', or 'R').
+            Initial infection status ('S', 'E', 'Is', 'Ir', or 'R').
         """
         super().__init__(id, home_address, max_energy, status)
 
@@ -328,7 +328,7 @@ class FolkSEIsIrR(AbstractFolk):
                 self.convert('R', status_dict_t)
 
 
-class SEIsIrRModel(AbstractCompartmentalModel):
+class SEIsIrRModel(AbstractInfectionModel):
     """
     SEIsIrR rumor spreading model implementation.
 

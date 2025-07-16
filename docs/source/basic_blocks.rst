@@ -293,7 +293,7 @@ Now that you understand how individual agents work and how the simulation coordi
 
 - **Advanced Step Events and Movement Patterns**: Customize agent movement with sophisticated probability functions
 - **SEIQRDV Model Features**: Understand complex disease models with vaccination (priority place system) and quarantine
-- **Custom Model Development**: Create your own compartmental models and agent behaviors
+- **Custom Model Development**: Create your own infection models and agent behaviors
 
 The key insight is that complex population-level patterns emerge from simple agent-level rules. By understanding energy, 
 movement, interactions, and status transitions, you can design realistic epidemic simulations and analyze intervention strategies.

@@ -1,4 +1,4 @@
-from .abstract_model import AbstractCompartmentalModel, AbstractFolk, AbstractModelParameters
+from .abstract_model import AbstractInfectionModel, AbstractFolk, AbstractModelParameters
 from .SEIR_model import SEIRModel, SEIRModelParameters, FolkSEIR
 from .SEIQRDV_model import SEIQRDVModel, SEIQRDVModelParameters, FolkSEIQRDV
 from .SEIsIrR_model import SEIsIrRModel, SEIsIrRModelParameters, FolkSEIsIrR

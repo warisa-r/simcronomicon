@@ -11,7 +11,7 @@
 
 ### Advanced Disease Models
 The packages allows you to simulate:
-- **SEIR Model**: Classic Susceptible-Exposed-Infectious-Recovered compartmental modeling
+- **SEIR Model**: Classic Susceptible-Exposed-Infectious-Recovered infection modeling
 - **SEIQRDV Model**: Extended model with Quarantine, Death, and Vaccination compartments
 - **Spatial Dynamics**: Realistic agent movement patterns on real-world geographical networks
 - **Population Dynamics**: Immigration, natural deaths, and birth rate modeling
@@ -78,7 +78,7 @@ python -c "import simcronomicon; print(simcronomicon.__version__)"
 from simcronomicon import Simulation, Town, TownParameters
 
 # Import module SEIR
-from simcronomicon.compartmental_models import (
+from simcronomicon.infection_models import (
     SEIRModel, SEIRModelParameters, FolkSEIR,
     StepEvent, EventType,
 )
@@ -150,7 +150,7 @@ We provide a comprehensive guide to modeling spatial spread!
 
 ```
 simcronomicon/
-├── compartmental_models/          # Disease models (SEIR, SEIQRDV)
+├── infection_models/          # Disease models (SEIR, SEIQRDV)
 ├── town.py          # Geographic environment and agent management  
 ├── sim.py          # Simulation engine and event handling
 └── visualization/  # Plotting and interactive visualizations

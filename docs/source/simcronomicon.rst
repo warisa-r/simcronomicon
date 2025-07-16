@@ -12,12 +12,12 @@ Town network
    :show-inheritance:
    :undoc-members:
 
-Compartmental models
+Infection models
 --------------------
 .. toctree::
    :maxdepth: 2
 
-   simcronomicon.compartmental_models
+   simcronomicon.infection_models
 
 Simulation structure
 --------------------

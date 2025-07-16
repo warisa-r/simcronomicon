@@ -4,7 +4,7 @@ import tempfile
 import os
 
 from simcronomicon import Town, TownParameters, Simulation
-from simcronomicon.compartmental_models import StepEvent, EventType
+from simcronomicon.infection_models import StepEvent, EventType
 from test.test_helper import MODEL_MATRIX, default_test_step_events, setup_simulation
 
 

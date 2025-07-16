@@ -1,7 +1,7 @@
 """
-This module implements the SEIR compartmental model for epidemic simulation with loss of immunity.
+This module implements the SEIR infection model for epidemic simulation with loss of immunity.
 
-The implementation follows one of the compartmental models described in:
+The implementation follows one of the infection models described in:
 
 Kerr, C. C., Stuart, R. M., Mistry, D., Abeysuriya, R. G., Rosenfeld, K., Hart, G. R., 
 Núñez, R. C., Cohen, J. A., Selvaraj, P., Hagedorn, B., George, L., Jastrzębski, M., 
@@ -21,16 +21,16 @@ modeling diseases with temporary immunity like influenza or seasonal coronavirus
 
 import random as rd
 
-from .abstract_model import (AbstractCompartmentalModel, AbstractFolk,
+from .abstract_model import (AbstractInfectionModel, AbstractFolk,
                              AbstractModelParameters)
 
 
 class SEIRModelParameters(AbstractModelParameters):
     """
-    Model parameters for the SEIR compartmental model.
+    Model parameters for the SEIR infection model.
 
     This class encapsulates all tunable parameters required for the SEIR
-    compartmental model, including transmission rates and duration parameters.
+    infection model, including transmission rates and duration parameters.
     It validates parameter types and ranges upon initialization.
     """
 
@@ -99,7 +99,7 @@ class FolkSEIR(AbstractFolk):
     """
     Agent class for the SEIR model.
 
-    This class represents individual agents in the SEIR compartmental model,
+    This class represents individual agents in the SEIR infection model,
     handling transitions between Susceptible (S), Exposed (E), Infectious (I),
     and Recovered (R) states based on contact with infectious agents and
     time-based progression rules.
@@ -118,7 +118,7 @@ class FolkSEIR(AbstractFolk):
         max_energy : int
             Maximum social energy for the agent.
         status : str
-            Initial compartmental status ('S', 'E', 'I', or 'R').
+            Initial infection status ('S', 'E', 'I', or 'R').
         """
         super().__init__(id, home_address, max_energy, status)
 
@@ -128,7 +128,7 @@ class FolkSEIR(AbstractFolk):
 
         This method implements the inverse Bernoulli probability calculation used
         in agent-based modeling to approximate the continuous ODE dynamics of
-        compartmental models. It calculates the probability of infection based
+        infection models. It calculates the probability of infection based
         on the number of infectious contacts and transmission probability.
 
         Parameters
@@ -205,7 +205,7 @@ class FolkSEIR(AbstractFolk):
         Perform end-of-day status transitions based on disease progression.
 
         This method handles the deterministic time-based transitions between
-        compartmental states at the end of each simulation day.
+        infection states at the end of each simulation day.
 
         Transition Rules
         ----------------
@@ -245,9 +245,9 @@ class FolkSEIR(AbstractFolk):
             self.convert('S', status_dict_t)
 
 
-class SEIRModel(AbstractCompartmentalModel):
+class SEIRModel(AbstractInfectionModel):
     """
-    SEIR compartmental model implementation.
+    SEIR infection model implementation.
 
     This class implements the Susceptible-Exposed-Infectious-Recovered model
     for epidemic simulation. It includes waning immunity where recovered

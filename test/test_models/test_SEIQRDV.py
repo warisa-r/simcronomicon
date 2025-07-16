@@ -7,8 +7,8 @@ import pytest
 from ..test_helper import default_test_step_events
 
 from simcronomicon import Town, TownParameters, Simulation
-from simcronomicon.compartmental_models import StepEvent, EventType
-from simcronomicon.compartmental_models.SEIQRDV_model import SEIQRDVModel, SEIQRDVModelParameters, FolkSEIQRDV
+from simcronomicon.infection_models import StepEvent, EventType
+from simcronomicon.infection_models.SEIQRDV_model import SEIQRDVModel, SEIQRDVModelParameters, FolkSEIQRDV
 
 
 class TestSEIQRDVModel:

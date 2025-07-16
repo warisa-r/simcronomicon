@@ -4,5 +4,5 @@ __version__ = '0.1.0'
 
 from .sim import Simulation
 from .town import Town, TownParameters
-from . import compartmental_models
+from . import infection_models
 from . import visualization

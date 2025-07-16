@@ -6,8 +6,8 @@ import pytest
 from ..test_helper import default_test_step_events
 
 from simcronomicon import Town, TownParameters, Simulation
-from simcronomicon.compartmental_models import StepEvent, EventType
-from simcronomicon.compartmental_models.SEIR_model import SEIRModel, SEIRModelParameters, FolkSEIR
+from simcronomicon.infection_models import StepEvent, EventType
+from simcronomicon.infection_models.SEIR_model import SEIRModel, SEIRModelParameters, FolkSEIR
 
 
 class TestSEIRModel:

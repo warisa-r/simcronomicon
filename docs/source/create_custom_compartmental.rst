@@ -1,9 +1,9 @@
-Creating Custom Compartmental Models: Building an SIR Model
+Creating Custom Infection Models: Building an SIR Model
 ============================================================
 
-This tutorial demonstrates how to create custom compartmental models in simcronomicon by implementing the classic 
+This tutorial demonstrates how to create custom infection models in simcronomicon by implementing the classic 
 **SIR (Susceptible-Infectious-Recovered)** model from scratch. You'll learn the essential components needed to 
-build any compartmental model and understand the inheritance structure that makes simcronomicon extensible.
+build any infection model and understand the inheritance structure that makes simcronomicon extensible.
 
 Understanding the SIR Model
 ---------------------------
@@ -31,21 +31,21 @@ While simcronomicon includes a more complex SEIR model, building SIR teaches you
 - **Agent Behavior**: Implementing custom disease progression logic
 - **Validation**: Ensuring your model works correctly
 
-This knowledge enables you to create any compartmental model (SIRD, SEIQR, etc.) for your specific research needs.
+This knowledge enables you to create any infection model (SIRD, SEIQR, etc.) for your specific research needs.
 
 Step 1: Define Model Parameters
 -------------------------------
 
-Every compartmental model needs a parameters class that inherits from ``AbstractModelParameters``:
+Every infection model needs a parameters class that inherits from ``AbstractModelParameters``:
 
 .. code-block:: python
 
    # File: sir_model.py
-   from simcronomicon.compartmental_models.abstract_model import AbstractModelParameters
+   from simcronomicon.infection_models.abstract_model import AbstractModelParameters
 
    class SIRModelParameters(AbstractModelParameters):
        """
-       Parameters for the SIR compartmental model.
+       Parameters for the SIR infection model.
        
        Parameters
        ----------
@@ -91,7 +91,7 @@ The agent class defines how individuals behave and transition between disease st
 
 .. code-block:: python
 
-   from simcronomicon.compartmental_models.abstract_model import AbstractFolk
+   from simcronomicon.infection_models.abstract_model import AbstractFolk
 
    class FolkSIR(AbstractFolk):
        """
@@ -171,8 +171,8 @@ Custom models need to override the ``initialize_sim_population`` method to handl
 
 .. code-block:: python
 
-   class SIRModel(AbstractCompartmentalModel):
-       """SIR compartmental model implementation."""
+   class SIRModel(AbstractInfectionModel):
+       """SIR infection model implementation."""
        
        def __init__(self, model_params, step_events=None):
            # Define model-specific attributes BEFORE calling super().__init__
@@ -459,7 +459,7 @@ Always validate your custom model:
 Best Practices
 --------------
 
-When creating custom compartmental models:
+When creating custom infection models:
 
 **1. Start Simple**
    Begin with basic functionality, then add complexity incrementally
@@ -500,7 +500,7 @@ Common Pitfalls
 Next Steps
 ----------
 
-Now that you can create custom compartmental models, explore:
+Now that you can create custom infection models, explore:
 
 - **SIRD Model**: Add death compartment to your SIR model
 - **Age-Structured Models**: Different parameters for age groups
@@ -508,6 +508,6 @@ Now that you can create custom compartmental models, explore:
 - **Multi-Strain Models**: Competing variants with different characteristics
 - **Economic Models**: Incorporate economic factors and interventions
 
-The simcronomicon framework makes it straightforward to implement any compartmental model structure. 
+The simcronomicon framework makes it straightforward to implement any infection model structure. 
 Your SIR implementation provides the foundation for understanding how to build increasingly sophisticated epidemic 
 models tailored to your specific research questions.

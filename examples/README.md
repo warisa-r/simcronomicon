@@ -5,7 +5,7 @@ This folder contains hands-on tutorials and examples demonstrating the capabilit
 ## Available Tutorials
 
 ### Core Disease Modeling
-- **[`basic_disease_spread.ipynb`](basic_disease_spread.ipynb)** - Introduction to SEIR compartmental modeling
+- **[`basic_disease_spread.ipynb`](basic_disease_spread.ipynb)** - Introduction to SEIR infection modeling
   - Learn to create spatial networks from OpenStreetMap data
   - Understand agent-based disease transmission mechanics
   - Compare ABM results with theoretical ODE predictions
@@ -26,6 +26,6 @@ This folder contains hands-on tutorials and examples demonstrating the capabilit
   - Quarantine policy implementation
 
 ### Custom Models
-- **[`custom_compartmental_model.ipynb`](custom_compartmental_model.ipynb)** - An example of how you can create your own model
+- **[`custom_infection_model.ipynb`](custom_infection_model.ipynb)** - An example of how you can create your own model
   - Simple SIR model implemented as a user-customized model
   - Show what you have to do in order for your model to work in our simulation flow

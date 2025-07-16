@@ -3,7 +3,7 @@ Getting Started with simcronomicon
 
 Welcome to **simcronomicon**! This guide will help you get started with the main features of the package, including building a town, defining disease spread models, running simulations, and visualizing results.
 
-We will use the simplest and most common compartmental model in disease modeling throughout this tutorial, the SEIR model!
+We will use the simplest and most common infection model in disease modeling throughout this tutorial, the SEIR model!
 
 **If you have no knowledge on disease modeling, we recommend you to visit the tutorial in examples/basic_disease_spread.ipynb
 so that you might have a better grasp of how epidemic agent-based modelling looks like in action.**
@@ -32,7 +32,7 @@ Basic Workflow
 --------------
 
 1. **Create or load a town network**
-2. **Define step events and a compartmental model**
+2. **Define step events and a infection model**
 3. **Run a simulation**
 4. **Visualize the results**
 
@@ -56,7 +56,7 @@ in OpenStreetMap data.
     
     from simcronomicon import Simulation, Town, TownParameters
 
-    from simcronomicon.compartmental_models import (
+    from simcronomicon.infection_models import (
         SEIRModel, SEIRModelParameters, FolkSEIR,
         StepEvent, EventType,
     )
@@ -67,7 +67,7 @@ in OpenStreetMap data.
         plot_agents_scatter
     )
 
-    from simcronomicon.compartmental_models import (
+    from simcronomicon.infection_models import (
         log_normal_mobility,
     )
 
@@ -282,7 +282,7 @@ Comparing with ODE Solution (SEIR Example)
 ------------------------------------------
 
 You can compare your simulation to a standard ODE solution by using `scipy.integrate`. Here is an ODE system of 
-the SEIR compartmental model that also governs the agent interaction and contagion dynamic in our ABM simulation:
+the SEIR infection model that also governs the agent interaction and contagion dynamic in our ABM simulation:
 
 .. code-block:: python
 
@@ -337,7 +337,7 @@ pattern emergence as the ODE system predict with some randomness included.
 Next Steps
 ----------
 
-- Explore other models: SEIsIrR, SEIQRDV, or define your own by subclassing `AbstractCompartmentalModel`.
+- Explore other models: SEIsIrR, SEIQRDV, or define your own by subclassing `AbstractInfectionModel`.
 - Customize step events for your scenario.
 - See the API documentation for advanced usage.
 

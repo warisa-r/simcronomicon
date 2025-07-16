@@ -1,4 +1,4 @@
-from simcronomicon import Town, TownParameters, Simulation, compartmental_models
+from simcronomicon import Town, TownParameters, Simulation, infection_models
 from pyproj import Transformer
 
 # Common coordinates
@@ -68,26 +68,26 @@ def get_shortest_path_length(town, node_a, node_b):
 
 MODEL_MATRIX = {
     "seir": (
-        compartmental_models.SEIRModel,
-        compartmental_models.SEIRModelParameters,
-        compartmental_models.FolkSEIR,
+        infection_models.SEIRModel,
+        infection_models.SEIRModelParameters,
+        infection_models.FolkSEIR,
         dict(max_energy=5, beta=0.4, sigma=6, gamma=5, xi=20),
         "test/test_data/aachen_dom_500m_config.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
     "seisir": (
-        compartmental_models.SEIsIrRModel,
-        compartmental_models.SEIsIrRModelParameters,
-        compartmental_models.FolkSEIsIrR,
+        infection_models.SEIsIrRModel,
+        infection_models.SEIsIrRModelParameters,
+        infection_models.FolkSEIsIrR,
         dict(max_energy=5, literacy=0.5, gamma=0.5, alpha=0.5, lam=0.9,
              phi=0.5, theta=0.8, mu=0.5, eta1=0.5, eta2=0.5, mem_span=10),
         "test/test_data/aachen_dom_500m_config.json",
         "test/test_data/aachen_dom_500m.graphmlz"
     ),
     "seiqrdv": (
-        compartmental_models.SEIQRDVModel,
-        compartmental_models.SEIQRDVModelParameters,
-        compartmental_models.FolkSEIQRDV,
+        infection_models.SEIQRDVModel,
+        infection_models.SEIQRDVModelParameters,
+        infection_models.FolkSEIQRDV,
         dict(max_energy=5, lam_cap=0.01, beta=0.4, alpha=0.5, gamma=3,
              delta=2, lam=4, rho=5, kappa=0.2, mu=0.01, hospital_capacity=100),
         "test/test_data/uniklinik_500m_config.json",
@@ -98,10 +98,10 @@ MODEL_MATRIX = {
 
 def default_test_step_events(folk_class):
     return [
-        compartmental_models.StepEvent("greet_neighbors", folk_class.interact, compartmental_models.EventType.DISPERSE, 5000, [
-            'accommodation'], compartmental_models.energy_exponential_mobility),
-        compartmental_models.StepEvent("chore", folk_class.interact, compartmental_models.EventType.DISPERSE, 19000,
-                                       ['commercial', 'workplace', 'education', 'religious'], compartmental_models.log_normal_mobility)
+        infection_models.StepEvent("greet_neighbors", folk_class.interact, infection_models.EventType.DISPERSE, 5000, [
+            'accommodation'], infection_models.energy_exponential_mobility),
+        infection_models.StepEvent("chore", folk_class.interact, infection_models.EventType.DISPERSE, 19000,
+                                       ['commercial', 'workplace', 'education', 'religious'], infection_models.log_normal_mobility)
     ]
 
 
