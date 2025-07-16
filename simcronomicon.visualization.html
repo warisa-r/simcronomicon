@@ -1,0 +1,240 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>simcronomicon.visualization package &mdash; simcronomicon 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="simcronomicon.infection_models package" href="simcronomicon.infection_models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            simcronomicon
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with simcronomicon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_blocks.html">Understanding Agent Behavior and Simulation Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_movement.html">Advanced Step Events and Movement Patterns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_SEIQRDV.html">Advanced Simulation Features: SEIQRDV Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="create_custom_infection.html">Creating Custom Infection Models: Building an SIR Model</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="simcronomicon.html">simcronomicon package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simcronomicon.html#module-simcronomicon.town">Town network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simcronomicon.html#infection-models">Infection models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simcronomicon.html#module-simcronomicon.sim">Simulation structure</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="simcronomicon.html#visualization">Visualization</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">simcronomicon.visualization package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.visualization.plot_status_summary">simcronomicon.visualization.plot_status_summary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.visualization.plot_scatter">simcronomicon.visualization.plot_scatter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.visualization">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">simcronomicon</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="simcronomicon.html">simcronomicon package</a></li>
+      <li class="breadcrumb-item active">simcronomicon.visualization package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/simcronomicon.visualization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="simcronomicon-visualization-package">
+<h1>simcronomicon.visualization package<a class="headerlink" href="#simcronomicon-visualization-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-simcronomicon.visualization.plot_status_summary">
+<span id="simcronomicon-visualization-plot-status-summary-module"></span><h2>simcronomicon.visualization.plot_status_summary module<a class="headerlink" href="#module-simcronomicon.visualization.plot_status_summary" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="simcronomicon.visualization.plot_status_summary.plot_status_summary_from_hdf5">
+<span class="sig-prename descclassname"><span class="pre">simcronomicon.visualization.plot_status_summary.</span></span><span class="sig-name descname"><span class="pre">plot_status_summary_from_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_hdf5_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.visualization.plot_status_summary.plot_status_summary_from_hdf5" title="Link to this definition"></a></dt>
+<dd><p>Plot the normalized status summary (density) over time from a simulation HDF5 output file.</p>
+<p>This function reads the simulation status summary from the specified HDF5 file,
+normalizes each status by the total population, and plots the density of each status
+(or a subset of statuses) over simulation timesteps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_hdf5_path</strong> (<em>str</em>) – Path to the HDF5 file containing simulation results.</p></li>
+<li><p><strong>status_type</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If None (default), plot all status types.
+If str, plot only the specified status type.
+If list of str, plot only the specified status types.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the HDF5 file contains no status data or if the total population is zero.
+    If an invalid status_type is provided.</p></li>
+<li><p><strong>TypeError</strong> – If status_type is not None, str, or list of str.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Displays a matplotlib plot of the status densities over time.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-simcronomicon.visualization.plot_scatter">
+<span id="simcronomicon-visualization-plot-scatter-module"></span><h2>simcronomicon.visualization.plot_scatter module<a class="headerlink" href="#module-simcronomicon.visualization.plot_scatter" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="simcronomicon.visualization.plot_scatter.plot_agents_scatter">
+<span class="sig-prename descclassname"><span class="pre">simcronomicon.visualization.plot_scatter.</span></span><span class="sig-name descname"><span class="pre">plot_agents_scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_hdf5_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">town_graph_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.visualization.plot_scatter.plot_agents_scatter" title="Link to this definition"></a></dt>
+<dd><p>Visualize the movement and status of agents over time on a map using simulation output using Plotly and OpenStreetMap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_hdf5_path</strong> (<em>str</em>) – Path to the HDF5 file containing simulation results.</p></li>
+<li><p><strong>town_graph_path</strong> (<em>str</em>) – Path to the .graphmlz file containing the town graph.</p></li>
+<li><p><strong>time_interval</strong> (<em>tuple</em><em> or </em><em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – (start, end) timestep range to visualize. If None, visualize all timesteps.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Displays an Plotly map with a time slider showing agent locations and statuses over time.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Each status is represented by a random color (A colormap parameter is a to-be-implemented)</p></li>
+<li><p>Requires internet connection for OpenStreetMap tiles</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simcronomicon.visualization.plot_scatter.plot_place_types_scatter">
+<span class="sig-prename descclassname"><span class="pre">simcronomicon.visualization.plot_scatter.</span></span><span class="sig-name descname"><span class="pre">plot_place_types_scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">town_graph_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">town_config_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.visualization.plot_scatter.plot_place_types_scatter" title="Link to this definition"></a></dt>
+<dd><p>Visualizes nodes from a .graphmlz town graph file as colored points with colors representing
+different place types (e.g., accommodation, commercial, education), using Plotly and OpenStreetMap..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>town_graph_path</strong> (<em>str</em>) – Path to the .graphmlz file containing the town graph with node coordinates
+and place_type classifications.</p></li>
+<li><p><strong>town_config_path</strong> (<em>str</em>) – Path to the .json file containing town metadata with ‘epsg_code’ for coordinate
+conversion and ‘place_types’ list defining valid place types.</p></li>
+<li><p><strong>colormap</strong> (<em>dict</em><em>, </em><em>optional</em>) – Custom color mapping {‘place_type’: ‘#HEXCOLOR’}. If None, uses defaults.
+Custom colors override defaults for matching place types.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Displays an interactive Plotly scatter map with colored points, legend,
+and hover information showing node IDs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>AssertionError</strong> – If file extensions are incorrect (.graphmlz and .json required).</p></li>
+<li><p><strong>KeyError</strong> – If town_config_path doesn’t contain required ‘epsg_code’ field.</p></li>
+<li><p><strong>ValueError</strong> – If colormap doesn’t provide colors for all place types defined in
+    town_config_path’s ‘place_types’ list.</p></li>
+<li><p><strong>FileNotFoundError</strong> – If specified file paths don’t exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Default colors provided for: accommodation, commercial, religious, education,
+workplace, healthcare_facility</p></li>
+<li><p>Nodes with undefined place types are colored gray (#CCCCCC)</p></li>
+<li><p>Requires internet connection for OpenStreetMap tiles</p></li>
+</ul>
+</dd></dl>
+
+</section>
+<section id="module-simcronomicon.visualization">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-simcronomicon.visualization" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="simcronomicon.infection_models.html" class="btn btn-neutral float-left" title="simcronomicon.infection_models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Warisa Roongaraya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
