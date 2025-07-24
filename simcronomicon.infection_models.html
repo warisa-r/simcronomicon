@@ -1,0 +1,1555 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>simcronomicon.infection_models package &mdash; simcronomicon 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="simcronomicon.visualization package" href="simcronomicon.visualization.html" />
+    <link rel="prev" title="simcronomicon package" href="simcronomicon.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            simcronomicon
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with simcronomicon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_blocks.html">Understanding Agent Behavior and Simulation Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_movement.html">Advanced Step Events and Movement Patterns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_SEIQRDV.html">Advanced Simulation Features: SEIQRDV Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="create_custom_infection.html">Creating Custom Infection Models: Building an SIR Model</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="simcronomicon.html">simcronomicon package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simcronomicon.html#module-simcronomicon.town">Town network</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="simcronomicon.html#infection-models">Infection models</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">simcronomicon.infection_models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#core-building-blocks">Core Building Blocks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.infection_models.abstract_model">simcronomicon.infection_models.abstract_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.infection_models.step_event">simcronomicon.infection_models.step_event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.infection_models.SEIQRDV_model">simcronomicon.infection_models.SEIQRDV_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.infection_models.SEIR_model">simcronomicon.infection_models.SEIR_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-simcronomicon.infection_models.SEIsIrR_model">simcronomicon.infection_models.SEIsIrR_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#define-your-own-model">Define Your Own Model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="simcronomicon.html#module-simcronomicon.sim">Simulation structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simcronomicon.html#visualization">Visualization</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">simcronomicon</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="simcronomicon.html">simcronomicon package</a></li>
+      <li class="breadcrumb-item active">simcronomicon.infection_models package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/simcronomicon.infection_models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="simcronomicon-infection-models-package">
+<h1>simcronomicon.infection_models package<a class="headerlink" href="#simcronomicon-infection-models-package" title="Link to this heading"></a></h1>
+<section id="core-building-blocks">
+<h2>Core Building Blocks<a class="headerlink" href="#core-building-blocks" title="Link to this heading"></a></h2>
+<p>The most important building blocks for defining infection models in simcronomicon are the <strong>abstract model classes</strong> and the <strong>step event system</strong>.</p>
+<ul class="simple">
+<li><p><strong>Abstract Models</strong>
+The <cite>abstract_model</cite> module provides the abstract base classes that define the required structure and interface for all infection models. Every specific model (such as SEIR, SEIQRDV, etc.) is built on top of these abstract classes, specifying their own rules for agent status transitions and model-specific logic. If you want to create a new model, you will subclass these abstract classes and implement your own conversion rules and behaviors.</p></li>
+<li><p><strong>Step Events</strong>
+The <cite>step_event</cite> module defines the event system that controls agent activities and movement during each simulation step. Step events are a key user input to each model: you can use the default events provided in the abstract model, or define your own custom events. The sequence and logic of step events dictate how agents move, interact, and progress through the simulation.</p></li>
+</ul>
+<p>Together, these modules form the foundation for all other infection models in simcronomicon. Understanding and extending them is essential for advanced model customization.</p>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-simcronomicon.infection_models.abstract_model">
+<span id="simcronomicon-infection-models-abstract-model-module"></span><h2>simcronomicon.infection_models.abstract_model module<a class="headerlink" href="#module-simcronomicon.infection_models.abstract_model" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.abstract_model.</span></span><span class="sig-name descname"><span class="pre">AbstractFolk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">home_address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Agent class representing individuals in the simulation.</p>
+<p>AbstractFolk objects represent individual agents that move through the town network,
+interact with other agents, and undergo status transitions according to
+infection model rules. Each agent has energy, status, location, and
+behavioral attributes that influence their participation in simulation events.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – Unique identifier for the agent.</p></li>
+<li><p><strong>home_address</strong> (<em>int</em>) – Node index of the agent’s home location in the town network.</p></li>
+<li><p><strong>max_energy</strong> (<em>int</em>) – Maximum social energy. Limits the number of events an agent can attend daily.</p></li>
+<li><p><strong>status</strong> (<em>str</em>) – Initial infection status of the agent (e.g., ‘S’, ‘I’, ‘R’).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.id" title="Link to this definition"></a></dt>
+<dd><p>Unique agent identifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.home_address">
+<span class="sig-name descname"><span class="pre">home_address</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.home_address" title="Link to this definition"></a></dt>
+<dd><p>Home node index in the town network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.address">
+<span class="sig-name descname"><span class="pre">address</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.address" title="Link to this definition"></a></dt>
+<dd><p>Current location node index (initially set to home_address).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.max_energy">
+<span class="sig-name descname"><span class="pre">max_energy</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.max_energy" title="Link to this definition"></a></dt>
+<dd><p>Maximum daily social energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.energy">
+<span class="sig-name descname"><span class="pre">energy</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.energy" title="Link to this definition"></a></dt>
+<dd><p>Current social energy (randomly initialized between 0 and max_energy).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.status" title="Link to this definition"></a></dt>
+<dd><p>Current infection status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.status_step_streak">
+<span class="sig-name descname"><span class="pre">status_step_streak</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.status_step_streak" title="Link to this definition"></a></dt>
+<dd><p>Number of consecutive timesteps in current status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.movement_restricted">
+<span class="sig-name descname"><span class="pre">movement_restricted</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.movement_restricted" title="Link to this definition"></a></dt>
+<dd><p>Whether agent movement is restricted (e.g., quarantine).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.alive">
+<span class="sig-name descname"><span class="pre">alive</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.alive" title="Link to this definition"></a></dt>
+<dd><p>Whether the agent is alive and active in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.priority_place_type">
+<span class="sig-name descname"><span class="pre">priority_place_type</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.priority_place_type" title="Link to this definition"></a></dt>
+<dd><p>List of place types the agent prioritizes for visits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.clear_previous_event_effect">
+<span class="sig-name descname"><span class="pre">clear_previous_event_effect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.clear_previous_event_effect" title="Link to this definition"></a></dt>
+<dd><p>Reset or update agent attributes following step events.</p>
+<p>This method is called at the end of each simulation step to clean up
+temporary state changes caused by events and ensure the agent is
+properly prepared for the next step. Subclasses should implement this
+method to handle model-specific attribute resets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.convert">
+<span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_stat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.convert" title="Link to this definition"></a></dt>
+<dd><p>Change the agent’s status and update the status counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_stat</strong> (<em>str</em>) – The new status to assign.</p></li>
+<li><p><strong>status_dict_t</strong> (<em>dict</em>) – Dictionary tracking the count of each status at the current timestep.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.inverse_bernoulli">
+<span class="sig-name descname"><span class="pre">inverse_bernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contact_possibility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion_prob</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.inverse_bernoulli" title="Link to this definition"></a></dt>
+<dd><p>Calculate the probability of status transition given contact possibility and conversion probability.</p>
+<p>This function is adapted from section 2.2 of
+Eden, M., Castonguay, R., Munkhbat, B., Balasubramanian, H., &amp; Gopalappa, C. (2021).
+Agent-based evolving network modeling: A new simulation method for modeling low prevalence infectious diseases.
+Health Care Management Science, 24, 623–639. <a class="reference external" href="https://link.springer.com/article/10.1007/s10729-021-09558-0">https://link.springer.com/article/10.1007/s10729-021-09558-0</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>contact_possibility</strong> (<em>int</em>) – Number of possible contacts.</p></li>
+<li><p><strong>conversion_prob</strong> (<em>float</em>) – Probability of conversion per contact.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability of at least one successful conversion.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractFolk.sleep">
+<span class="sig-name descname"><span class="pre">sleep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractFolk.sleep" title="Link to this definition"></a></dt>
+<dd><p>Reset the agent’s energy and increment the status streak (called at the end of a day).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.abstract_model.</span></span><span class="sig-name descname"><span class="pre">AbstractInfectionModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract base class for all infection epidemic models.</p>
+<p>This class provides the foundation for implementing infection models
+(e.g., SIR, SEIR, SEIQRDV) in agent-based simulations. It handles agent
+creation, step event management, population initialization, and defines
+the interface that all infection models must implement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_params</strong> (<a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters" title="simcronomicon.infection_models.abstract_model.AbstractModelParameters"><em>AbstractModelParameters</em></a>) – Model-specific parameters object containing simulation configuration.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.model_params">
+<span class="sig-name descname"><span class="pre">model_params</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.model_params" title="Link to this definition"></a></dt>
+<dd><p>Configuration parameters for the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters" title="simcronomicon.infection_models.abstract_model.AbstractModelParameters">AbstractModelParameters</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.step_events">
+<span class="sig-name descname"><span class="pre">step_events</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.step_events" title="Link to this definition"></a></dt>
+<dd><p>Sequence of events that occur during each simulation timestep.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of <a class="reference internal" href="#simcronomicon.infection_models.step_event.StepEvent" title="simcronomicon.infection_models.step_event.StepEvent">StepEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.infected_statuses">
+<span class="sig-name descname"><span class="pre">infected_statuses</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.infected_statuses" title="Link to this definition"></a></dt>
+<dd><p>List of status strings considered infectious (must be defined by subclasses).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.all_statuses">
+<span class="sig-name descname"><span class="pre">all_statuses</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.all_statuses" title="Link to this definition"></a></dt>
+<dd><p>Complete list of all possible agent statuses (must be defined by subclasses).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.required_place_types">
+<span class="sig-name descname"><span class="pre">required_place_types</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.required_place_types" title="Link to this definition"></a></dt>
+<dd><p>Set of place types required by the model (includes ‘accommodation’, ‘commercial’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.folk_class">
+<span class="sig-name descname"><span class="pre">folk_class</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.folk_class" title="Link to this definition"></a></dt>
+<dd><p>The Folk class or subclass used to create agents (must be defined by subclasses).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Subclasses must define ‘infected_statuses’, ‘all_statuses’, and ‘folk_class’
+before calling the parent constructor.</p></li>
+<li><p>An ‘end_day’ event is automatically appended to step_events if not provided.</p></li>
+<li><p>Default step_events include neighborhood greeting and commercial activities.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.create_folk">
+<span class="sig-name descname"><span class="pre">create_folk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.create_folk" title="Link to this definition"></a></dt>
+<dd><p>Create a new AbstractFolk agent using the model’s folk_class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A new AbstractFolk agent instance of a given folk_class.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractFolk" title="simcronomicon.infection_models.abstract_model.AbstractFolk">AbstractFolk</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.initialize_sim_population">
+<span class="sig-name descname"><span class="pre">initialize_sim_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">town</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.initialize_sim_population" title="Link to this definition"></a></dt>
+<dd><p>Initialize simulation population data structures and validate spreader configuration.</p>
+<p>This method sets up the basic data structures needed for population initialization
+and validates that the spreader configuration is valid. It prepares containers
+for agent creation and household assignment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>town</strong> (<a class="reference internal" href="simcronomicon.html#simcronomicon.town.Town" title="simcronomicon.town.Town"><em>Town</em></a>) – The town network where agents will be placed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Contains (num_pop, num_init_spreader, num_init_spreader_rd, folks,
+household_node_indices, assignments) where:
+- num_pop : int - Total population size
+- num_init_spreader : int - Total number of initial spreaders
+- num_init_spreader_rd : int - Number of randomly placed spreaders
+- folks : list - Empty list for agent objects
+- household_node_indices : set - Empty set for household node tracking
+- assignments : list - Empty list for agent assignments</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This method only initializes data structures and validates configuration.
+Actual agent creation and placement is handled by the Simulation class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractInfectionModel.update_population">
+<span class="sig-name descname"><span class="pre">update_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">town</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">household_node_indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel.update_population" title="Link to this definition"></a></dt>
+<dd><p>Update the simulation population (e.g., add or remove agents).</p>
+<p>This method is called at the end of each day. By default, it does nothing.
+Subclasses can override this method to implement population growth, death, or migration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folks</strong> (<em>list</em><em> of </em><a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractFolk" title="simcronomicon.infection_models.abstract_model.AbstractFolk"><em>AbstractFolk</em></a>) – The current list of AbstractFolk agent objects in the simulation.</p></li>
+<li><p><strong>town</strong> (<a class="reference internal" href="simcronomicon.html#simcronomicon.town.Town" title="simcronomicon.town.Town"><em>Town</em></a>) – The Town object representing the simulation environment.</p></li>
+<li><p><strong>status_dict_t</strong> (<em>dict</em>) – Dictionary tracking the count of each status at the current timestep.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An updated number of overall population</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractModelParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.abstract_model.</span></span><span class="sig-name descname"><span class="pre">AbstractModelParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for infection model parameters.</p>
+<p>This abstract class defines the common interface for all infection model
+parameter classes. It provides basic energy management and requires subclasses
+to implement configuration serialization for simulation persistence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_energy</strong> (<em>int</em>) – The maximum energy for an agent. This number limits the maximum number
+of events an agent can attend in a day.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractModelParameters.max_energy">
+<span class="sig-name descname"><span class="pre">max_energy</span></span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters.max_energy" title="Link to this definition"></a></dt>
+<dd><p>Maximum social energy value for agents in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.abstract_model.AbstractModelParameters.to_config_dict">
+<span class="sig-name descname"><span class="pre">to_config_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters.to_config_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert model parameters to a dictionary for configuration serialization.</p>
+<p>This abstract method must be implemented by subclasses to enable saving
+and loading of simulation configurations. The returned dictionary should
+contain all parameter values needed to reconstruct the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – Always raised in the base class. Subclasses must override this method.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-simcronomicon.infection_models.step_event">
+<span id="simcronomicon-infection-models-step-event-module"></span><h2>simcronomicon.infection_models.step_event module<a class="headerlink" href="#module-simcronomicon.infection_models.step_event" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.EventType">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.step_event.</span></span><span class="sig-name descname"><span class="pre">EventType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.step_event.EventType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Step events are classified into two types.</p>
+<ul class="simple">
+<li><p>DISPERSE is the type of event</p></li>
+</ul>
+<p>that send agents around the town graph to specific locations in a given range and allow them to interact with other agents
+who are in the same nodes..</p>
+<ul class="simple">
+<li><p>SEND_HOME is the type of event that every agents in the simulation back to their home address without any interaction.</p></li>
+</ul>
+<p>SEND_HOME can represent the end of the day where everybody go home and sleep or an emergency announcement
+that sends everyone around town straight back home.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.EventType.DISPERSE">
+<span class="sig-name descname"><span class="pre">DISPERSE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'disperse'</span></em><a class="headerlink" href="#simcronomicon.infection_models.step_event.EventType.DISPERSE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.EventType.SEND_HOME">
+<span class="sig-name descname"><span class="pre">SEND_HOME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'send_home'</span></em><a class="headerlink" href="#simcronomicon.infection_models.step_event.EventType.SEND_HOME" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.step_event.</span></span><span class="sig-name descname"><span class="pre">StepEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folk_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EventType.SEND_HOME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">place_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probability_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Defines agent activities and movement patterns during simulation timesteps.</p>
+<p>StepEvent objects represent discrete activities that agents perform during
+simulation timesteps. Each event specifies how agents move through the town
+network, what types of locations they visit, and what actions they perform
+when they arrive at destinations.</p>
+<section id="purpose">
+<h3>Purpose<a class="headerlink" href="#purpose" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Agent Movement Control</strong>: Define where and how far agents travel during
+specific activities (work, shopping, healthcare visits, etc.).</p></li>
+<li><p><strong>Location Targeting</strong>: Specify which types of places agents visit for
+different activities using place type filters.</p></li>
+<li><p><strong>Mobility Modeling</strong>: Apply realistic human mobility patterns through
+customizable probability functions based on distance and agent characteristics.</p></li>
+<li><p><strong>Agent-Dependent Behavior</strong>: Enable mobility patterns that adapt to individual
+agent properties such as energy levels, status, or other attributes.</p></li>
+</ol>
+</section>
+<section id="event-types">
+<h3>Event Types<a class="headerlink" href="#event-types" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>DISPERSE</strong>: Agents move to locations within specified distance and place
+type constraints. Enables agent-to-agent interactions at destinations.</p></li>
+<li><p><strong>SEND_HOME</strong>: All agents return directly to their home addresses without
+movement or interaction. Represents end-of-day or emergency scenarios.</p></li>
+</ul>
+</section>
+<section id="probability-functions">
+<h3>Probability Functions<a class="headerlink" href="#probability-functions" title="Link to this heading"></a></h3>
+<p>Custom probability functions must:</p>
+<ul class="simple">
+<li><p>Accept exactly 2 non-default arguments: <cite>(distances, agent)</cite></p></li>
+<li><p>Return probabilities between 0 and 1 (will be normalized automatically)</p></li>
+<li><p>Handle numpy arrays for distances</p></li>
+<li><p>Be robust to edge cases (empty arrays, zero distances)</p></li>
+</ul>
+<p>Built-in mobility functions include:
+- <cite>log_normal_mobility</cite>: Human mobility based on log-normal distance</p>
+<ul class="simple">
+<li><p><cite>energy_exponential_mobility</cite>: Agent energy-dependent exponential decay</p></li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent.name" title="Link to this definition"></a></dt>
+<dd><p>Event identifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent.max_distance">
+<span class="sig-name descname"><span class="pre">max_distance</span></span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent.max_distance" title="Link to this definition"></a></dt>
+<dd><p>Maximum travel distance in meters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent.place_types">
+<span class="sig-name descname"><span class="pre">place_types</span></span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent.place_types" title="Link to this definition"></a></dt>
+<dd><p>Allowed destination place types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent.event_type">
+<span class="sig-name descname"><span class="pre">event_type</span></span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent.event_type" title="Link to this definition"></a></dt>
+<dd><p>Movement behavior type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#simcronomicon.infection_models.step_event.EventType" title="simcronomicon.infection_models.step_event.EventType">EventType</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent.folk_action">
+<span class="sig-name descname"><span class="pre">folk_action</span></span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent.folk_action" title="Link to this definition"></a></dt>
+<dd><p>Agent interaction function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.StepEvent.probability_func">
+<span class="sig-name descname"><span class="pre">probability_func</span></span><a class="headerlink" href="#simcronomicon.infection_models.step_event.StepEvent.probability_func" title="Link to this definition"></a></dt>
+<dd><p>Distance and agent-based mobility probability function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># End of day event</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">end_day</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;end_day&quot;</span><span class="p">,</span> <span class="n">folk_class</span><span class="o">.</span><span class="n">sleep</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Work event with distance constraints</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">work</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">folk_class</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">max_distance</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;workplace&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Shopping with log-normal mobility</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shopping</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;shopping&quot;</span><span class="p">,</span> <span class="n">folk_class</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">max_distance</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="n">probability_func</span><span class="o">=</span><span class="n">log_normal_mobility</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Energy-dependent movement</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leisure</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;leisure&quot;</span><span class="p">,</span> <span class="n">folk_class</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">max_distance</span><span class="o">=</span><span class="mi">8000</span><span class="p">,</span> <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;religious&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">probability_func</span><span class="o">=</span><span class="n">energy_exponential_mobility</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Custom agent-dependent mobility</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">age_based_mobility</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">... </span>    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="c1"># Older agents prefer shorter distances</span>
+<span class="gp">... </span>    <span class="n">age_factor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span>  <span class="c1"># Normalize age</span>
+<span class="gp">... </span>    <span class="n">decay_rate</span> <span class="o">=</span> <span class="mf">0.0001</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">age_factor</span><span class="p">)</span>  <span class="c1"># Higher decay for older agents</span>
+<span class="gp">... </span>    <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">decay_rate</span> <span class="o">*</span> <span class="n">distances</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">probs</span> <span class="o">/</span> <span class="n">probs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">if</span> <span class="n">probs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">custom_event</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;age_sensitive&quot;</span><span class="p">,</span> <span class="n">folk_class</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">max_distance</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;healthcare&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                         <span class="n">probability_func</span><span class="o">=</span><span class="n">age_based_mobility</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.energy_exponential_mobility">
+<span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.step_event.</span></span><span class="sig-name descname"><span class="pre">energy_exponential_mobility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distances</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.step_event.energy_exponential_mobility" title="Link to this definition"></a></dt>
+<dd><p>Return probabilities proportional to exponential PDF of distances. With lam = inverse of normalized energy
+as a rate parameter - higher energy = lower decay rate = more willing to travel far.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>distance_scale</strong> (<em>float</em>) – Scale factor for distances to control decay rate. Higher values = slower decay.
+Default 1000 means distances are scaled to kilometers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.step_event.log_normal_mobility">
+<span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.step_event.</span></span><span class="sig-name descname"><span class="pre">log_normal_mobility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distances</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">median_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.step_event.log_normal_mobility" title="Link to this definition"></a></dt>
+<dd><p>Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
+the human mobility pattern in this following literature and its predecessor:
+Wang, W., &amp; Osaragi, T. (2024). Lognormal distribution of daily travel time and a utility model for its emergence.
+Transportation Research Part A: Policy and Practice, 181, 104058. <a class="reference external" href="https://doi.org/10.1016/j.tra.2024.104058">https://doi.org/10.1016/j.tra.2024.104058</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>median_distance</strong> (<em>float</em>) – Median travel distance in meters. This is where the distribution peaks.
+Default 1100m (1.1km) for typical neighborhood activities.
+Common values:
+- 400m → local/walking activities
+- 1100m → neighborhood activities
+- 3000m → city-wide activities
+- 8000m → regional activities</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Shape parameter controlling spread around median.
+- sigma=0.5 → narrow distribution, consistent travel patterns
+- sigma=1.0 → moderate distribution (default)
+- sigma=1.5 → wide distribution, highly variable travel patterns</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-simcronomicon.infection_models.SEIQRDV_model">
+<span id="simcronomicon-infection-models-seiqrdv-model-module"></span><h2>simcronomicon.infection_models.SEIQRDV_model module<a class="headerlink" href="#module-simcronomicon.infection_models.SEIQRDV_model" title="Link to this heading"></a></h2>
+<p>This module implements the SEIQRDV infection model for epidemic simulation with vaccination.</p>
+<p>The implementation is based on:</p>
+<p>Ghostine, R., Gharamti, M., Hassrouny, S., &amp; Hoteit, I. (2021).
+An extended SEIR model with vaccination for forecasting the COVID-19 pandemic
+in Saudi Arabia using an ensemble Kalman filter.
+<em>Mathematics</em>, 9(6), 636. <a class="reference external" href="https://doi.org/10.3390/math9060636">https://doi.org/10.3390/math9060636</a></p>
+<p>The SEIQRDV model extends the classic SEIR framework by incorporating three additional
+compartments: Quarantine (Q) for isolated infectious individuals, Death (D) for
+disease-related mortality, and Vaccination (V) for immunized individuals. This model
+is particularly suited for simulating epidemics where quarantine measures, vaccination
+campaigns, and mortality dynamics are critical factors in disease progression and
+public health intervention strategies.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIQRDV_model.</span></span><span class="sig-name descname"><span class="pre">FolkSEIQRDV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">home_address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractFolk" title="simcronomicon.infection_models.abstract_model.AbstractFolk"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractFolk</span></code></a></p>
+<p>Agent class for the SEIQRDV infection model with vaccination and mortality dynamics.
+FolkSEIQRDV agents extend the basic AbstractFolk with two critical attributes for epidemic modeling:
+<cite>will_die</cite> and <cite>want_vaccine</cite>. The <cite>will_die</cite> attribute is probabilistically set when an agent enters
+quarantine and determines their eventual outcome (recovery or death),
+reflecting the stochastic nature of disease severity. The <cite>want_vaccine</cite> attribute models vaccination-seeking behavior,
+where susceptible agents can spontaneously decide to seek vaccination based on the model’s <cite>alpha</cite> parameter,
+creating realistic vaccine demand patterns. These agents exhibit complex behavioral dynamics including healthcare-seeking
+movement (prioritizing healthcare facilities when <cite>want_vaccine</cite> is True), quarantine compliance
+(restricted movement when infectious), and status-dependent interaction patterns.
+The vaccination system implements a queue-based mechanism at healthcare facilities with capacity constraints,
+ensuring fair vaccine distribution while maintaining epidemiological realism.
+Additionally, agents undergo natural aging and mortality processes independent of disease status, allowing for
+comprehensive population dynamics that include births, deaths, migration, and demographic changes throughout the simulation period.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.clear_previous_event_effect">
+<span class="sig-name descname"><span class="pre">clear_previous_event_effect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.clear_previous_event_effect" title="Link to this definition"></a></dt>
+<dd><p>Reset vaccination-related attributes following step events.</p>
+<p>This method updates vaccination-seeking behavior attributes after events
+to maintain consistent state. It performs two key functions:</p>
+<p>1. For vaccinated agents: Clears the ‘want_vaccine’ flag since
+they’ve already received vaccination</p>
+<p>2. For other agents seeking vaccination: Ensures ‘healthcare_facility’
+remains in their priority places for the next day’s movement</p>
+<p>The method specifically handles:
+- Resetting vaccination desire for already-vaccinated agents (status ‘V’)
+- Maintaining healthcare facility priority for agents still seeking vaccination
+(except those in recovered, dead, or quarantined states who cannot benefit)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.interact">
+<span class="sig-name descname"><span class="pre">interact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_place_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.interact" title="Link to this definition"></a></dt>
+<dd><p>Perform interaction with other agents in the area and the environment for this agent.</p>
+<section id="transition-rules">
+<h3>Transition Rules<a class="headerlink" href="#transition-rules" title="Link to this heading"></a></h3>
+<ul>
+<li><p>If the agent is Susceptible (‘S’):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If the agent comes into contact with at least one Infectious (‘I’) agent at the same node,</p></li>
+</ul>
+<p>the probability of becoming Exposed (‘E’) is calculated using the inverse Bernoulli formula with
+the transmission probability (<cite>beta</cite>). If this probability exceeds the random value <cite>dice</cite>,
+the agent transitions to Exposed (‘E’).</p>
+</div></blockquote>
+</li>
+<li><p>If the agent is Susceptible (‘S’), wants a vaccine, and is at a healthcare facility:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If the number of agents at the facility wanting a vaccine is less than the hospital capacity,</p></li>
+</ul>
+<p>the agent transitions to Vaccinated (‘V’) and <cite>want_vaccine</cite> is set to False.</p>
+</div></blockquote>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">param folks_here<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of FolkSEIQRDV agents present at the same node.</p>
+</dd>
+<dt class="field-even">type folks_here<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of FolkSEIQRDV</p>
+</dd>
+<dt class="field-odd">param current_place_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The type of place where the interaction occurs.</p>
+</dd>
+<dt class="field-even">type current_place_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param status_dict_t<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary tracking the count of each status at the current timestep.</p>
+</dd>
+<dt class="field-even">type status_dict_t<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">param model_params<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model parameters for the simulation.</p>
+</dd>
+<dt class="field-even">type model_params<span class="colon">:</span></dt>
+<dd class="field-even"><p>SEIQRDVModelParameters</p>
+</dd>
+<dt class="field-odd">param dice<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Random float for stochastic transitions.</p>
+</dd>
+<dt class="field-even">type dice<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.inverse_bernoulli">
+<span class="sig-name descname"><span class="pre">inverse_bernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.inverse_bernoulli" title="Link to this definition"></a></dt>
+<dd><p>Calculate the probability of status transition given contact with specific statuses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folks_here</strong> (<em>list</em><em> of </em><a class="reference internal" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV" title="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV"><em>FolkSEIQRDV</em></a>) – List of FolkSEIQRDV agents present at the same node.</p></li>
+<li><p><strong>conversion_prob</strong> (<em>float</em>) – Probability of conversion per contact.</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em> of </em><em>str</em>) – List of statuses to consider as infectious.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability of at least one successful conversion.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.sleep">
+<span class="sig-name descname"><span class="pre">sleep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_place_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV.sleep" title="Link to this definition"></a></dt>
+<dd><p>Perform end-of-day updates and state transitions for this agent.</p>
+<p>This method handles all status progressions and transitions that occur at the end of a simulation day,
+including quarantine outcomes, recovery, death, infection progression, and vaccination planning.</p>
+<section id="id1">
+<h3>Transition Rules<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul>
+<li><p><strong>If the agent is in Quarantine (‘Q’):</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If <cite>will_die</cite> is True and the agent has been in quarantine for <cite>rho</cite> days,</p></li>
+</ul>
+<p>the agent transitions to Dead (‘D’), is marked as not alive, and <cite>want_vaccine</cite> is set to False.</p>
+<ul class="simple">
+<li><p>If <cite>will_die</cite> is False and the agent has been in quarantine for <cite>lam</cite> days,</p></li>
+</ul>
+<p>the agent transitions to Recovered (‘R’) and their movement restriction is lifted.</p>
+</div></blockquote>
+</li>
+<li><p><strong>If the agent is Exposed (‘E’)</strong> and has been exposed for <cite>gamma</cite> days,</p></li>
+</ul>
+<p>they transition to Infectious (‘I’).</p>
+<ul class="simple">
+<li><p><strong>If the agent is Infectious (‘I’)</strong> and has been infectious for <cite>delta</cite> days,</p></li>
+</ul>
+<p>their symptoms are confirmed and they must quarantine. They transition to Quarantine (‘Q’),
+their movement is restricted, <cite>want_vaccine</cite> is set to False, and with probability <cite>kappa</cite>
+they are marked to die (<cite>will_die = True</cite>).</p>
+<ul class="simple">
+<li><p><strong>If the agent is Susceptible (‘S’)</strong> and a random draw is less than <cite>alpha</cite>,</p></li>
+</ul>
+<p>they plan to get vaccinated by setting <cite>want_vaccine</cite> to True.</p>
+<ul class="simple">
+<li><p><strong>If the agent is Vaccinated (‘V’)</strong>, their <cite>want_vaccine</cite> attribute is reset to False</p></li>
+</ul>
+<p>at the end of the day to ensure correct vaccine queue handling during the next day’s events.</p>
+<ul class="simple">
+<li><p><strong>For any agent with `want_vaccine = True`</strong>, ‘healthcare_facility’ is added to their</p></li>
+</ul>
+<p>priority place types to guide movement toward vaccination sites.</p>
+<dl class="field-list simple">
+<dt class="field-odd">param folks_here<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of agents present at the same node (not used in this method, for interface compatibility).</p>
+</dd>
+<dt class="field-even">type folks_here<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of FolkSEIQRDV</p>
+</dd>
+<dt class="field-odd">param current_place_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type of place where the agent is sleeping (not used in this method, for interface compatibility).</p>
+</dd>
+<dt class="field-even">type current_place_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param status_dict_t<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary tracking the count of each status at the current timestep.</p>
+</dd>
+<dt class="field-even">type status_dict_t<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">param model_params<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model parameters for the simulation.</p>
+</dd>
+<dt class="field-even">type model_params<span class="colon">:</span></dt>
+<dd class="field-even"><p>SEIQRDVModelParameters</p>
+</dd>
+<dt class="field-odd">param dice<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Random float for stochastic transitions.</p>
+</dd>
+<dt class="field-even">type dice<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The <cite>want_vaccine</cite> attribute is reset to False in <cite>sleep()</cite> rather than immediately after
+vaccination in <cite>interact()</cite> to maintain queue integrity. If reset during <cite>interact()</cite>,
+it would modify the vaccination queue while agents are still being processed, potentially
+causing some agents to be skipped or processed incorrectly. Deferring the reset ensures
+fair and consistent vaccination queue processing.</p>
+</section>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIQRDV_model.</span></span><span class="sig-name descname"><span class="pre">SEIQRDVModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel" title="simcronomicon.infection_models.abstract_model.AbstractInfectionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractInfectionModel</span></code></a></p>
+<p>SEIQRDV infection model implementation for epidemic simulation with vaccination.</p>
+<p>The SEIQRDV model extends the classic SEIR model by adding three additional compartments:
+Quarantine (Q), Death (D), and Vaccination (V). This model is particularly suited for
+simulating disease outbreaks where quarantine measures, vaccination campaigns, and
+mortality are important factors.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModel.initialize_sim_population">
+<span class="sig-name descname"><span class="pre">initialize_sim_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">town</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModel.initialize_sim_population" title="Link to this definition"></a></dt>
+<dd><p>Initialize the simulation population and their assignments.</p>
+<p>This method assigns initial statuses and home locations to all agents in the simulation,
+including initial spreaders (both randomly assigned and those at specified nodes) and susceptible agents.
+It also creates agent objects, updates the town graph with agent assignments, and tracks household nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>town</strong> (<a class="reference internal" href="simcronomicon.html#simcronomicon.town.Town" title="simcronomicon.town.Town"><em>Town</em></a>) – The Town object representing the simulation environment.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>(folks, household_node_indices, status_dict_t0)</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>folks<span class="classifier">list of FolkSEIQRDV</span></dt><dd><p>List of all agent objects created for the simulation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>household_node_indices<span class="classifier">set</span></dt><dd><p>Set of node indices where households are tracked.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>status_dict_t0<span class="classifier">dict</span></dt><dd><p>Dictionary with the initial count of each status at timestep 0.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModel.update_population">
+<span class="sig-name descname"><span class="pre">update_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">town</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">household_node_indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModel.update_population" title="Link to this definition"></a></dt>
+<dd><p>Update the simulation population at the end of each day.</p>
+<p>This function performs two main operations:
+1. <strong>Natural Deaths:</strong> Iterates through all currently alive agents and, with probability <cite>mu</cite> (the natural death rate), transitions them to the ‘D’ (Dead) status and marks them as not alive.</p>
+<ol class="arabic simple" start="2">
+<li><dl class="simple">
+<dt><strong>Population Growth:</strong> Calculates the number of possible new agents to add based on the current alive population and the parameter <cite>lam_cap</cite> (birth/migration rate). For each new agent:</dt><dd><ul class="simple">
+<li><p>Randomly selects an accommodation node as their home.</p></li>
+<li><p>Randomly assigns a status from all possible statuses except ‘D’ (Dead) and ‘Q’ (Quarantine).</p></li>
+<li><p>Adds the new agent to the simulation, updates the status count, and tracks their household node.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folks</strong> (<em>list</em><em> of </em><a class="reference internal" href="#simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV" title="simcronomicon.infection_models.SEIQRDV_model.FolkSEIQRDV"><em>FolkSEIQRDV</em></a>) – The current list of FolkSEIQRDV agent objects in the simulation.</p></li>
+<li><p><strong>town</strong> (<a class="reference internal" href="simcronomicon.html#simcronomicon.town.Town" title="simcronomicon.town.Town"><em>Town</em></a>) – The Town object representing the simulation environment.</p></li>
+<li><p><strong>household_node_indices</strong> (<em>set</em>) – Set of node indices where households are tracked.</p></li>
+<li><p><strong>status_dict_t</strong> (<em>dict</em>) – Dictionary tracking the count of each status at the current timestep.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated total number of agents in the simulation after deaths and births/migration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModelParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIQRDV_model.</span></span><span class="sig-name descname"><span class="pre">SEIQRDVModelParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam_cap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hospital_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModelParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters" title="simcronomicon.infection_models.abstract_model.AbstractModelParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractModelParameters</span></code></a></p>
+<p>Model parameters for the SEIQRDV infection model.</p>
+<p>This class encapsulates all tunable parameters required for the SEIQRDV
+infection model, including epidemiological rates, probabilities, and
+healthcare system constraints. It validates parameter types and ranges
+upon initialization.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModelParameters.to_config_dict">
+<span class="sig-name descname"><span class="pre">to_config_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIQRDV_model.SEIQRDVModelParameters.to_config_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert SEIQRDV model parameters to a dictionary for configuration serialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing all model parameters as key-value pairs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-simcronomicon.infection_models.SEIR_model">
+<span id="simcronomicon-infection-models-seir-model-module"></span><h2>simcronomicon.infection_models.SEIR_model module<a class="headerlink" href="#module-simcronomicon.infection_models.SEIR_model" title="Link to this heading"></a></h2>
+<p>This module implements the SEIR infection model for epidemic simulation with loss of immunity.</p>
+<p>The implementation follows one of the infection models described in:</p>
+<p>Kerr, C. C., Stuart, R. M., Mistry, D., Abeysuriya, R. G., Rosenfeld, K., Hart, G. R.,
+Núñez, R. C., Cohen, J. A., Selvaraj, P., Hagedorn, B., George, L., Jastrzębski, M.,
+Izzo, A. S., Fowler, G., Palmer, A., Delport, D., Scott, N., Kelly, S. L., Bennette, C. S.,
+Wagner, B., Chang, S. T., Oron, A. P., Wenger, E. A., Panovska-Griffiths, J.,
+Famulare, M., &amp; Klein, D. J. (2021). Covasim: An agent-based model of COVID-19 dynamics
+and interventions. <em>PLOS Computational Biology</em>, 17(7), e1009149.
+<a class="reference external" href="https://doi.org/10.1371/journal.pcbi.1009149">https://doi.org/10.1371/journal.pcbi.1009149</a></p>
+<p>The SEIR model represents disease progression through four compartments: Susceptible (S)
+individuals who can contract the disease, Exposed (E) individuals who are infected but not
+yet infectious, Infectious (I) individuals who can transmit the disease, and Recovered (R)
+individuals who have immunity. This implementation includes waning immunity, where recovered
+individuals return to susceptible status after a specified duration, making it suitable for
+modeling diseases with temporary immunity like influenza or seasonal coronaviruses.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.FolkSEIR">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIR_model.</span></span><span class="sig-name descname"><span class="pre">FolkSEIR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">home_address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.FolkSEIR" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractFolk" title="simcronomicon.infection_models.abstract_model.AbstractFolk"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractFolk</span></code></a></p>
+<p>Agent class for the SEIR model.</p>
+<p>This class represents individual agents in the SEIR infection model,
+handling transitions between Susceptible (S), Exposed (E), Infectious (I),
+and Recovered (R) states based on contact with infectious agents and
+time-based progression rules.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.FolkSEIR.interact">
+<span class="sig-name descname"><span class="pre">interact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_place_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.FolkSEIR.interact" title="Link to this definition"></a></dt>
+<dd><p>Perform interactions with other agents and handle potential disease transmission.</p>
+<section id="id2">
+<h3>Transition Rules<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>If the agent is Susceptible (‘S’) and comes into contact with at least one
+Infectious (‘I’) agent, the probability of becoming Exposed (‘E’) is calculated
+using the inverse Bernoulli formula with transmission probability (<cite>beta</cite>).
+If this probability exceeds the random value <cite>dice</cite>, the agent transitions to Exposed.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">param folks_here<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of agents present at the same node.</p>
+</dd>
+<dt class="field-even">type folks_here<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of FolkSEIR</p>
+</dd>
+<dt class="field-odd">param current_place_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type of place where the interaction occurs.</p>
+</dd>
+<dt class="field-even">type current_place_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param status_dict_t<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary tracking the count of each status at the current timestep.</p>
+</dd>
+<dt class="field-even">type status_dict_t<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">param model_params<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model parameters for the simulation.</p>
+</dd>
+<dt class="field-even">type model_params<span class="colon">:</span></dt>
+<dd class="field-even"><p>SEIRModelParameters</p>
+</dd>
+<dt class="field-odd">param dice<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Random float for stochastic transitions.</p>
+</dd>
+<dt class="field-even">type dice<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.FolkSEIR.inverse_bernoulli">
+<span class="sig-name descname"><span class="pre">inverse_bernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.FolkSEIR.inverse_bernoulli" title="Link to this definition"></a></dt>
+<dd><p>Calculate the probability of status transition given contact with infectious agents.</p>
+<p>This method implements the inverse Bernoulli probability calculation used
+in agent-based modeling to approximate the continuous ODE dynamics of
+infection models. It calculates the probability of infection based
+on the number of infectious contacts and transmission probability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folks_here</strong> (<em>list</em><em> of </em><a class="reference internal" href="#simcronomicon.infection_models.SEIR_model.FolkSEIR" title="simcronomicon.infection_models.SEIR_model.FolkSEIR"><em>FolkSEIR</em></a>) – List of agents present at the same node.</p></li>
+<li><p><strong>conversion_prob</strong> (<em>float</em>) – Base transmission probability per contact.</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em> of </em><em>str</em>) – List of infectious status types to consider.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability of at least one successful transmission event.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.FolkSEIR.sleep">
+<span class="sig-name descname"><span class="pre">sleep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_place_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.FolkSEIR.sleep" title="Link to this definition"></a></dt>
+<dd><p>Perform end-of-day status transitions based on disease progression.</p>
+<p>This method handles the deterministic time-based transitions between
+infection states at the end of each simulation day.</p>
+<section id="id3">
+<h3>Transition Rules<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>If the agent is Exposed (‘E’) and has been exposed for <cite>sigma</cite> days,
+they transition to Infectious (‘I’).</p></li>
+<li><p>If the agent is Infectious (‘I’) and has been infectious for <cite>gamma</cite> days,
+they transition to Recovered (‘R’).</p></li>
+<li><p>If the agent is Recovered (‘R’) and has been recovered for <cite>xi</cite> days,
+they transition back to Susceptible (‘S’) (waning immunity).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">param folks_here<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of agents present at the same node (not used, for interface compatibility).</p>
+</dd>
+<dt class="field-even">type folks_here<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of FolkSEIR</p>
+</dd>
+<dt class="field-odd">param current_place_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type of place where the agent is sleeping (not used, for interface compatibility).</p>
+</dd>
+<dt class="field-even">type current_place_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param status_dict_t<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary tracking the count of each status at the current timestep.</p>
+</dd>
+<dt class="field-even">type status_dict_t<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">param model_params<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model parameters for the simulation.</p>
+</dd>
+<dt class="field-even">type model_params<span class="colon">:</span></dt>
+<dd class="field-even"><p>SEIRModelParameters</p>
+</dd>
+<dt class="field-odd">param dice<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Random float for stochastic transitions (not used for deterministic transitions).</p>
+</dd>
+<dt class="field-even">type dice<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.SEIRModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIR_model.</span></span><span class="sig-name descname"><span class="pre">SEIRModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.SEIRModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel" title="simcronomicon.infection_models.abstract_model.AbstractInfectionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractInfectionModel</span></code></a></p>
+<p>SEIR infection model implementation.</p>
+<p>This class implements the Susceptible-Exposed-Infectious-Recovered model
+for epidemic simulation. It includes waning immunity where recovered
+individuals return to susceptible status after a specified duration.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.SEIRModel.initialize_sim_population">
+<span class="sig-name descname"><span class="pre">initialize_sim_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">town</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.SEIRModel.initialize_sim_population" title="Link to this definition"></a></dt>
+<dd><p>Initialize the simulation population and their initial status assignments.</p>
+<p>This method assigns initial statuses and home locations to all agents in the simulation,
+including initial spreaders (both randomly assigned and those at specified nodes) and
+susceptible agents. It creates agent objects, updates the town graph with agent
+assignments, and tracks household nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>town</strong> (<a class="reference internal" href="simcronomicon.html#simcronomicon.town.Town" title="simcronomicon.town.Town"><em>Town</em></a>) – The Town object representing the simulation environment.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>(folks, household_node_indices, status_dict_t0)</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>folks<span class="classifier">list of FolkSEIR</span></dt><dd><p>List of all agent objects created for the simulation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>household_node_indices<span class="classifier">set</span></dt><dd><p>Set of node indices where households are tracked.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>status_dict_t0<span class="classifier">dict</span></dt><dd><p>Dictionary with the initial count of each status at timestep 0.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.SEIRModelParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIR_model.</span></span><span class="sig-name descname"><span class="pre">SEIRModelParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.SEIRModelParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters" title="simcronomicon.infection_models.abstract_model.AbstractModelParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractModelParameters</span></code></a></p>
+<p>Model parameters for the SEIR infection model.</p>
+<p>This class encapsulates all tunable parameters required for the SEIR
+infection model, including transmission rates and duration parameters.
+It validates parameter types and ranges upon initialization.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIR_model.SEIRModelParameters.to_config_dict">
+<span class="sig-name descname"><span class="pre">to_config_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIR_model.SEIRModelParameters.to_config_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert SEIR model parameters to a dictionary for configuration serialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing all model parameters as key-value pairs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-simcronomicon.infection_models.SEIsIrR_model">
+<span id="simcronomicon-infection-models-seisirr-model-module"></span><h2>simcronomicon.infection_models.SEIsIrR_model module<a class="headerlink" href="#module-simcronomicon.infection_models.SEIsIrR_model" title="Link to this heading"></a></h2>
+<p>This module implements the adaptation of rumor spreading dynamics with considerations for
+credibility, correlation, and crowd personality-based classification or the so-called
+SEIsIrR model in the paper mentioned below.</p>
+<p>The implementation is based on:</p>
+<p>Chen, X., &amp; Wang, N. (2020).
+Rumor spreading model considering rumor credibility, correlation and crowd classification based on personality.
+<em>Scientific Reports</em>, 10, 5887. <a class="reference external" href="https://doi.org/10.1038/s41598-020-62585-9">https://doi.org/10.1038/s41598-020-62585-9</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIsIrR_model.</span></span><span class="sig-name descname"><span class="pre">FolkSEIsIrR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">home_address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractFolk" title="simcronomicon.infection_models.abstract_model.AbstractFolk"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractFolk</span></code></a></p>
+<p>Agent class for the SEIsIrR rumor spreading model.</p>
+<p>This class represents individual agents in the SEIsIrR infection model,
+handling transitions between Susceptible (S), Exposed (E), Ignorant spreaders (Is),
+Intelligent spreaders (Ir), and Recovered/Stifler (R) states based on rumor
+credibility, literacy levels, and social interactions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR.interact">
+<span class="sig-name descname"><span class="pre">interact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_place_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR.interact" title="Link to this definition"></a></dt>
+<dd><p>Perform interactions with other agents and handle rumor spreading dynamics.</p>
+<section id="id4">
+<h3>Transition Rules<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Rule 1:</strong> If the agent is Intelligent spreader (‘Ir’) and contacts Susceptible (‘S’) agents,
+they may transition to Susceptible (‘S’) based on <cite>Ir2S</cite> probability.</p></li>
+<li><p><strong>Rule 2:</strong> If the agent is Ignorant spreader (‘Is’) and contacts Susceptible (‘S’) agents,
+they may transition to either Exposed (‘E’) or Susceptible (‘S’) based on <cite>Is2E</cite> and <cite>Is2S</cite>
+probabilities respectively. The transition with higher probability is evaluated first.</p></li>
+<li><p><strong>Rule 3:</strong> If the agent is Exposed (‘E’), they may transition to either Susceptible (‘S’)
+or Recovered (‘R’) based on <cite>E2S</cite> and <cite>E2R</cite> probabilities respectively. The transition
+with higher probability is evaluated first.</p></li>
+<li><p><strong>Rule 4.1:</strong> If the agent is Susceptible (‘S’), they may transition to Recovered (‘R’)
+when contacting any other agents (‘S’, ‘E’, ‘R’) based on <cite>S2R</cite> probability.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">param folks_here<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of agents present at the same node.</p>
+</dd>
+<dt class="field-even">type folks_here<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of FolkSEIsIrR</p>
+</dd>
+<dt class="field-odd">param current_place_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type of place where the interaction occurs.</p>
+</dd>
+<dt class="field-even">type current_place_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param status_dict_t<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary tracking the count of each status at the current timestep.</p>
+</dd>
+<dt class="field-even">type status_dict_t<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">param model_params<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model parameters for the simulation.</p>
+</dd>
+<dt class="field-even">type model_params<span class="colon">:</span></dt>
+<dd class="field-even"><p>SEIsIrRModelParameters</p>
+</dd>
+<dt class="field-odd">param dice<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Random float for stochastic transitions.</p>
+</dd>
+<dt class="field-even">type dice<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR.inverse_bernoulli">
+<span class="sig-name descname"><span class="pre">inverse_bernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR.inverse_bernoulli" title="Link to this definition"></a></dt>
+<dd><p>Calculate the probability of status transition given contact with specific statuses.</p>
+<p>This method implements an energy-weighted inverse Bernoulli probability calculation
+for rumor spreading dynamics. The probability is scaled by the agent’s current
+energy relative to their maximum energy, representing decreased social influence
+when tired.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folks_here</strong> (<em>list</em><em> of </em><a class="reference internal" href="#simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR" title="simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR"><em>FolkSEIsIrR</em></a>) – List of agents present at the same node.</p></li>
+<li><p><strong>conversion_prob</strong> (<em>float</em>) – Base transition probability per contact.</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em> of </em><em>str</em>) – List of status types to consider for contact counting.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability of at least one successful transition event.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR.sleep">
+<span class="sig-name descname"><span class="pre">sleep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folks_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_place_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_dict_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.FolkSEIsIrR.sleep" title="Link to this definition"></a></dt>
+<dd><p>Perform end-of-day status transitions and forgetting mechanisms.</p>
+<p>This method handles the forgetting mechanism for Susceptible agents,
+representing the natural tendency to lose interest in rumors over time.</p>
+<section id="id5">
+<h3>Transition Rules<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Rule 4.2:</strong> If the agent is Susceptible (‘S’), they may transition to Recovered (‘R’)
+through forgetting if either:
+- They have been in ‘S’ status for longer than <cite>mem_span</cite> days, OR
+- A random draw is less than the forgetting probability <cite>forget</cite></p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">param folks_here<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of agents present at the same node (not used, for interface compatibility).</p>
+</dd>
+<dt class="field-even">type folks_here<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of FolkSEIsIrR</p>
+</dd>
+<dt class="field-odd">param current_place_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type of place where the agent is sleeping (not used, for interface compatibility).</p>
+</dd>
+<dt class="field-even">type current_place_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param status_dict_t<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary tracking the count of each status at the current timestep.</p>
+</dd>
+<dt class="field-even">type status_dict_t<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">param model_params<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model parameters for the simulation.</p>
+</dd>
+<dt class="field-even">type model_params<span class="colon">:</span></dt>
+<dd class="field-even"><p>SEIsIrRModelParameters</p>
+</dd>
+<dt class="field-odd">param dice<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Random float for stochastic transitions.</p>
+</dd>
+<dt class="field-even">type dice<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+<dt class="field-odd">rtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIsIrR_model.</span></span><span class="sig-name descname"><span class="pre">SEIsIrRModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractInfectionModel" title="simcronomicon.infection_models.abstract_model.AbstractInfectionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractInfectionModel</span></code></a></p>
+<p>SEIsIrR rumor spreading model implementation.</p>
+<p>This class implements the Susceptible-Exposed-Ignorant spreader-Intelligent spreader-Recovered
+model for rumor spreading dynamics. The model considers rumor credibility, population literacy,
+and personality-based classification of spreaders.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModel.initialize_sim_population">
+<span class="sig-name descname"><span class="pre">initialize_sim_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">town</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModel.initialize_sim_population" title="Link to this definition"></a></dt>
+<dd><p>Initialize the simulation population and their initial status assignments.</p>
+<p>This method assigns initial statuses and home locations to all agents in the simulation.
+The population is divided between Ignorant spreaders (Is) and Intelligent spreaders (Ir)
+based on the literacy parameter, with initial rumor spreaders assigned to ‘S’ status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>town</strong> (<a class="reference internal" href="simcronomicon.html#simcronomicon.town.Town" title="simcronomicon.town.Town"><em>Town</em></a>) – The Town object representing the simulation environment.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>(folks, household_node_indices, status_dict_t0</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>folks<span class="classifier">list of FolkSEIsIrR</span></dt><dd><p>List of all agent objects created for the simulation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>household_node_indices<span class="classifier">set</span></dt><dd><p>Set of node indices where households are tracked.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>status_dict_t0<span class="classifier">dict</span></dt><dd><p>Dictionary with the initial count of each status at timestep 0.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModelParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simcronomicon.infection_models.SEIsIrR_model.</span></span><span class="sig-name descname"><span class="pre">SEIsIrRModelParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">literacy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mem_span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModelParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simcronomicon.infection_models.abstract_model.AbstractModelParameters" title="simcronomicon.infection_models.abstract_model.AbstractModelParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractModelParameters</span></code></a></p>
+<p>Model parameters for the SEIsIrR rumor spreading model.</p>
+<p>This class encapsulates all tunable parameters required for the SEIsIrR
+rumor spreading model, including rumor credibility, spreading probabilities,
+and population literacy characteristics. It validates parameter types and
+ranges upon initialization.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModelParameters.to_config_dict">
+<span class="sig-name descname"><span class="pre">to_config_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simcronomicon.infection_models.SEIsIrR_model.SEIsIrRModelParameters.to_config_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert SEIsIrR model parameters to a dictionary for configuration serialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing all model parameters as key-value pairs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="define-your-own-model">
+<h2>Define Your Own Model<a class="headerlink" href="#define-your-own-model" title="Link to this heading"></a></h2>
+<p>You can create your own infection model by subclassing <cite>AbstractInfectionModel</cite> and following the structure of the provided models.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Add your new model module here for documentation!</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="simcronomicon.html" class="btn btn-neutral float-left" title="simcronomicon package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="simcronomicon.visualization.html" class="btn btn-neutral float-right" title="simcronomicon.visualization package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Warisa Roongaraya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
