@@ -77,9 +77,9 @@ class SEIRModelParameters(AbstractModelParameters):
         self.gamma = gamma  # Symptom duration
         self.xi = xi  # Immune duration
 
-    def to_metadata_dict(self):
+    def to_config_dict(self):
         """
-        Convert SEIR model parameters to a dictionary for metadata serialization.
+        Convert SEIR model parameters to a dictionary for configuration serialization.
 
         Returns
         -------

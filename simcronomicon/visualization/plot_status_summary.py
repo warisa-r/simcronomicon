@@ -83,12 +83,12 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
                 "timestep", "current_event")]
 
         # Extract total population from metadata
-        metadata_str = h5file["metadata/simulation_metadata"][()
+        metadata_str = h5file["config/simulation_config"][()
                                                               ].decode("utf-8")
         metadata = json.loads(metadata_str)
         total_population = metadata["population"]
         if total_population == 0:
-            raise ValueError("Total population in metadata is zero.")
+            raise ValueError("Total population in configurations is zero.")
 
         # Prepare data dicts
         last_entry_by_timestep = {}

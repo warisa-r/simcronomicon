@@ -69,7 +69,7 @@ Every infection model needs a parameters class that inherits from ``AbstractMode
            self.beta = beta
            self.gamma = gamma
        
-       def to_metadata_dict(self):
+       def to_config_dict(self):
            """Convert parameters to dictionary for saving/loading simulations."""
            return {
                'max_energy': self.max_energy,
@@ -82,7 +82,7 @@ Every infection model needs a parameters class that inherits from ``AbstractMode
 
 - **Validation**: Always validate parameter types and ranges
 - **Documentation**: Clear docstrings explain each parameter's meaning
-- **Metadata**: The ``to_metadata_dict()`` method enables simulation persistence
+- **Metadata**: The ``to_config_dict()`` method enables simulation persistence
 
 Step 2: Create the Agent Class  
 ------------------------------

@@ -240,8 +240,8 @@ After the simulation finish running, an output file `simulation_output.h5` will 
 
             simulation_output.h5
             ├── metadata
-            │   ├── simulation_metadata   (JSON-encoded simulation metadata)
-            │   └── town_metadata         (JSON-encoded town metadata)
+            │   ├── simulation_config   (JSON-encoded simulation metadata)
+            │   └── town_config         (JSON-encoded town metadata)
             ├── status_summary
             │   └── summary               (dataset: structured array with timestep, current_event, and statuses)
             └── individual_logs

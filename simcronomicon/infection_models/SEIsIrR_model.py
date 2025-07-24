@@ -115,9 +115,9 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         self.forget = eta2
         self.mem_span = mem_span
 
-    def to_metadata_dict(self):
+    def to_config_dict(self):
         """
-        Convert SEIsIrR model parameters to a dictionary for metadata serialization.
+        Convert SEIsIrR model parameters to a dictionary for configuration serialization.
 
         Returns
         -------

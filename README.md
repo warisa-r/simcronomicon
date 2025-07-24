@@ -182,7 +182,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ## Development TODO
 
 - [x] Clean up imports and exports
-- [ ] More models
+- [ ] Seperate metadata and configuration information in simulation output file and town input files.
 
 ## License
 
@@ -193,6 +193,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Warisa Roongaraya** - [GitHub](https://github.com/warisa-r)
 
 See [AUTHORS.md](AUTHORS.md) for the full list of contributors.
+
+## Acknowledgments
+
+This project was bootstrapped using the [Cookiecutter PyPackage](https://github.com/lgiordani/cookiecutter-pypackage) template by Leonardo Giordani, which is a fork of [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage).
 
 ## Citation
 

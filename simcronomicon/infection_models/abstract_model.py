@@ -9,7 +9,7 @@ class AbstractModelParameters:
 
     This abstract class defines the common interface for all infection model
     parameter classes. It provides basic energy management and requires subclasses
-    to implement metadata serialization for simulation persistence.
+    to implement configuration serialization for simulation persistence.
 
     Parameters
     ----------
@@ -41,9 +41,9 @@ class AbstractModelParameters:
             max_energy, int) and max_energy > 0, "max_energy must be a positive integer!"
         self.max_energy = max_energy
 
-    def to_metadata_dict(self):
+    def to_config_dict(self):
         """
-        Convert model parameters to a dictionary for metadata serialization.
+        Convert model parameters to a dictionary for configuration serialization.
 
         This abstract method must be implemented by subclasses to enable saving
         and loading of simulation configurations. The returned dictionary should
@@ -55,7 +55,7 @@ class AbstractModelParameters:
             Always raised in the base class. Subclasses must override this method.
         """
         raise NotImplementedError(
-            "Subclasses must implement to_metadata_dict()")
+            "Subclasses must implement to_config_dict()")
 
 
 class AbstractFolk:

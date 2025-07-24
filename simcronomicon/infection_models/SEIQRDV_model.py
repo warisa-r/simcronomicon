@@ -103,9 +103,9 @@ class SEIQRDVModelParameters(AbstractModelParameters):
         # Average number of people a healthcare facility can contain
         self.hospital_capacity = hospital_capacity
 
-    def to_metadata_dict(self):
+    def to_config_dict(self):
         """
-        Convert SEIQRDV model parameters to a dictionary for metadata serialization.
+        Convert SEIQRDV model parameters to a dictionary for configuration serialization.
 
         Returns
         -------

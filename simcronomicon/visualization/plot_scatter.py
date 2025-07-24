@@ -165,12 +165,12 @@ def plot_agents_scatter(
 
     # Load HDF5 data
     with h5py.File(output_hdf5_path, "r") as h5:
-        town_metadata_json_bytes = h5["metadata/town_metadata"][()]
-        town_metadata = json.loads(town_metadata_json_bytes.decode("utf-8"))
-        epsg_code = town_metadata["epsg_code"]
+        town_config_json_bytes = h5["config/town_config"][()]
+        town_config = json.loads(town_config_json_bytes.decode("utf-8"))
+        epsg_code = town_config["epsg_code"]
 
         folk_data = h5["individual_logs/log"][:]
-        metadata_json_bytes = h5["metadata/simulation_metadata"][()]
+        metadata_json_bytes = h5["config/simulation_config"][()]
         metadata = json.loads(metadata_json_bytes.decode("utf-8"))
         all_statuses = metadata["all_statuses"]
         step_events_order = [e['name']

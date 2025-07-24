@@ -118,12 +118,12 @@ class TestPlotStatusSummary:
                 dt = [('timestep', 'i4'), ('S', 'i4'), ('I', 'i4')]
                 status_group.create_dataset("summary", (0,), dtype=dt)
 
-                # Add required metadata
-                metadata_group = h5file.create_group("metadata")
-                sim_metadata = {"population": 100}
-                metadata_group.create_dataset(
-                    "simulation_metadata",
-                    data=json.dumps(sim_metadata).encode("utf-8")
+                # Add required config
+                config_group = h5file.create_group("config")
+                sim_config = {"population": 100}
+                config_group.create_dataset(
+                    "simulation_config",
+                    data=json.dumps(sim_config).encode("utf-8")
                 )
 
             with pytest.raises(ValueError, match="No status data found in HDF5 file"):
@@ -139,15 +139,15 @@ class TestPlotStatusSummary:
                 data = [(0, 10, 5)]
                 status_group.create_dataset("summary", data=data, dtype=dt)
 
-                # Zero population metadata -> corrupt simulation!
-                metadata_group = h5file.create_group("metadata")
-                sim_metadata = {"population": 0}
-                metadata_group.create_dataset(
-                    "simulation_metadata",
-                    data=json.dumps(sim_metadata).encode("utf-8")
+                # Zero population config -> corrupt simulation!
+                config_group = h5file.create_group("config")
+                sim_config = {"population": 0}
+                config_group.create_dataset(
+                    "simulation_config",
+                    data=json.dumps(sim_config).encode("utf-8")
                 )
 
-            with pytest.raises(ValueError, match="Total population in metadata is zero"):
+            with pytest.raises(ValueError, match="Total population in configurations is zero"):
                 plot_status_summary_from_hdf5(zero_pop_h5_path)
 
     @pytest.mark.parametrize("model_key", ["seir", "seisir", "seiqrdv"])

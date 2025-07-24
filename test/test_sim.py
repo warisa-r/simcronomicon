@@ -187,11 +187,11 @@ class TestSimulationUpdate:
 class TestSimulationResults:
     def assert_h5_structure(self, h5_path):
         with h5py.File(h5_path, "r") as h5file:
-            assert "metadata" in h5file, "'metadata' group missing in HDF5 file"
+            assert "config" in h5file, "'metadata' group missing in HDF5 file"
             assert "status_summary" in h5file, "'status_summary' group missing in HDF5 file"
             assert "individual_logs" in h5file, "'individual_logs' group missing in HDF5 file"
-            assert "simulation_metadata" in h5file["metadata"], "'simulation_metadata' missing in metadata group"
-            assert "town_metadata" in h5file["metadata"], "'town_metadata' missing in metadata group"
+            assert "simulation_config" in h5file["config"], "'simulation_config' missing in metadata group"
+            assert "town_config" in h5file["config"], "'town_config' missing in metadata group"
             assert "summary" in h5file["status_summary"], "'summary' missing in status_summary group"
             assert "log" in h5file["individual_logs"], "'log' missing in individual_logs group"
 

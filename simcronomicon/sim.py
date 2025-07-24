@@ -336,9 +336,9 @@ class Simulation:
         .. code-block:: text
 
             simulation_output.h5
-            ├── metadata
-            │   ├── simulation_metadata   (JSON-encoded simulation metadata)
-            │   └── town_metadata         (JSON-encoded town metadata)
+            ├── config
+            │   ├── simulation_config   (JSON-encoded simulation config)
+            │   └── town_config         (JSON-encoded town config)
             ├── status_summary
             │   └── summary               (dataset: structured array with timestep, current_event, and statuses)
             └── individual_logs
@@ -355,16 +355,16 @@ class Simulation:
         """
         try:
             with h5py.File(hdf5_path, "w") as h5file:
-                # Save simulation metadata
-                metadata_group = h5file.create_group("metadata")
+                # Save simulation config
+                config_group = h5file.create_group("config")
 
-                # Write simulation metadata (without town)
-                sim_metadata = {
+                # Write simulation configuration information (without town)
+                sim_config = {
                     'seed_enabled': hasattr(self, 'seed_value'),
                     'seed_value': getattr(self, 'seed_value', None),
 
                     'all_statuses': self.model.all_statuses,
-                    'model_parameters': self.model_params.to_metadata_dict(),
+                    'model_parameters': self.model_params.to_config_dict(),
                     'num_locations': len(self.town.town_graph.nodes),
                     'max_timesteps': self.timesteps,
                     'population': self.num_pop,
@@ -378,12 +378,12 @@ class Simulation:
                         } for event in self.step_events
                     ],
                 }
-                sim_metadata_json = json.dumps(sim_metadata)
-                metadata_group.create_dataset(
-                    "simulation_metadata", data=np.bytes_(sim_metadata_json))
+                sim_config_json = json.dumps(sim_config)
+                config_group.create_dataset(
+                    "simulation_config", data=np.bytes_(sim_config_json))
 
-                # Write town metadata separately
-                town_metadata = {
+                # Write town configuration information separately
+                town_config = {
                     "origin_point": [
                         float(
                             self.town.origin_point[0]),
@@ -393,9 +393,9 @@ class Simulation:
                     "epsg_code": self.town.epsg_code,
                     "accommodation_nodes": list(
                         self.town.accommodation_node_ids)}
-                town_metadata_json = json.dumps(town_metadata)
-                metadata_group.create_dataset(
-                    "town_metadata", data=np.bytes_(town_metadata_json))
+                town_config_json = json.dumps(town_config)
+                config_group.create_dataset(
+                    "town_config", data=np.bytes_(town_config_json))
 
                 # Save initial status summary
                 status_group = h5file.create_group("status_summary")
