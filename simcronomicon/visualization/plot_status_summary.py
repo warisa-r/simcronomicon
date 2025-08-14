@@ -10,7 +10,10 @@ def _plot_status_summary_data(
         data_dict,
         status_type,
         ylabel="Density"):
+    # A helper function to plot simulation status data over time using matplotlib.
+    # Selects and validates which status types to plot, then generates the line plot.
     # Validate and select keys to plot
+    
     if status_type is None:
         keys_to_plot = status_keys
     elif isinstance(status_type, str):

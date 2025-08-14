@@ -56,7 +56,6 @@ class SEIRModelParameters(AbstractModelParameters):
         TypeError
             If any parameter is not of the correct type or out of valid range.
         """
-        # Check types and ranges
         for name, value in zip(
             ['beta', 'sigma', 'gamma', 'xi'],
             [beta, sigma, gamma, xi]
@@ -72,7 +71,7 @@ class SEIRModelParameters(AbstractModelParameters):
 
         super().__init__(max_energy)
 
-        self.beta = beta  # Transimssion probability
+        self.beta = beta  # Transmission probability
         self.sigma = sigma  # Incubation duration
         self.gamma = gamma  # Symptom duration
         self.xi = xi  # Immune duration

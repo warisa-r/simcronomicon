@@ -385,6 +385,9 @@ class Town():
         pass
 
     def _validate_inputs(self, point, classify_place_func, all_place_types):
+        # Validates the input arguments for town creation.
+        # Checks classification function, place types, and geographic point format.
+
         if not callable(classify_place_func):
             raise TypeError("`classify_place_func` must be a function.")
 
@@ -406,6 +409,9 @@ class Town():
                 "`point` values must represent valid latitude and longitude coordinates.")
 
     def _setup_basic_attributes(self, point, dist, town_params, classify_place_func, all_place_types):
+        # Sets up core attributes for the Town object, including spatial parameters and classification settings.
+        # Calculates the EPSG code for spatial projection based on the origin point's latitude.
+
         print("[1/10] Initializing town object and parameters...")
         if all_place_types is None:
             all_place_types = [
@@ -425,6 +431,8 @@ class Town():
             f"326{utm_zone}" if point[0] >= 0 else f"327{utm_zone}")
 
     def _download_osm_data(self):
+        # Downloads OpenStreetMap road network and building data for the specified origin point and radius.
+        # Projects the road graph and building geometries to the town's EPSG coordinate system.
 
         print("[3/10] Downloading OSM road network and building data...")
         G_raw = ox.graph.graph_from_point(
@@ -436,6 +444,9 @@ class Town():
         self.buildings = buildings.to_crs(epsg=self.epsg_code)
 
     def _process_buildings(self):
+        # Processes building geometries to extract centroids and create POIs.
+        # Matches each building to the nearest road node and classifies place types.
+
         print("[4/10] Processing building geometries...")
         is_polygon = self.buildings.geometry.geom_type.isin(
             ['Polygon', 'MultiPolygon'])
@@ -457,6 +468,9 @@ class Town():
         nx.set_node_attributes(self.G_projected, place_type_map, 'place_type')
 
     def _match_buildings_to_roads(self):
+        # Matches each building centroid (POI) to the nearest road network node using KDTree.
+        # Updates the POI DataFrame with the nearest node ID for each building.
+        
         # Get projected coordinates of road nodes
         node_xy = {
             node: (data['x'], data['y'])
@@ -474,6 +488,9 @@ class Town():
         self.POI['nearest_node'] = [node_ids[i] for i in nearest_indices]
 
     def _build_spatial_network(self):
+        # Filters out nodes not assigned to relevant place types and builds the spatial network.
+        # Computes shortest-path distances and constructs the final town graph for simulation.
+
         print("[8/10] Filtering out irrelevant nodes...")
         nodes_to_keep = [n for n, d in self.G_projected.nodes(data=True)
                          if d.get('place_type') is not None and d.get('place_type') != 'other']
@@ -487,6 +504,9 @@ class Town():
         self._compute_shortest_paths(G_filtered)
 
     def _compute_shortest_paths(self, G_filtered):
+        # Compute the shortest paths between every single pair of locations in the 
+        # area of interest.
+
         # Convert G_projected to igraph for fast distance computation
         projected_nodes = list(self.G_projected.nodes)
         node_idx_map = {node: idx for idx, node in enumerate(projected_nodes)}
@@ -519,6 +539,8 @@ class Town():
         self._build_final_graph(G_filtered, filtered_nodes, dist_matrix)
 
     def _build_final_graph(self, G_filtered, filtered_nodes, dist_matrix):
+        # Build a simplified town graph from the precalculated distances in the previous step.
+
         self.town_graph = nx.Graph()
         id_map = {old_id: new_id for new_id,
                   old_id in enumerate(filtered_nodes)}
@@ -552,6 +574,9 @@ class Town():
             self.town_graph, 'place_type').values())
 
     def _save_files(self, file_prefix, save_dir):
+        # Save the simplified town graph as a zipped file and save the configuration of
+        # this area of interest as a .json file
+
         print("[10/10] Saving a compressed graph and config_data...")
         graphml_name = os.path.join(save_dir, f"{file_prefix}.graphml")
         graphmlz_name = os.path.join(save_dir, f"{file_prefix}.graphmlz")
@@ -587,6 +612,8 @@ class Town():
             json.dump(config_data, f, indent=2)
 
     def _finalize_town_setup(self):
+        # Finalize the town object such that it is ready to be used in the simulation.
+
         # Initialize folks list for all nodes
         for node in self.town_graph.nodes:
             self.town_graph.nodes[node]["folks"] = []
@@ -751,7 +778,6 @@ class Town():
         print("Town graph successfully built from input files!")
         return town
 
-    # TODO: Test this out
     def save_to_files(self, file_prefix, overwrite=False):
         """
         Save this Town object to GraphML and config files.

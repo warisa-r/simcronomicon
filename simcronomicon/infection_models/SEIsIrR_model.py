@@ -75,10 +75,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         super().__init__(max_energy)
         self.literacy = literacy
 
-        # Use the same parameter sets as the model notation but precalculate the conversion rate
-        # since these are the same through out the simulation
-
-        # Check if we have the right input type
         for name, value in zip(
             ['gamma', 'alpha', 'lam', 'phi', 'theta', 'mu', 'eta1', 'eta2'],
             [gamma, alpha, lam, phi, theta, mu, eta1, eta2]
@@ -88,7 +84,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
                     f"{name} must be a float or int, got {type(value).__name__}"
                 )
 
-        # Cast to float
         gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(
             float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
 
@@ -96,8 +91,6 @@ class SEIsIrRModelParameters(AbstractModelParameters):
             raise TypeError(
                 f"mem_span must be an integer greater or equal to 1, got {mem_span}")
 
-        # Store some parameters so that they can be recalled as simulation
-        # metadata later on
         self.alpha = alpha
         self.gamma = gamma
         self.mu = mu
@@ -238,6 +231,9 @@ class FolkSEIsIrR(AbstractFolk):
 
         None
         """
+        # The rule numbers below are references to each rule defined in the literature of
+        # SEIsIrR model
+
         # Rule 1
         if self.status == 'Ir' and self.inverse_bernoulli(
                 folks_here, model_params.Ir2S, ['S']) > dice:

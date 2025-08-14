@@ -11,10 +11,16 @@ from pyproj import Transformer
 
 
 def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_name):
-    # Start with default
+    # A helper function used to validate and merge the colormap for plotly visualization
+    # if the user gives us a custom color map.
+
+    # Start with the default colormap
     result = default_map.copy()
 
     # If user map provided, merge it
+    # This is for the case where user might not provide all the colors for all the place types
+    # in their location of interest. The place type without user specified color will fall back
+    # to using default color.
     if user_map is not None:
         # Check user entries
         for key, color in user_map.items():
@@ -35,6 +41,8 @@ def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_na
             result[key] = color
 
     # AFTER merging, check if there are still valid keys without colors
+    # If the place type - color mapping doesn't exist in the default map and the custom map,
+    # tell the user to provide it.
     missing_colors = set(valid_keys) - set(result.keys())
     if missing_colors:
         raise ValueError(
@@ -46,6 +54,8 @@ def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_na
 
 
 def _set_plotly_renderer():
+    # A helper function to determine on which platform plotly is supposed to
+    # render the plot
     try:
         # Check if running in a Jupyter notebook
         shell = get_ipython().__class__.__name__
@@ -62,6 +72,8 @@ def _load_node_info_from_graphmlz(
         town_graph_path,
         epsg_code,
         return_place_type=False):
+    # A helper function that loads the information necessary for plotting 
+    # from the compressed input graph file
     with tempfile.TemporaryDirectory() as tmpdirname:
         with zipfile.ZipFile(town_graph_path, 'r') as zf:
             zf.extractall(tmpdirname)

@@ -68,14 +68,15 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     valid_place_types = config.get('place_types', [])
     epsg_code = config["epsg_code"]  # Also epsg code
 
-    # Default colormap
+    # Default colormap that supports the place types defined in the 
+    # default place classification function
     default_colormap = {
-        "accommodation": "#FFD700",      # Gold
-        "commercial": "#FFA07A",         # Light Salmon
-        "religious": "#9370DB",          # Medium Purple
-        "education": "#00BFFF",          # Deep Sky Blue
-        "workplace": "#4682B4",          # Steel Blue
-        "healthcare_facility": "#17EEA6",  # Aquamarine
+        "accommodation": "#FFD700",   
+        "commercial": "#FFA07A", 
+        "religious": "#9370DB",
+        "education": "#00BFFF",
+        "workplace": "#4682B4",
+        "healthcare_facility": "#17EEA6",
     }
 
     # Validate and merge colormaps
@@ -124,10 +125,6 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     )
     fig.update_traces(marker=dict(size=9, opacity=0.8))
     fig.show()
-
-# TODO: Customize colormap here but if it doesn't correspond with all the status available, fall back to default
-# random plotly colors
-
 
 def plot_agents_scatter(
         output_hdf5_path,

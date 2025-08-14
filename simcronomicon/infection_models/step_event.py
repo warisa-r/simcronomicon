@@ -230,9 +230,8 @@ class StepEvent:
             - If probability_func fails signature inspection
 
         """
-        # town.py
         self.name = name
-        self.max_distance = max_distance  # in meters
+        self.max_distance = max_distance
         self.place_types = place_types
         self.event_type = event_type
         self.folk_action = folk_action
@@ -246,7 +245,7 @@ class StepEvent:
                 raise ValueError(
                     "probability_func must be a callable function")
 
-            # Check function signature only - no runtime validation
+            # Check function signature only
             try:
                 sig = inspect.signature(probability_func)
                 non_default_params = [

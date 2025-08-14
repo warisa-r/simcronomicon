@@ -92,7 +92,7 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 
         # Rate of new population due to birth or migration etc.
         self.lam_cap = lam_cap
-        self.beta = beta  # Transimssion probability
+        self.beta = beta  # Transmission probability
         self.alpha = alpha  # Vaccination rate
         self.gamma = gamma  # Average latent time
         self.delta = delta  # Average day until the infected case got confirmed and quarantined
@@ -436,7 +436,7 @@ class SEIQRDVModel(AbstractInfectionModel):
         for node in town.town_params.spreader_initial_nodes:
             assignments.append((node, 'I'))
 
-        # Create folks and update graph/node info
+        # Create folks and update graph/node information
         for i, (node, status) in enumerate(assignments):
             folk = self.create_folk(
                 i, node, self.model_params.max_energy, status)

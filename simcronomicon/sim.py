@@ -190,6 +190,8 @@ class Simulation:
         self.active_node_indices = self.household_node_indices.copy()
 
     def _disperse_for_event(self, step_event):
+        # Send the town population to the place they are supposed to be,
+        # given that they have enough energy
         for person in self.folks:
             if person.movement_restricted == False and person.alive and person.energy > 0:
                 current_node = person.address
@@ -299,6 +301,8 @@ class Simulation:
                                            rd.random())
 
     def _step(self):
+        # Advances the simulation by one timestep, executing all step events for the current round.
+        # Updates population status and records each agent's state after every event.
         current_timestep = self.current_timestep + 1
         status_row = None
         indiv_folk_rows = []
