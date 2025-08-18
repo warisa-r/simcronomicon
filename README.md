@@ -71,57 +71,6 @@ pip install -e .
 python -c "import simcronomicon; print(simcronomicon.__version__)"
 ```
 
-### Basic Usage
-
-```python
-# Import all the necessary object
-from simcronomicon import Simulation, Town, TownParameters
-
-# Import module SEIR
-from simcronomicon.infection_models import (
-    SEIRModel, SEIRModelParameters, FolkSEIR,
-    StepEvent, EventType,
-)
-
-from simcronomicon.visualization import (
-    plot_status_summary_from_hdf5,
-    plot_place_types_scatter,
-    plot_agents_scatter
-)
-
-# Load town from real geographic data
-town = Town.from_files(
-    config_path="config.json",
-    town_graph_path="town.graphmlz",
-    town_params=TownParameters(population=1000, spreaders=10)
-)
-
-# Configure disease model
-params = SEIQRDVModelParameters(
-    beta=0.3,           # Transmission rate
-    alpha=0.1,          # Vaccination seeking rate
-    gamma=5,            # Incubation period
-    delta=3,            # Days to quarantine
-    kappa=0.05,         # Disease mortality
-    hospital_capacity=20 # Vaccines per facility per day
-)
-
-# Define agent interactions
-step_events = [
-    StepEvent("daily_routine", FolkSEIQRDV.interact, 
-                   EventType.DISPERSE, 9000, ['accommodation'])
-]
-
-# Run simulation
-model = SEIQRDVModel(params, step_events)
-simulation = Simulation(town, model, timesteps=180)  # 6 months
-simulation.run()
-
-# Analyze results
-plot_status_summary_from_hdf5("simulation_output.h5")
-plot_agents_scatter("simulation_output.h5", "town.graphmlz")
-```
-
 ## Example Applications
 
 ### Vaccination Campaign Analysis
