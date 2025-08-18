@@ -15,26 +15,59 @@ class TestSEIsIrRModel:
         # gamma not a float or int
         with pytest.raises(TypeError, match="gamma must be a float or int"):
             SEIsIrRModelParameters(
-                max_energy=4, literacy=0.7, gamma="bad", alpha=0.5, lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1
-            )
+                max_energy=4,
+                literacy=0.7,
+                gamma="bad",
+                alpha=0.5,
+                lam=0.5,
+                phi=0.5,
+                theta=0.7,
+                mu=0.62,
+                eta1=0.1,
+                eta2=0.1)
 
         # alpha out of range
         with pytest.raises(TypeError, match="alpha must be a float or int"):
             SEIsIrRModelParameters(
-                max_energy=4, literacy=0.7, gamma=0.9, alpha="bad", lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1
-            )
+                max_energy=4,
+                literacy=0.7,
+                gamma=0.9,
+                alpha="bad",
+                lam=0.5,
+                phi=0.5,
+                theta=0.7,
+                mu=0.62,
+                eta1=0.1,
+                eta2=0.1)
 
         # lam negative
         with pytest.raises(TypeError, match="lam must be a float or int"):
             SEIsIrRModelParameters(
-                max_energy=4, literacy=0.7, gamma=0.9, alpha=0.5, lam="bad", phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1
-            )
+                max_energy=4,
+                literacy=0.7,
+                gamma=0.9,
+                alpha=0.5,
+                lam="bad",
+                phi=0.5,
+                theta=0.7,
+                mu=0.62,
+                eta1=0.1,
+                eta2=0.1)
 
         # mem_span not int > 1
         with pytest.raises(TypeError, match="mem_span must be an integer greater or equal to 1, got 1.03"):
             SEIsIrRModelParameters(
-                max_energy=4, literacy=0.7, gamma=0.9, alpha=0.5, lam=0.5, phi=0.5, theta=0.7, mu=0.62, eta1=0.1, eta2=0.1, mem_span=1.03
-            )
+                max_energy=4,
+                literacy=0.7,
+                gamma=0.9,
+                alpha=0.5,
+                lam=0.5,
+                phi=0.5,
+                theta=0.7,
+                mu=0.62,
+                eta1=0.1,
+                eta2=0.1,
+                mem_span=1.03)
 
     def test_SEIsIrR_abm_vs_ode_error(self):
         # ODE solution
@@ -52,15 +85,23 @@ class TestSEIsIrRModel:
                 - S * (R + S + E) * model_params.S2R
                 - S * model_params.forget
             )
-            rhs[1] = (
-                Is * S * model_params.gamma *
-                (1 - model_params.gamma) * model_params.alpha * model_params.lam
-                - S * E * model_params.E2S - R * E * model_params.E2R
-            )
+            rhs[1] = (Is *
+                      S *
+                      model_params.gamma *
+                      (1 -
+                       model_params.gamma) *
+                      model_params.alpha *
+                      model_params.lam -
+                      S *
+                      E *
+                      model_params.E2S -
+                      R *
+                      E *
+                      model_params.E2R)
 
             rhs[2] = (
                 -Is * S * (model_params.gamma * model_params.alpha * model_params.lam * model_params.mu +
-                           model_params.gamma * (1-model_params.gamma) * model_params.alpha * model_params.lam)
+                           model_params.gamma * (1 - model_params.gamma) * model_params.alpha * model_params.lam)
             )
             rhs[3] = -Ir * S * model_params.gamma * \
                 model_params.alpha * model_params.lam
@@ -121,15 +162,21 @@ class TestSEIsIrRModel:
             ode_Ir = sol.y[3] / 10
             ode_R = sol.y[4] / 10
 
-            # Compute average per time step 2-norm error for each compartment over all time points
+            # Compute average per time step 2-norm error for each compartment
+            # over all time points
             err_S = np.linalg.norm(abm_S - ode_S) / t_end
             err_E = np.linalg.norm(abm_E - ode_E) / t_end
             err_Is = np.linalg.norm(abm_Is - ode_Is) / t_end
             err_Ir = np.linalg.norm(abm_Ir - ode_Ir) / t_end
             err_R = np.linalg.norm(abm_R - ode_R) / t_end
 
-            assert err_S < 0.05, f"Spreader compartment error too high: {err_S:.4f}"
-            assert err_E < 0.05, f"Exposed compartment error too high: {err_E:.4f}"
-            assert err_Is < 0.05, f"Steady ignorant compartment error too high: {err_Is:.4f}"
-            assert err_Ir < 0.05, f"Radical ignorant compartment error too high: {err_Is:.4f}"
-            assert err_R < 0.05, f"Stifler compartment error too high: {err_R:.4f}"
+            assert err_S < 0.05, f"Spreader compartment error too high: {
+                err_S:.4f}"
+            assert err_E < 0.05, f"Exposed compartment error too high: {
+                err_E:.4f}"
+            assert err_Is < 0.05, f"Steady ignorant compartment error too high: {
+                err_Is:.4f}"
+            assert err_Ir < 0.05, f"Radical ignorant compartment error too high: {
+                err_Is:.4f}"
+            assert err_R < 0.05, f"Stifler compartment error too high: {
+                err_R:.4f}"

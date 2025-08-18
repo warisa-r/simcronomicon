@@ -10,7 +10,11 @@ from IPython import get_ipython
 from pyproj import Transformer
 
 
-def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_name):
+def _validate_and_merge_colormap(
+        default_map,
+        user_map,
+        valid_keys,
+        parameter_name):
     # A helper function used to validate and merge the colormap for plotly visualization
     # if the user gives us a custom color map.
 
@@ -31,7 +35,11 @@ def _validate_and_merge_colormap(default_map, user_map, valid_keys, parameter_na
                 )
 
             # Basic validation for hex color codes
-            if not isinstance(color, str) or not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color):
+            if not isinstance(
+                    color,
+                    str) or not re.match(
+                    r'^#(?:[0-9a-fA-F]{3}){1,2}$',
+                    color):
                 warnings.warn(
                     f"Warning: '{color}' for {key} is not a valid hex color. "
                     "Expected format: '#RRGGBB' or '#RGB'"
@@ -72,7 +80,7 @@ def _load_node_info_from_graphmlz(
         town_graph_path,
         epsg_code,
         return_place_type=False):
-    # A helper function that loads the information necessary for plotting 
+    # A helper function that loads the information necessary for plotting
     # from the compressed input graph file
     with tempfile.TemporaryDirectory() as tmpdirname:
         with zipfile.ZipFile(town_graph_path, 'r') as zf:

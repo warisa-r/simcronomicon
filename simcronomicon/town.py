@@ -85,7 +85,7 @@ def classify_place(row):
     1. accommodation*compulsory for every model): Residential buildings where agents live
        - Identified by building tags like 'residential', 'apartments', 'house', etc.
 
-    2. healthcare_facility(compulsory for models with vaccination and/or symptom treatments): 
+    2. healthcare_facility(compulsory for models with vaccination and/or symptom treatments):
         Hospitals, clinics, pharmacies
        - Identified by building, healthcare, amenity tags, or emergency=yes
 
@@ -161,10 +161,10 @@ class TownParameters():
         Specific node IDs where initial spreaders should be placed. This list can be:
 
         - **Empty** (default): All spreaders will be randomly assigned to accommodation nodes
-        - **Partial**: Contains fewer nodes than num_init_spreader; remaining spreaders 
+        - **Partial**: Contains fewer nodes than num_init_spreader; remaining spreaders
           will be randomly assigned to accommodation nodes
         - **Complete**: Contains exactly num_init_spreader nodes for full control
-        - **With duplicates**: Same node ID can appear multiple times to place multiple 
+        - **With duplicates**: Same node ID can appear multiple times to place multiple
           spreaders at the same location
 
         Node IDs must be integers or convertible to integers. The list length must not
@@ -194,15 +194,15 @@ class TownParameters():
 
     >>> # With specific spreader locations
     >>> params = TownParameters(
-    ...     num_pop=1000, 
-    ...     num_init_spreader=3, 
+    ...     num_pop=1000,
+    ...     num_init_spreader=3,
     ...     spreader_initial_nodes=[5, 12, 47]
     ... )
 
     >>> # Partial specification with duplicates
     >>> params = TownParameters(
-    ...     num_pop=1000, 
-    ...     num_init_spreader=5, 
+    ...     num_pop=1000,
+    ...     num_init_spreader=5,
     ...     spreader_initial_nodes=[10, 10, 25]  # 3 of 5 spreaders specified
     ... )
     """
@@ -218,7 +218,8 @@ class TownParameters():
         # Validate num_init_spreader
         if not isinstance(num_init_spreader, int):
             raise TypeError(
-                f"num_init_spreader must be an integer, got {type(num_init_spreader).__name__}")
+                f"num_init_spreader must be an integer, got {
+                    type(num_init_spreader).__name__}")
         if num_init_spreader <= 0:
             raise ValueError(
                 f"num_init_spreader must be positive, got {num_init_spreader}")
@@ -229,7 +230,8 @@ class TownParameters():
         # Validate spreader_initial_nodes
         if not isinstance(spreader_initial_nodes, list):
             raise TypeError(
-                f"spreader_initial_nodes must be a list, got {type(spreader_initial_nodes).__name__}")
+                f"spreader_initial_nodes must be a list, got {
+                    type(spreader_initial_nodes).__name__}")
 
         if num_init_spreader < len(spreader_initial_nodes):
             raise ValueError(
@@ -327,14 +329,14 @@ class Town():
     ...     dist=1000,  # 1km radius
     ...     town_params=town_params
     ... )
-    >>> 
+    >>>
     >>> # Load previously saved town
     >>> town = Town.from_files(
     ...     config_path="town_config.json",
     ...     town_graph_path="town_graph.graphmlz",
     ...     town_params=town_params
     ... )
-    >>> 
+    >>>
     >>> # Examine town properties
     >>> print(f"Town has {len(town.town_graph.nodes)} locations")
     >>> print(f"Place types found: {town.found_place_types}")
@@ -386,7 +388,8 @@ class Town():
 
     def _validate_inputs(self, point, classify_place_func, all_place_types):
         # Validates the input arguments for town creation.
-        # Checks classification function, place types, and geographic point format.
+        # Checks classification function, place types, and geographic point
+        # format.
 
         if not callable(classify_place_func):
             raise TypeError("`classify_place_func` must be a function.")
@@ -408,9 +411,16 @@ class Town():
             raise ValueError(
                 "`point` values must represent valid latitude and longitude coordinates.")
 
-    def _setup_basic_attributes(self, point, dist, town_params, classify_place_func, all_place_types):
+    def _setup_basic_attributes(
+            self,
+            point,
+            dist,
+            town_params,
+            classify_place_func,
+            all_place_types):
         # Sets up core attributes for the Town object, including spatial parameters and classification settings.
-        # Calculates the EPSG code for spatial projection based on the origin point's latitude.
+        # Calculates the EPSG code for spatial projection based on the origin
+        # point's latitude.
 
         print("[1/10] Initializing town object and parameters...")
         if all_place_types is None:
@@ -432,7 +442,8 @@ class Town():
 
     def _download_osm_data(self):
         # Downloads OpenStreetMap road network and building data for the specified origin point and radius.
-        # Projects the road graph and building geometries to the town's EPSG coordinate system.
+        # Projects the road graph and building geometries to the town's EPSG
+        # coordinate system.
 
         print("[3/10] Downloading OSM road network and building data...")
         G_raw = ox.graph.graph_from_point(
@@ -445,13 +456,15 @@ class Town():
 
     def _process_buildings(self):
         # Processes building geometries to extract centroids and create POIs.
-        # Matches each building to the nearest road node and classifies place types.
+        # Matches each building to the nearest road node and classifies place
+        # types.
 
         print("[4/10] Processing building geometries...")
         is_polygon = self.buildings.geometry.geom_type.isin(
             ['Polygon', 'MultiPolygon'])
         self.buildings.loc[is_polygon,
-                           'geometry'] = self.buildings.loc[is_polygon, 'geometry'].centroid
+                           'geometry'] = self.buildings.loc[is_polygon,
+                                                            'geometry'].centroid
         self.POI = self.buildings[self.buildings.geometry.geom_type == 'Point']
 
         print("[5/10] Matching building centroids to nearest road nodes...")
@@ -470,7 +483,7 @@ class Town():
     def _match_buildings_to_roads(self):
         # Matches each building centroid (POI) to the nearest road network node using KDTree.
         # Updates the POI DataFrame with the nearest node ID for each building.
-        
+
         # Get projected coordinates of road nodes
         node_xy = {
             node: (data['x'], data['y'])
@@ -489,11 +502,12 @@ class Town():
 
     def _build_spatial_network(self):
         # Filters out nodes not assigned to relevant place types and builds the spatial network.
-        # Computes shortest-path distances and constructs the final town graph for simulation.
+        # Computes shortest-path distances and constructs the final town graph
+        # for simulation.
 
         print("[8/10] Filtering out irrelevant nodes...")
-        nodes_to_keep = [n for n, d in self.G_projected.nodes(data=True)
-                         if d.get('place_type') is not None and d.get('place_type') != 'other']
+        nodes_to_keep = [n for n, d in self.G_projected.nodes(data=True) if d.get(
+            'place_type') is not None and d.get('place_type') != 'other']
         G_filtered = self.G_projected.subgraph(nodes_to_keep).copy()
 
         if len(G_filtered.nodes) == 0:
@@ -504,7 +518,7 @@ class Town():
         self._compute_shortest_paths(G_filtered)
 
     def _compute_shortest_paths(self, G_filtered):
-        # Compute the shortest paths between every single pair of locations in the 
+        # Compute the shortest paths between every single pair of locations in the
         # area of interest.
 
         # Convert G_projected to igraph for fast distance computation
@@ -539,7 +553,8 @@ class Town():
         self._build_final_graph(G_filtered, filtered_nodes, dist_matrix)
 
     def _build_final_graph(self, G_filtered, filtered_nodes, dist_matrix):
-        # Build a simplified town graph from the precalculated distances in the previous step.
+        # Build a simplified town graph from the precalculated distances in the
+        # previous step.
 
         self.town_graph = nx.Graph()
         id_map = {old_id: new_id for new_id,
@@ -550,7 +565,8 @@ class Town():
         for old_id, new_id in id_map.items():
             place_type = G_filtered.nodes[old_id].get("place_type")
             row = self.POI[self.POI['nearest_node'] == old_id]
-            x, y = (row.iloc[0].geometry.x, row.iloc[0].geometry.y) if not row.empty else (
+            x, y = (
+                row.iloc[0].geometry.x, row.iloc[0].geometry.y) if not row.empty else (
                 None, None)
 
             if place_type == "accommodation":
@@ -612,7 +628,8 @@ class Town():
             json.dump(config_data, f, indent=2)
 
     def _finalize_town_setup(self):
-        # Finalize the town object such that it is ready to be used in the simulation.
+        # Finalize the town object such that it is ready to be used in the
+        # simulation.
 
         # Initialize folks list for all nodes
         for node in self.town_graph.nodes:
@@ -625,8 +642,7 @@ class Town():
         ]
         if missing_nodes:
             raise ValueError(
-                f"Some spreader_initial_nodes do not exist in the town graph: {missing_nodes}"
-            )
+                f"Some spreader_initial_nodes do not exist in the town graph: {missing_nodes}")
 
     @classmethod
     def from_point(

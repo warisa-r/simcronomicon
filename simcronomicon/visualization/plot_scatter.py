@@ -13,16 +13,16 @@ from .visualization_util import (_load_node_info_from_graphmlz,
 
 def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     """
-    Visualizes nodes from a .graphmlz town graph file as colored points with colors representing 
+    Visualizes nodes from a .graphmlz town graph file as colored points with colors representing
     different place types (e.g., accommodation, commercial, education), using Plotly and OpenStreetMap..
 
     Parameters
     ----------
     town_graph_path : str
-        Path to the .graphmlz file containing the town graph with node coordinates 
+        Path to the .graphmlz file containing the town graph with node coordinates
         and place_type classifications.
     town_config_path : str
-        Path to the .json file containing town metadata with 'epsg_code' for coordinate 
+        Path to the .json file containing town metadata with 'epsg_code' for coordinate
         conversion and 'place_types' list defining valid place types.
     colormap : dict, optional
         Custom color mapping {'place_type': '#HEXCOLOR'}. If None, uses defaults.
@@ -31,7 +31,7 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     Returns
     -------
     None
-        Displays an interactive Plotly scatter map with colored points, legend, 
+        Displays an interactive Plotly scatter map with colored points, legend,
         and hover information showing node IDs.
 
     Raises
@@ -41,14 +41,14 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     KeyError
         If town_config_path doesn't contain required 'epsg_code' field.
     ValueError
-        If colormap doesn't provide colors for all place types defined in 
+        If colormap doesn't provide colors for all place types defined in
         town_config_path's 'place_types' list.
     FileNotFoundError
         If specified file paths don't exist.
 
     Notes
     -----
-    - Default colors provided for: accommodation, commercial, religious, education, 
+    - Default colors provided for: accommodation, commercial, religious, education,
       workplace, healthcare_facility
     - Nodes with undefined place types are colored gray (#CCCCCC)
     - Requires internet connection for OpenStreetMap tiles
@@ -68,11 +68,11 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     valid_place_types = config.get('place_types', [])
     epsg_code = config["epsg_code"]  # Also epsg code
 
-    # Default colormap that supports the place types defined in the 
+    # Default colormap that supports the place types defined in the
     # default place classification function
     default_colormap = {
-        "accommodation": "#FFD700",   
-        "commercial": "#FFA07A", 
+        "accommodation": "#FFD700",
+        "commercial": "#FFA07A",
         "religious": "#9370DB",
         "education": "#00BFFF",
         "workplace": "#4682B4",
@@ -125,6 +125,7 @@ def plot_place_types_scatter(town_graph_path, town_config_path, colormap=None):
     )
     fig.update_traces(marker=dict(size=9, opacity=0.8))
     fig.show()
+
 
 def plot_agents_scatter(
         output_hdf5_path,
@@ -194,7 +195,8 @@ def plot_agents_scatter(
             )
             time_interval = (time_interval[0], max_timestep_in_data)
 
-            # Check again after adjustment - if start > adjusted end, it's an error
+            # Check again after adjustment - if start > adjusted end, it's an
+            # error
             if time_interval[0] > time_interval[1]:
                 raise ValueError(
                     f"Start timestep {time_interval[0]} is greater than maximum available timestep {max_timestep_in_data}. "

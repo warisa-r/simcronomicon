@@ -98,14 +98,33 @@ MODEL_MATRIX = {
 
 def default_test_step_events(folk_class):
     return [
-        infection_models.StepEvent("greet_neighbors", folk_class.interact, infection_models.EventType.DISPERSE, 5000, [
-            'accommodation'], infection_models.energy_exponential_mobility),
-        infection_models.StepEvent("chore", folk_class.interact, infection_models.EventType.DISPERSE, 19000,
-                                       ['commercial', 'workplace', 'education', 'religious'], infection_models.log_normal_mobility)
-    ]
+        infection_models.StepEvent(
+            "greet_neighbors",
+            folk_class.interact,
+            infection_models.EventType.DISPERSE,
+            5000,
+            ['accommodation'],
+            infection_models.energy_exponential_mobility),
+        infection_models.StepEvent(
+            "chore",
+            folk_class.interact,
+            infection_models.EventType.DISPERSE,
+            19000,
+            [
+                'commercial',
+                'workplace',
+                'education',
+                'religious'],
+            infection_models.log_normal_mobility)]
 
 
-def setup_simulation(model_key, town_params, step_events=None, timesteps=1, seed=None, override_params=None):
+def setup_simulation(
+        model_key,
+        town_params,
+        step_events=None,
+        timesteps=1,
+        seed=None,
+        override_params=None):
     model_class, model_params_class, folk_class, base_params, config_path, graphmlz_path = MODEL_MATRIX[
         model_key]
     params = dict(base_params)

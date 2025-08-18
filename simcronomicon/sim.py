@@ -96,11 +96,11 @@ class Simulation:
     --------
 
     >>> # Create town and model
-    >>> town = Town.from_point(point=[50.7753, 6.0839], dist=1000, 
+    >>> town = Town.from_point(point=[50.7753, 6.0839], dist=1000,
     ...                        town_params=TownParameters(num_pop=1000, num_init_spreader=10))
     >>> model_params = SEIRModelParameters(max_energy=10, beta=0.3, sigma=5, gamma=7, xi=100)
     >>> model = SEIRModel(model_params)
-    >>> 
+    >>>
     >>> # Run simulation
     >>> sim = Simulation(town, model, timesteps=100)
     >>> sim.run(hdf5_path="epidemic_simulation.h5")
@@ -222,7 +222,8 @@ class Simulation:
                     for node in self.town.town_graph.nodes:
                         node_place_type = self.town.town_graph.nodes[node]['place_type']
                         if node_place_type in person.priority_place_type:
-                            if self.town.town_graph.has_edge(person.address, node):
+                            if self.town.town_graph.has_edge(
+                                    person.address, node):
                                 dist = self.town.town_graph[person.address][node]['weight']
                             else:
                                 continue
@@ -302,7 +303,8 @@ class Simulation:
 
     def _step(self):
         # Advances the simulation by one timestep, executing all step events for the current round.
-        # Updates population status and records each agent's state after every event.
+        # Updates population status and records each agent's state after every
+        # event.
         current_timestep = self.current_timestep + 1
         status_row = None
         indiv_folk_rows = []
@@ -364,12 +366,17 @@ class Simulation:
 
                 # Write simulation configuration information (without town)
                 sim_config = {
-                    'seed_enabled': hasattr(self, 'seed_value'),
-                    'seed_value': getattr(self, 'seed_value', None),
-
+                    'seed_enabled': hasattr(
+                        self,
+                        'seed_value'),
+                    'seed_value': getattr(
+                        self,
+                        'seed_value',
+                        None),
                     'all_statuses': self.model.all_statuses,
                     'model_parameters': self.model_params.to_config_dict(),
-                    'num_locations': len(self.town.town_graph.nodes),
+                    'num_locations': len(
+                        self.town.town_graph.nodes),
                     'max_timesteps': self.timesteps,
                     'population': self.num_pop,
                     'step_events': [
@@ -379,8 +386,7 @@ class Simulation:
                             'place_types': event.place_types,
                             'event_type': event.event_type.value,
                             'probability_func': event.probability_func.__name__ if event.probability_func else None,
-                        } for event in self.step_events
-                    ],
+                        } for event in self.step_events],
                 }
                 sim_config_json = json.dumps(sim_config)
                 config_group.create_dataset(

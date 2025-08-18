@@ -32,7 +32,19 @@ class SEIQRDVModelParameters(AbstractModelParameters):
     upon initialization.
     """
 
-    def __init__(self, max_energy, lam_cap, beta, alpha, gamma, delta, lam, rho, kappa, mu, hospital_capacity=float('inf')):
+    def __init__(
+            self,
+            max_energy,
+            lam_cap,
+            beta,
+            alpha,
+            gamma,
+            delta,
+            lam,
+            rho,
+            kappa,
+            mu,
+            hospital_capacity=float('inf')):
         """
         Initialize SEIQRDV model parameters and validate all inputs.
 
@@ -130,17 +142,17 @@ class SEIQRDVModelParameters(AbstractModelParameters):
 class FolkSEIQRDV(AbstractFolk):
     """
     Agent class for the SEIQRDV infection model with vaccination and mortality dynamics.
-    FolkSEIQRDV agents extend the basic AbstractFolk with two critical attributes for epidemic modeling: 
-    `will_die` and `want_vaccine`. The `will_die` attribute is probabilistically set when an agent enters 
-    quarantine and determines their eventual outcome (recovery or death), 
-    reflecting the stochastic nature of disease severity. The `want_vaccine` attribute models vaccination-seeking behavior, 
-    where susceptible agents can spontaneously decide to seek vaccination based on the model's `alpha` parameter, 
-    creating realistic vaccine demand patterns. These agents exhibit complex behavioral dynamics including healthcare-seeking 
-    movement (prioritizing healthcare facilities when `want_vaccine` is True), quarantine compliance 
-    (restricted movement when infectious), and status-dependent interaction patterns. 
-    The vaccination system implements a queue-based mechanism at healthcare facilities with capacity constraints, 
-    ensuring fair vaccine distribution while maintaining epidemiological realism. 
-    Additionally, agents undergo natural aging and mortality processes independent of disease status, allowing for 
+    FolkSEIQRDV agents extend the basic AbstractFolk with two critical attributes for epidemic modeling:
+    `will_die` and `want_vaccine`. The `will_die` attribute is probabilistically set when an agent enters
+    quarantine and determines their eventual outcome (recovery or death),
+    reflecting the stochastic nature of disease severity. The `want_vaccine` attribute models vaccination-seeking behavior,
+    where susceptible agents can spontaneously decide to seek vaccination based on the model's `alpha` parameter,
+    creating realistic vaccine demand patterns. These agents exhibit complex behavioral dynamics including healthcare-seeking
+    movement (prioritizing healthcare facilities when `want_vaccine` is True), quarantine compliance
+    (restricted movement when infectious), and status-dependent interaction patterns.
+    The vaccination system implements a queue-based mechanism at healthcare facilities with capacity constraints,
+    ensuring fair vaccine distribution while maintaining epidemiological realism.
+    Additionally, agents undergo natural aging and mortality processes independent of disease status, allowing for
     comprehensive population dynamics that include births, deaths, migration, and demographic changes throughout the simulation period.
     """
 
@@ -241,7 +253,8 @@ class FolkSEIQRDV(AbstractFolk):
             self.convert('E', status_dict_t)
 
         if current_place_type == 'healthcare_facility':
-            # Vaccine is only effective for susceptible people but anyone who wants it can queue up
+            # Vaccine is only effective for susceptible people but anyone who
+            # wants it can queue up
             want_vaccine_list = [
                 folk for folk in folks_here if folk.want_vaccine]
             if self in want_vaccine_list and self.status == 'S':
@@ -337,7 +350,8 @@ class FolkSEIQRDV(AbstractFolk):
             if dice < model_params.kappa:
                 self.will_die = True
         elif self.status == 'S':
-            # We only apply the rate of planning to get vaccination on susceptible agents
+            # We only apply the rate of planning to get vaccination on
+            # susceptible agents
             if model_params.alpha > dice:
                 self.want_vaccine = True
 
@@ -351,7 +365,7 @@ class FolkSEIQRDV(AbstractFolk):
         This method updates vaccination-seeking behavior attributes after events
         to maintain consistent state. It performs two key functions:
 
-        1. For vaccinated agents: Clears the 'want_vaccine' flag since 
+        1. For vaccinated agents: Clears the 'want_vaccine' flag since
         they've already received vaccination
 
         2. For other agents seeking vaccination: Ensures 'healthcare_facility'
@@ -461,7 +475,12 @@ class SEIQRDVModel(AbstractInfectionModel):
         }
         return folks, household_node_indices, status_dict_t0
 
-    def update_population(self, folks, town, household_node_indices, status_dict_t):
+    def update_population(
+            self,
+            folks,
+            town,
+            household_node_indices,
+            status_dict_t):
         """
         Update the simulation population at the end of each day.
 
@@ -515,7 +534,8 @@ class SEIQRDVModel(AbstractInfectionModel):
 
                 # Track which node has a 'family' living in it
                 if len(town.town_graph.nodes[node]["folks"]) == 2:
-                    # Add operation and set() data structure ensures that there is no duplicate
+                    # Add operation and set() data structure ensures that there
+                    # is no duplicate
                     household_node_indices.add(node)
 
         return len(folks)

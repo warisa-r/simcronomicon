@@ -81,8 +81,8 @@ class SEIsIrRModelParameters(AbstractModelParameters):
         ):
             if not isinstance(value, (float, int)):
                 raise TypeError(
-                    f"{name} must be a float or int, got {type(value).__name__}"
-                )
+                    f"{name} must be a float or int, got {
+                        type(value).__name__}")
 
         gamma, alpha, lam, phi, theta, mu, eta1, eta2 = map(
             float, [gamma, alpha, lam, phi, theta, mu, eta1, eta2])
@@ -185,7 +185,8 @@ class FolkSEIsIrR(AbstractFolk):
         """
         num_contact = len(
             [folk for folk in folks_here if folk != self and folk.status in stats])
-        return super().inverse_bernoulli(num_contact, conversion_prob * self.energy / self.max_energy)
+        return super().inverse_bernoulli(num_contact,
+                                         conversion_prob * self.energy / self.max_energy)
 
     def interact(
             self,

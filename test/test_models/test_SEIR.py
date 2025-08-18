@@ -51,10 +51,10 @@ class TestSEIRModel:
             S, E, I, R = y
             N = S + E + I + R
             rhs = np.zeros(4)
-            rhs[0] = -model_params.beta * S * I / N + 1/model_params.xi * R
+            rhs[0] = -model_params.beta * S * I / N + 1 / model_params.xi * R
             rhs[1] = model_params.beta * S * I / N - 1 / model_params.sigma * E
-            rhs[2] = 1/model_params.sigma * E - 1/model_params.gamma * I
-            rhs[3] = 1/model_params.gamma * I - 1/model_params.xi * R
+            rhs[2] = 1 / model_params.sigma * E - 1 / model_params.gamma * I
+            rhs[3] = 1 / model_params.gamma * I - 1 / model_params.xi * R
             return rhs
 
         t_end = 70  # Number of steps before termination for the simulation of the default seed
@@ -102,13 +102,18 @@ class TestSEIRModel:
             ode_I = sol.y[2]
             ode_R = sol.y[3]
 
-            # Compute average per time step 2-norm error for each compartment over all time points
+            # Compute average per time step 2-norm error for each compartment
+            # over all time points
             err_S = np.linalg.norm(abm_S - ode_S) / t_end
             err_E = np.linalg.norm(abm_E - ode_E) / t_end
             err_I = np.linalg.norm(abm_I - ode_I) / t_end
             err_R = np.linalg.norm(abm_R - ode_R) / t_end
 
-            assert err_S < 0.05, f"Susceptible compartment error too high: {err_S:.4f}"
-            assert err_E < 0.05, f"Exposed compartment error too high: {err_E:.4f}"
-            assert err_I < 0.05, f"Infectious compartment error too high: {err_I:.4f}"
-            assert err_R < 0.05, f"Recovered compartment error too high: {err_R:.4f}"
+            assert err_S < 0.05, f"Susceptible compartment error too high: {
+                err_S:.4f}"
+            assert err_E < 0.05, f"Exposed compartment error too high: {
+                err_E:.4f}"
+            assert err_I < 0.05, f"Infectious compartment error too high: {
+                err_I:.4f}"
+            assert err_R < 0.05, f"Recovered compartment error too high: {
+                err_R:.4f}"

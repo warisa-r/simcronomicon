@@ -3,19 +3,19 @@ This module implements the SEIR infection model for epidemic simulation with los
 
 The implementation follows one of the infection models described in:
 
-Kerr, C. C., Stuart, R. M., Mistry, D., Abeysuriya, R. G., Rosenfeld, K., Hart, G. R., 
-Núñez, R. C., Cohen, J. A., Selvaraj, P., Hagedorn, B., George, L., Jastrzębski, M., 
-Izzo, A. S., Fowler, G., Palmer, A., Delport, D., Scott, N., Kelly, S. L., Bennette, C. S., 
-Wagner, B., Chang, S. T., Oron, A. P., Wenger, E. A., Panovska-Griffiths, J., 
-Famulare, M., & Klein, D. J. (2021). Covasim: An agent-based model of COVID-19 dynamics 
-and interventions. *PLOS Computational Biology*, 17(7), e1009149. 
+Kerr, C. C., Stuart, R. M., Mistry, D., Abeysuriya, R. G., Rosenfeld, K., Hart, G. R.,
+Núñez, R. C., Cohen, J. A., Selvaraj, P., Hagedorn, B., George, L., Jastrzębski, M.,
+Izzo, A. S., Fowler, G., Palmer, A., Delport, D., Scott, N., Kelly, S. L., Bennette, C. S.,
+Wagner, B., Chang, S. T., Oron, A. P., Wenger, E. A., Panovska-Griffiths, J.,
+Famulare, M., & Klein, D. J. (2021). Covasim: An agent-based model of COVID-19 dynamics
+and interventions. *PLOS Computational Biology*, 17(7), e1009149.
 https://doi.org/10.1371/journal.pcbi.1009149
 
-The SEIR model represents disease progression through four compartments: Susceptible (S) 
-individuals who can contract the disease, Exposed (E) individuals who are infected but not 
-yet infectious, Infectious (I) individuals who can transmit the disease, and Recovered (R) 
-individuals who have immunity. This implementation includes waning immunity, where recovered 
-individuals return to susceptible status after a specified duration, making it suitable for 
+The SEIR model represents disease progression through four compartments: Susceptible (S)
+individuals who can contract the disease, Exposed (E) individuals who are infected but not
+yet infectious, Infectious (I) individuals who can transmit the disease, and Recovered (R)
+individuals who have immunity. This implementation includes waning immunity, where recovered
+individuals return to susceptible status after a specified duration, making it suitable for
 modeling diseases with temporary immunity like influenza or seasonal coronaviruses.
 """
 

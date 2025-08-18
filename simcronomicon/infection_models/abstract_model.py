@@ -14,7 +14,7 @@ class AbstractModelParameters:
     Parameters
     ----------
     max_energy : int
-        The maximum energy for an agent. This number limits the maximum number 
+        The maximum energy for an agent. This number limits the maximum number
         of events an agent can attend in a day.
 
     Attributes
@@ -127,7 +127,9 @@ class AbstractFolk:
             Dictionary tracking the count of each status at the current timestep.
         """
         assert self.status != new_stat, f"New status cannot be the same as the old status({new_stat})! Please review your transition rules!"
-        assert status_dict_t[self.status] > 0, f"Attempting to decrement {self.status} below zero!"
+        assert status_dict_t[
+            self.status] > 0, f"Attempting to decrement {
+            self.status} below zero!"
         status_dict_t[self.status] -= 1
         status_dict_t[new_stat] += 1
         self.status = new_stat
@@ -256,11 +258,13 @@ class AbstractInfectionModel:
                         'commercial'])
             ]
         else:
-            # Check that step_events is a StepEvent or list of StepEvent objects
+            # Check that step_events is a StepEvent or list of StepEvent
+            # objects
             if isinstance(self.step_events, StepEvent):
                 self.step_events = [self.step_events]
             elif isinstance(self.step_events, list):
-                if not all(isinstance(ev, StepEvent) for ev in self.step_events):
+                if not all(isinstance(ev, StepEvent)
+                           for ev in self.step_events):
                     raise TypeError(
                         "step_events must be a StepEvent or a list of StepEvent objects")
             else:
@@ -270,13 +274,17 @@ class AbstractInfectionModel:
             for event in self.step_events:
                 if not callable(event.folk_action):
                     raise TypeError(
-                        f"folk_action in StepEvent '{event.name}' must be callable")
+                        f"folk_action in StepEvent '{
+                            event.name}' must be callable")
                 # Print folk_class and the class of event.folk_action for debugging
                 # Check if the function is a method of self.folk_class
-                if not any(event.folk_action is func for name, func in vars(self.folk_class).items() if callable(func)):
+                if not any(
+                    event.folk_action is func for name, func in vars(
+                        self.folk_class).items() if callable(func)):
                     raise TypeError(
-                        f"folk_action in StepEvent '{event.name}' must be a method of the folk_class '{self.folk_class.__name__}'"
-                    )
+                        f"folk_action in StepEvent '{
+                            event.name}' must be a method of the folk_class '{
+                            self.folk_class.__name__}'")
 
         # This is an important check and it will ONLY work when you define
         # some of the attributes before calling the abstract level constructor
@@ -337,7 +345,7 @@ class AbstractInfectionModel:
         Returns
         -------
         tuple
-            Contains (num_pop, num_init_spreader, num_init_spreader_rd, folks, 
+            Contains (num_pop, num_init_spreader, num_init_spreader_rd, folks,
             household_node_indices, assignments) where:
             - num_pop : int - Total population size
             - num_init_spreader : int - Total number of initial spreaders
@@ -363,7 +371,12 @@ class AbstractInfectionModel:
 
         return num_pop, num_init_spreader, num_init_spreader_rd, folks, household_node_indices, assignments
 
-    def update_population(self, folks, town, household_node_indices, status_dict_t):
+    def update_population(
+            self,
+            folks,
+            town,
+            household_node_indices,
+            status_dict_t):
         """
         Update the simulation population (e.g., add or remove agents).
 

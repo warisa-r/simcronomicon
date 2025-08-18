@@ -8,7 +8,7 @@ def log_normal_mobility(distances, folk, median_distance=2000, sigma=1.0):
     """
     Return probabilities inversely proportional to log-normal PDF of distances. Log-normal PDF has been studied to model
     the human mobility pattern in this following literature and its predecessor:
-    Wang, W., & Osaragi, T. (2024). Lognormal distribution of daily travel time and a utility model for its emergence. 
+    Wang, W., & Osaragi, T. (2024). Lognormal distribution of daily travel time and a utility model for its emergence.
     Transportation Research Part A: Policy and Practice, 181, 104058. https://doi.org/10.1016/j.tra.2024.104058
 
     Parameters
@@ -18,7 +18,7 @@ def log_normal_mobility(distances, folk, median_distance=2000, sigma=1.0):
         Default 1100m (1.1km) for typical neighborhood activities.
         Common values:
         - 400m → local/walking activities
-        - 1100m → neighborhood activities  
+        - 1100m → neighborhood activities
         - 3000m → city-wide activities
         - 8000m → regional activities
     sigma : float
@@ -131,7 +131,7 @@ class StepEvent:
     - Be robust to edge cases (empty arrays, zero distances)
 
     Built-in mobility functions include:
-    - `log_normal_mobility`: Human mobility based on log-normal distance 
+    - `log_normal_mobility`: Human mobility based on log-normal distance
 
     - `energy_exponential_mobility`: Agent energy-dependent exponential decay
 
@@ -154,9 +154,9 @@ class StepEvent:
     --------
     >>> # End of day event
     >>> end_day = StepEvent("end_day", folk_class.sleep)
-    >>> 
+    >>>
     >>> # Work event with distance constraints
-    >>> work = StepEvent("work", folk_class.interact, EventType.DISPERSE, 
+    >>> work = StepEvent("work", folk_class.interact, EventType.DISPERSE,
     ...                  max_distance=10000, place_types=['workplace'])
     >>>
     >>> # Shopping with log-normal mobility
@@ -208,11 +208,11 @@ class StepEvent:
         max_distance : int, optional
             Maximum travel distance in meters for DISPERSE events (default: 0).
         place_types : list, optional
-            Place type categories agents can visit. Examples: ['commercial', 'workplace'] 
+            Place type categories agents can visit. Examples: ['commercial', 'workplace']
             (default: []).
         probability_func : callable, optional
             Function taking (distances, agent) and returning movement probabilities [0,1].
-            Must have exactly 2 non-default arguments. Cannot be used with SEND_HOME events 
+            Must have exactly 2 non-default arguments. Cannot be used with SEND_HOME events
             (default: None).
 
         Raises

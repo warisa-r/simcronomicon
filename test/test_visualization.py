@@ -26,8 +26,7 @@ class TestPlotStatusSummary:
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                model_key, town_params, step_events=step_events, timesteps=10, seed=True
-            )
+                model_key, town_params, step_events=step_events, timesteps=10, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_plot.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -49,8 +48,7 @@ class TestPlotStatusSummary:
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                model_key, town_params, step_events=step_events, timesteps=10, seed=True
-            )
+                model_key, town_params, step_events=step_events, timesteps=10, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_single_status.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -64,14 +62,14 @@ class TestPlotStatusSummary:
         ("seisir", ["Is", "Ir"]),
         ("seiqrdv", ["S", "V", "D"])
     ])
-    def test_plot_status_summary_multiple_statuses(self, model_key, status_list):
+    def test_plot_status_summary_multiple_statuses(
+            self, model_key, status_list):
         with tempfile.TemporaryDirectory() as tmpdir:
             town_params = TownParameters(num_pop=50, num_init_spreader=5)
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                model_key, town_params, step_events=step_events, timesteps=10, seed=True
-            )
+                model_key, town_params, step_events=step_events, timesteps=10, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_multiple_status.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -87,8 +85,7 @@ class TestPlotStatusSummary:
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                "seir", town_params, step_events=step_events, timesteps=10, seed=True
-            )
+                "seir", town_params, step_events=step_events, timesteps=10, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_invalid.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -158,8 +155,7 @@ class TestPlotStatusSummary:
             folk_class = MODEL_MATRIX[model_key][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                model_key, town_params, step_events=step_events, timesteps=10, seed=True
-            )
+                model_key, town_params, step_events=step_events, timesteps=10, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_plot.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -201,7 +197,8 @@ class TestValidateAndMergeColormap:
         ({"type1": "#FF0000", "type2": "#00FF00"}, None,
          ["type1", "type2", "type3", "type4"], "test param", ["type3", "type4"]),
 
-        # Test case: Even after merging user map, there are still some missing colors
+        # Test case: Even after merging user map, there are still some missing
+        # colors
         ({"type1": "#FF0000"}, {"type2": "#00FF00"},
          ["type1", "type2", "type3"], "test param", ["type3"]),
 
@@ -209,12 +206,19 @@ class TestValidateAndMergeColormap:
         ({"x": "#FF0000"}, {"y": "#00FF00", "z": "#0000FF"},
          ["x", "y", "z", "w", "v"], "category", ["v", "w"]),
     ])
-    def test_missing_colors_raises_value_error(self, default_map, user_map, valid_keys, parameter_name, expected_missing):
+    def test_missing_colors_raises_value_error(
+            self,
+            default_map,
+            user_map,
+            valid_keys,
+            parameter_name,
+            expected_missing):
         from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
 
         # Sort expected missing colors to match function behavior
         expected_missing_sorted = sorted(expected_missing)
-        expected_error_pattern = rf"Missing colors for valid {parameter_name}\(s\): {', '.join(expected_missing_sorted)}"
+        expected_error_pattern = rf"Missing colors for valid {parameter_name}\(s\): {
+            ', '.join(expected_missing_sorted)}"
 
         with pytest.raises(ValueError, match=expected_error_pattern):
             _validate_and_merge_colormap(
@@ -247,7 +251,13 @@ class TestValidateAndMergeColormap:
          ["a", "b", "c", "d"], "type",
          {"a": "#FF0000", "b": "#FFFFFF", "c": "#0000FF", "d": "#FFFF00"}),
     ])
-    def test_successful_color_mapping(self, default_map, user_map, valid_keys, parameter_name, expected_result):
+    def test_successful_color_mapping(
+            self,
+            default_map,
+            user_map,
+            valid_keys,
+            parameter_name,
+            expected_result):
         from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
 
         # Should not raise an error
@@ -272,13 +282,20 @@ class TestValidateAndMergeColormap:
          ["Warning: 'invalid_key' is not a valid test param",
           "Warning: 'bad_color' for invalid_key is not a valid hex color"]),
     ])
-    def test_warnings_for_invalid_inputs(self, default_map, user_map, valid_keys, parameter_name, expected_warnings):
+    def test_warnings_for_invalid_inputs(
+            self,
+            default_map,
+            user_map,
+            valid_keys,
+            parameter_name,
+            expected_warnings):
         from simcronomicon.visualization.visualization_util import _validate_and_merge_colormap
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
 
-            # This should generate warnings but not raise an error (if all valid keys are covered)
+            # This should generate warnings but not raise an error (if all
+            # valid keys are covered)
             try:
                 _validate_and_merge_colormap(
                     default_map, user_map, valid_keys, parameter_name)
@@ -320,7 +337,8 @@ class TestVisualizeMap:
         ('google.colab._shell', 'browser'),        # Google Colab
         ('SpyderShell', 'browser'),                # Spyder IDE
     ])
-    def test_set_plotly_renderer_different_shells(self, shell_name, expected_renderer):
+    def test_set_plotly_renderer_different_shells(
+            self, shell_name, expected_renderer):
         from simcronomicon.visualization.visualization_util import _set_plotly_renderer
         import plotly.io as pio
 
@@ -332,7 +350,8 @@ class TestVisualizeMap:
         original_renderer = pio.renderers.default
 
         try:
-            # Patch get_ipython in the correct module where _set_plotly_renderer is defined
+            # Patch get_ipython in the correct module where
+            # _set_plotly_renderer is defined
             with patch('simcronomicon.visualization.visualization_util.get_ipython', return_value=mock_ipython):
                 _set_plotly_renderer()
                 assert pio.renderers.default == expected_renderer
@@ -371,8 +390,7 @@ class TestVisualizeMap:
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                "seir", town_params, step_events=step_events, timesteps=3, seed=True
-            )
+                "seir", town_params, step_events=step_events, timesteps=3, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_folks.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -408,15 +426,15 @@ class TestVisualizeMap:
         ("invalid", False, AssertionError),  # Wrong type
         ((0, 1, 2), False, AssertionError),  # Too many values
     ])
-    def test_visualize_folks_time_interval_validation(self, time_interval, should_pass, expected_error):
+    def test_visualize_folks_time_interval_validation(
+            self, time_interval, should_pass, expected_error):
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create simulation output
             town_params = TownParameters(num_pop=10, num_init_spreader=1)
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                "seir", town_params, step_events=step_events, timesteps=5, seed=True
-            )
+                "seir", town_params, step_events=step_events, timesteps=5, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_time_interval.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -448,8 +466,7 @@ class TestVisualizeMap:
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                "seir", town_params, step_events=step_events, timesteps=3, seed=True
-            )
+                "seir", town_params, step_events=step_events, timesteps=3, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_exceed.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -484,8 +501,7 @@ class TestVisualizeMap:
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, _, _ = setup_simulation(
-                "seir", town_params, step_events=step_events, timesteps=3, seed=True
-            )
+                "seir", town_params, step_events=step_events, timesteps=3, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_no_data.h5")
             sim.run(hdf5_path=h5_path, silent=True)
@@ -493,7 +509,8 @@ class TestVisualizeMap:
             graphml_path, config_path, _ = create_test_town_files()
 
             try:
-                # Request time interval with start > max timestep should raise ValueError
+                # Request time interval with start > max timestep should raise
+                # ValueError
                 with pytest.raises(ValueError, match="Start timestep .* is greater than maximum available timestep"):
                     plot_scatter.plot_agents_scatter(
                         h5_path, graphml_path, time_interval=(100, 200)
@@ -514,8 +531,7 @@ class TestVisualizationUtilities:
             folk_class = MODEL_MATRIX["seir"][2]
             step_events = default_test_step_events(folk_class)
             sim, town, _ = setup_simulation(
-                "seir", town_params, step_events=step_events, timesteps=3, seed=True
-            )
+                "seir", town_params, step_events=step_events, timesteps=3, seed=True)
 
             h5_path = os.path.join(tmpdir, "test_folks.h5")
             sim.run(hdf5_path=h5_path, silent=True)

@@ -39,7 +39,8 @@ class TestSimulationInitializationGeneralized:
 
     @pytest.mark.parametrize("model_key", ["seiqrdv"])
     def test_missing_required_place_type(self, model_key):
-        # Use test data that does NOT contain 'healthcare_facility' in found_place_types
+        # Use test data that does NOT contain 'healthcare_facility' in
+        # found_place_types
         config_path = "test/test_data/aachen_dom_500m_config.json"
         graphmlz_path = "test/test_data/aachen_dom_500m.graphmlz"
         town_params = TownParameters(num_pop=10, num_init_spreader=1)
@@ -111,7 +112,8 @@ class TestStepEventFunctionality:
                     place_type = town.town_graph.nodes[address]['place_type']
                     assert address == home_addr or place_type == 'workplace', \
                         f"AbstractFolk {folk_id} at address {address} (type {place_type}) is not at home or workplace during go_to_work"
-                # Check 'end_day' event that automatically gets appended regardless of the StepEvents input from the user
+                # Check 'end_day' event that automatically gets appended
+                # regardless of the StepEvents input from the user
                 end_day_rows = log[(log['timestep'] == 1) &
                                    (log['event'] == b"end_day")]
                 for row in end_day_rows:
@@ -122,7 +124,8 @@ class TestStepEventFunctionality:
                     assert address == home_addr, f"AbstractFolk {folk_id} not at home at end_day (address {address}, home {home_addr})"
 
 # For SEIQRDV, the functionality of priority place is tested in its own dedicated tests,
-# since agents may prioritize 'healthcare_facility' and bypass typical destinations like 'workplace'.
+# since agents may prioritize 'healthcare_facility' and bypass typical
+# destinations like 'workplace'.
 
 
 class TestSimulationUpdate:
@@ -137,9 +140,11 @@ class TestSimulationUpdate:
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 for row in summary:
-                    total = sum(row[name] for name in row.dtype.names if name not in (
-                        "timestep", "current_event"))
-                    assert total == 100, f"Population not conserved at timestep {row['timestep']}: got {total}, expected 100"
+                    total = sum(
+                        row[name] for name in row.dtype.names if name not in (
+                            "timestep", "current_event"))
+                    assert total == 100, f"Population not conserved at timestep {
+                        row['timestep']}: got {total}, expected 100"
 
     def test_population_migration_and_death(self):
         # Only SEIQRDV truly updates population size after each day
@@ -159,13 +164,17 @@ class TestSimulationUpdate:
                 summary = h5file["status_summary/summary"][:]
                 step1 = summary[-2]
                 step2 = summary[-1]
-                total1 = sum(step1[name] for name in step1.dtype.names if name not in (
-                    "timestep", "current_event", "D"))
-                total2 = sum(step2[name] for name in step2.dtype.names if name not in (
-                    "timestep", "current_event", "D"))
-                assert total1 == 200, f"Population should be doubled at timestep {step1['timestep']}: got {total1}, expected 200"
-                assert total2 == total1 * \
-                    2, f"Population should be doubled at timestep {step2['timestep']}: got {total2}, expected {total1 * 2}"
+                total1 = sum(
+                    step1[name] for name in step1.dtype.names if name not in (
+                        "timestep", "current_event", "D"))
+                total2 = sum(
+                    step2[name] for name in step2.dtype.names if name not in (
+                        "timestep", "current_event", "D"))
+                assert total1 == 200, f"Population should be doubled at timestep {
+                    step1['timestep']}: got {total1}, expected 200"
+                assert total2 == total1 * 2, f"Population should be doubled at timestep {
+                    step2['timestep']}: got {total2}, expected {
+                    total1 * 2}"
         # Test death (lam_cap=0, mu=1)
         params['lam_cap'] = 0
         params['mu'] = 1
@@ -178,7 +187,8 @@ class TestSimulationUpdate:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
                 death_last = last_step["D"]
-                assert death_last == 100, f"Population should be all dead at timestep {last_step['timestep']}: got {death_last}, expected 100"
+                assert death_last == 100, f"Population should be all dead at timestep {
+                    last_step['timestep']}: got {death_last}, expected 100"
                 other_statuses = ["S", "E", "I", "Q", "R", "V"]
                 for status in other_statuses:
                     assert last_step[status] == 0, "Population of other statuses should be equal to 0"
@@ -215,4 +225,5 @@ class TestSimulationResults:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
                 for status, expected_value in expected_status.items():
-                    assert last_step[status] == expected_value, f"{status} mismatch: got {last_step[status]}, expected {expected_value}"
+                    assert last_step[status] == expected_value, f"{status} mismatch: got {
+                        last_step[status]}, expected {expected_value}"

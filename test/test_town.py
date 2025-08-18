@@ -9,9 +9,14 @@ import osmnx as ox
 
 from simcronomicon import Town, TownParameters
 from test.test_helper import (
-    POINT_DOM, POINT_UNIKLINIK, COORDS_THERESIENKIRCHE, COORDS_HAUSARZT, COORDS_SUPERC,
-    get_nearest_node, get_shortest_path_length, DEFAULT_TOWN_PARAMS
-)
+    POINT_DOM,
+    POINT_UNIKLINIK,
+    COORDS_THERESIENKIRCHE,
+    COORDS_HAUSARZT,
+    COORDS_SUPERC,
+    get_nearest_node,
+    get_shortest_path_length,
+    DEFAULT_TOWN_PARAMS)
 
 
 class TestTownParameters:
@@ -28,7 +33,12 @@ class TestTownParameters:
             (100, 2, [-1, -5], [-1, -5]),  # Negative node IDs
         ]
     )
-    def test_valid_parameters(self, num_pop, num_init_spreader, spreader_nodes, expected_nodes):
+    def test_valid_parameters(
+            self,
+            num_pop,
+            num_init_spreader,
+            spreader_nodes,
+            expected_nodes):
         params = TownParameters(
             num_pop=num_pop,
             num_init_spreader=num_init_spreader,
@@ -55,7 +65,8 @@ class TestTownParameters:
             ({"num_pop": -5, "num_init_spreader": 1},
              ValueError, "num_pop must be positive, got -5"),
 
-            # Value Errors for num_init_spreader - FIXED: Match actual error messages
+            # Value Errors for num_init_spreader - FIXED: Match actual error
+            # messages
             ({"num_pop": 100, "num_init_spreader": 0}, ValueError,
              "num_init_spreader must be positive, got 0"),
             ({"num_pop": 100, "num_init_spreader": -1}, ValueError,
@@ -63,7 +74,8 @@ class TestTownParameters:
             ({"num_pop": 100, "num_init_spreader": 150}, ValueError,
              "num_init_spreader \\(150\\) cannot exceed num_pop \\(100\\)"),
 
-            # Too many spreader locations - 4 locations for 2 spreaders should fail
+            # Too many spreader locations - 4 locations for 2 spreaders should
+            # fail
             ({"num_pop": 100, "num_init_spreader": 2, "spreader_initial_nodes": [
              1, 2, 3, 4]}, ValueError, "There cannot be more locations"),
         ]
@@ -121,7 +133,8 @@ class TestTown:
                 all_place_types=None
             )
 
-        # Case 3: custom classify_place_func but "accommodation" missing in all_place_types
+        # Case 3: custom classify_place_func but "accommodation" missing in
+        # all_place_types
         with pytest.raises(ValueError, match="Your `all_place_types` must include 'accommodation' type buildings."):
             Town.from_point(
                 POINT_DOM, 500, DEFAULT_TOWN_PARAMS,
@@ -141,9 +154,11 @@ class TestTown:
                 (200, 500), 500, DEFAULT_TOWN_PARAMS
             )
 
-        # Edge Case 3: "No relevant nodes remain after filtering. The resulting town graph would be empty."
+        # Edge Case 3: "No relevant nodes remain after filtering. The resulting
+        # town graph would be empty."
         with pytest.raises(ValueError, match="No relevant nodes remain after filtering. The resulting town graph would be empty."):
-            # Use point a bit further off from Dom and decrease the radius to trigger this error
+            # Use point a bit further off from Dom and decrease the radius to
+            # trigger this error
             Town.from_point((50.7853, 6.0839), 100, DEFAULT_TOWN_PARAMS)
 
     def test_graphmlz_file_saved_and_overwrite_prompt_and_abort(self):
@@ -154,11 +169,16 @@ class TestTown:
 
             # First save: file should be created
             town = Town.from_point(
-                POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
+                POINT_DOM,
+                500,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix=file_prefix,
+                save_dir=tmpdir)
             assert os.path.exists(
                 graphmlz_path), "GraphMLZ file was not saved in the specified directory"
 
-            # Second save: should prompt for overwrite and handle both 'y' and 'n'
+            # Second save: should prompt for overwrite and handle both 'y' and
+            # 'n'
             prompts = []
             printed = []
 
@@ -171,7 +191,11 @@ class TestTown:
             builtins.input = fake_input_yes
             try:
                 town2 = Town.from_point(
-                    POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
+                    POINT_DOM,
+                    500,
+                    DEFAULT_TOWN_PARAMS,
+                    file_prefix=file_prefix,
+                    save_dir=tmpdir)
             finally:
                 builtins.input = original_input
 
@@ -196,7 +220,11 @@ class TestTown:
             builtins.print = fake_print
             try:
                 town3 = Town.from_point(
-                    POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix=file_prefix, save_dir=tmpdir)
+                    POINT_DOM,
+                    500,
+                    DEFAULT_TOWN_PARAMS,
+                    file_prefix=file_prefix,
+                    save_dir=tmpdir)
             finally:
                 builtins.input = original_input
                 builtins.print = original_print
@@ -233,9 +261,17 @@ class TestTown:
     def test_healthcare_presence_and_all_types(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             town_dom = Town.from_point(
-                POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix="dom", save_dir=tmpdir)
+                POINT_DOM,
+                500,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix="dom",
+                save_dir=tmpdir)
             town_uniklinik = Town.from_point(
-                POINT_UNIKLINIK, 500, DEFAULT_TOWN_PARAMS, file_prefix="uniklinik", save_dir=tmpdir)
+                POINT_UNIKLINIK,
+                500,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix="uniklinik",
+                save_dir=tmpdir)
 
             assert 'healthcare_facility' not in town_dom.found_place_types, \
                 "Expected the area within 0.5km from Aachener Dom to have no healthcare_facility."
@@ -248,7 +284,11 @@ class TestTown:
     def test_superc_is_classified_as_education(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             town = Town.from_point(
-                POINT_DOM, 750, DEFAULT_TOWN_PARAMS, file_prefix="dom_750m", save_dir=tmpdir)
+                POINT_DOM,
+                750,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix="dom_750m",
+                save_dir=tmpdir)
 
             # Project lat/lon to same CRS as town graph
             wgs84 = pyproj.CRS("EPSG:4326")
@@ -280,7 +320,8 @@ class TestTown:
             actual_y = town.town_graph.nodes[closest_node_id]["y"]
             euclidean_distance = np.sqrt(
                 (actual_x - x_proj)**2 + (actual_y - y_proj)**2)
-            assert euclidean_distance < 50, f"Too far from SuperC (~{euclidean_distance:.2f} m)"
+            assert euclidean_distance < 50, f"Too far from SuperC (~{
+                euclidean_distance:.2f} m)"
 
     def test_distance_to_landmarks_dom(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -288,9 +329,17 @@ class TestTown:
             # our algorithm of shortest path construction works with the most recent
             # open street map information
             town_2000 = Town.from_point(
-                POINT_DOM, 2000, DEFAULT_TOWN_PARAMS, file_prefix="dom_2000m", save_dir=tmpdir)
+                POINT_DOM,
+                2000,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix="dom_2000m",
+                save_dir=tmpdir)
             town_750 = Town.from_point(
-                POINT_DOM, 750, DEFAULT_TOWN_PARAMS, file_prefix="dom_750m", save_dir=tmpdir)
+                POINT_DOM,
+                750,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix="dom_750m",
+                save_dir=tmpdir)
 
             node_theresienkirche_2000 = get_nearest_node(
                 town_2000, COORDS_THERESIENKIRCHE)
@@ -316,11 +365,13 @@ class TestTown:
             dist_hausarzt_750 = get_shortest_path_length(
                 town_750, node_superC_750, node_hausarzt_750)
 
-            # Assert that 2000m town gives shorter or equal distances than 750m town
+            # Assert that 2000m town gives shorter or equal distances than 750m
+            # town
             assert dist_theresienkirche_2000 <= dist_theresienkirche_750, "Distance to Theresienkirche should be shorter in 2000m town"
             assert dist_hausarzt_2000 <= dist_hausarzt_750, "Distance to Hausarzt should be shorter in 2000m town"
 
-            # Assert that distances do not deviate from expected values by more than 50m
+            # Assert that distances do not deviate from expected values by more
+            # than 50m
             assert abs(dist_theresienkirche_2000 - expected_theresienkirche) < tolerance, \
                 f"Distance to Theresienkirche deviates by more than {tolerance}m (got {dist_theresienkirche_2000:.2f}m)"
             assert abs(dist_hausarzt_2000 - expected_hausarzt) < tolerance, \
@@ -331,7 +382,11 @@ class TestTown:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a town using from_point
             original_town = Town.from_point(
-                POINT_DOM, 500, DEFAULT_TOWN_PARAMS, file_prefix="original", save_dir=tmpdir)
+                POINT_DOM,
+                500,
+                DEFAULT_TOWN_PARAMS,
+                file_prefix="original",
+                save_dir=tmpdir)
 
             # Modify some node attributes (first accommodation node)
             first_node = original_town.accommodation_node_ids[0]
@@ -346,16 +401,16 @@ class TestTown:
 
                 # Find one node of each type
                 acc_node = original_town.accommodation_node_ids[0]
-                other_nodes = [n for n, d in original_town.town_graph.nodes(data=True)
-                               if d.get("place_type") == other_type]
+                other_nodes = [
+                    n for n, d in original_town.town_graph.nodes(
+                        data=True) if d.get("place_type") == other_type]
 
                 if other_nodes:
                     other_node = other_nodes[0]
                     # Swap place types
                     original_place_types = {
                         acc_node: original_town.town_graph.nodes[acc_node]["place_type"],
-                        other_node: original_town.town_graph.nodes[other_node]["place_type"]
-                    }
+                        other_node: original_town.town_graph.nodes[other_node]["place_type"]}
                     original_town.town_graph.nodes[acc_node]["place_type"] = other_type
                     original_town.town_graph.nodes[other_node]["place_type"] = "accommodation"
 
@@ -386,7 +441,7 @@ class TestTown:
             # Check node attribute modifications were preserved
             assert "custom_node_attr" in loaded_town.town_graph.nodes[first_node]
             assert loaded_town.town_graph.nodes[first_node]["custom_node_attr"] == 123
-            assert loaded_town.town_graph.nodes[first_node]["modified"] == True
+            assert loaded_town.town_graph.nodes[first_node]["modified"]
 
             # Check place type swapping if we did it
             if 'original_place_types' in locals():

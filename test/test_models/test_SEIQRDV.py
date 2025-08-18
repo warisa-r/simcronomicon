@@ -21,32 +21,74 @@ class TestSEIQRDVModel:
         # lam_cap out of range
         with pytest.raises(TypeError, match="lam_cap must be a float between 0 and 1!"):
             SEIQRDVModelParameters(
-                max_energy=10, lam_cap=1.5, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
-            )
+                max_energy=10,
+                lam_cap=1.5,
+                beta=0.1,
+                alpha=0.1,
+                gamma=4,
+                delta=5,
+                lam=7,
+                rho=7,
+                kappa=0.2,
+                mu=0.01)
 
         # beta negative
         with pytest.raises(TypeError, match="beta must be a float between 0 and 1!"):
             SEIQRDVModelParameters(
-                max_energy=10, lam_cap=0.1, beta=-0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
-            )
+                max_energy=10,
+                lam_cap=0.1,
+                beta=-0.1,
+                alpha=0.1,
+                gamma=4,
+                delta=5,
+                lam=7,
+                rho=7,
+                kappa=0.2,
+                mu=0.01)
 
         # gamma not positive integer
         with pytest.raises(TypeError, match="gamma must be a positive integer, got -4"):
             SEIQRDVModelParameters(
-                max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=-4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01
-            )
+                max_energy=10,
+                lam_cap=0.1,
+                beta=0.1,
+                alpha=0.1,
+                gamma=-4,
+                delta=5,
+                lam=7,
+                rho=7,
+                kappa=0.2,
+                mu=0.01)
 
         # hospital_capacity not int or inf
         with pytest.raises(TypeError, match="hospital_capacity must be a positive integer or a value of infinity"):
             SEIQRDVModelParameters(
-                max_energy=10, lam_cap=0.1, beta=0.1, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.01, hospital_capacity="a lot"
-            )
+                max_energy=10,
+                lam_cap=0.1,
+                beta=0.1,
+                alpha=0.1,
+                gamma=4,
+                delta=5,
+                lam=7,
+                rho=7,
+                kappa=0.2,
+                mu=0.01,
+                hospital_capacity="a lot")
 
     def test_seiqrdv_abm_vs_ode_error(self):
         # ODE solution
         model_params = SEIQRDVModelParameters(
-            max_energy=2, lam_cap=0.01, beta=0.7, alpha=0.1, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0.002, hospital_capacity=float('Inf')
-        )
+            max_energy=2,
+            lam_cap=0.01,
+            beta=0.7,
+            alpha=0.1,
+            gamma=4,
+            delta=5,
+            lam=7,
+            rho=7,
+            kappa=0.2,
+            mu=0.002,
+            hospital_capacity=float('Inf'))
 
         def rhs_func(t, y):
             S, E, I, Q, R, D, V = y
@@ -55,13 +97,13 @@ class TestSEIQRDVModel:
             rhs[0] = model_params.lam_cap / 5 * N + model_params.beta * \
                 S * I / N - model_params.alpha * S - model_params.mu * S
             rhs[1] = model_params.lam_cap / 5 * N + model_params.beta * \
-                S * I / N - 1/model_params.gamma * E - model_params.mu * E
-            rhs[2] = model_params.lam_cap / 5 * N + 1/model_params.gamma * \
-                E - 1/model_params.delta * I - model_params.mu * I
-            rhs[3] = 1 / model_params.delta * I - (1-model_params.kappa) / model_params.lam * \
+                S * I / N - 1 / model_params.gamma * E - model_params.mu * E
+            rhs[2] = model_params.lam_cap / 5 * N + 1 / model_params.gamma * \
+                E - 1 / model_params.delta * I - model_params.mu * I
+            rhs[3] = 1 / model_params.delta * I - (1 - model_params.kappa) / model_params.lam * \
                 Q - model_params.kappa / model_params.rho * Q - model_params.mu * Q
             rhs[4] = model_params.lam_cap / 5 * N + \
-                (1-model_params.kappa) / \
+                (1 - model_params.kappa) / \
                 model_params.lam * Q - model_params.mu * R
             rhs[5] = model_params.kappa / model_params.rho * Q
             rhs[6] = model_params.lam_cap / 5 * N + \
@@ -136,7 +178,8 @@ class TestSEIQRDVModel:
             ode_D = ode_D / ode_total
             ode_V = ode_V / ode_total
 
-            # Compute average per time step 2-norm error for each compartment over all time points
+            # Compute average per time step 2-norm error for each compartment
+            # over all time points
             err_S = np.linalg.norm(abm_S - ode_S) / t_end
             err_E = np.linalg.norm(abm_E - ode_E) / t_end
             err_I = np.linalg.norm(abm_I - ode_I) / t_end
@@ -145,18 +188,34 @@ class TestSEIQRDVModel:
             err_D = np.linalg.norm(abm_D - ode_D) / t_end
             err_V = np.linalg.norm(abm_V - ode_V) / t_end
 
-            assert err_S < 0.03, f"Susceptible compartment error too high: {err_S:.4f}"
-            assert err_E < 0.03, f"Exposed compartment error too high: {err_E:.4f}"
-            assert err_I < 0.03, f"Infectious compartment error too high: {err_I:.4f}"
-            assert err_Q < 0.03, f"Quarantined compartment error too high: {err_Q:.4f}"
-            assert err_R < 0.03, f"Recovered compartment error too high: {err_R:.4f}"
-            assert err_D < 0.03, f"Dead compartment error too high: {err_D:.4f}"
-            assert err_V < 0.03, f"Vaccinated compartment error too high: {err_V:.4f}"
+            assert err_S < 0.03, f"Susceptible compartment error too high: {
+                err_S:.4f}"
+            assert err_E < 0.03, f"Exposed compartment error too high: {
+                err_E:.4f}"
+            assert err_I < 0.03, f"Infectious compartment error too high: {
+                err_I:.4f}"
+            assert err_Q < 0.03, f"Quarantined compartment error too high: {
+                err_Q:.4f}"
+            assert err_R < 0.03, f"Recovered compartment error too high: {
+                err_R:.4f}"
+            assert err_D < 0.03, f"Dead compartment error too high: {
+                err_D:.4f}"
+            assert err_V < 0.03, f"Vaccinated compartment error too high: {
+                err_V:.4f}"
 
     def test_vaccination(self):
         model_params = SEIQRDVModelParameters(
-            max_energy=10, lam_cap=0, beta=0, alpha=1.0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=float('Inf')
-        )
+            max_energy=10,
+            lam_cap=0,
+            beta=0,
+            alpha=1.0,
+            gamma=4,
+            delta=5,
+            lam=7,
+            rho=7,
+            kappa=0.2,
+            mu=0,
+            hospital_capacity=float('Inf'))
 
         town_params = TownParameters(num_pop=10, num_init_spreader=1)
         town = Town.from_files(
@@ -165,8 +224,9 @@ class TestSEIQRDVModel:
             town_params=town_params
         )
 
-        step_event = StepEvent("chore", FolkSEIQRDV.interact, EventType.DISPERSE, 19000,
-                               ['commercial', 'workplace', 'education', 'religious'])
+        step_event = StepEvent(
+            "chore", FolkSEIQRDV.interact, EventType.DISPERSE, 19000, [
+                'commercial', 'workplace', 'education', 'religious'])
 
         model = SEIQRDVModel(
             model_params, step_event)
@@ -177,13 +237,24 @@ class TestSEIQRDVModel:
             with h5py.File(h5_path, "r") as h5file:
                 summary = h5file["status_summary/summary"][:]
                 last_step = summary[-1]
-                # Since everyone wants vaccines and the hospitle capacity is infinite, they should all get it
+                # Since everyone wants vaccines and the hospitle capacity is
+                # infinite, they should all get it
                 vaccinated_last = last_step["V"]
-                assert vaccinated_last == 9, f"Every former susceptible person should be vaccinated at timestep {last_step['timestep']}: got {vaccinated_last}, expected 9"
+                assert vaccinated_last == 9, f"Every former susceptible person should be vaccinated at timestep {
+                    last_step['timestep']}: got {vaccinated_last}, expected 9"
 
         model_params = SEIQRDVModelParameters(
-            max_energy=10, lam_cap=0, beta=0, alpha=1.0, gamma=4, delta=5, lam=7, rho=7, kappa=0.2, mu=0, hospital_capacity=5
-        )
+            max_energy=10,
+            lam_cap=0,
+            beta=0,
+            alpha=1.0,
+            gamma=4,
+            delta=5,
+            lam=7,
+            rho=7,
+            kappa=0.2,
+            mu=0,
+            hospital_capacity=5)
 
         town_params = TownParameters(num_pop=21, num_init_spreader=1)
         town = Town.from_files(
@@ -200,34 +271,49 @@ class TestSEIQRDVModel:
             sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
-                # Filter for the first step event where current_event is "greet_neighbors" and timestep == 1
+                # Filter for the first step event where current_event is
+                # "greet_neighbors" and timestep == 1
                 first_step = log[(log['timestep'] == 1) & (
                     log['event'] == b"chore")]
                 # Count number of people at each healthcare node of interest
                 node_counts = {node: 0 for node in [26, 32, 40, 53]}
                 for row in first_step:
                     # Only susceptible people can want vaccines. In this case there is no transmission
-                    # so there will be no unaware infected person who wants vaccination
+                    # so there will be no unaware infected person who wants
+                    # vaccination
                     if row['address'] in node_counts and row['status'] != b'I':
                         node_counts[row['address']] += 1
                 expected = {26: 3, 32: 1, 40: 10, 53: 4}
                 print("Actual node counts at timestep 2, chore:", node_counts)
                 for node, count in node_counts.items():
-                    assert count == expected[node], f"Node {node} has {count} people, expected {expected[node]}"
+                    assert count == expected[node], f"Node {node} has {count} people, expected {
+                        expected[node]}"
 
                 summary = h5file["status_summary/summary"][:]
                 next_step = summary[-1]
                 # There are 4 healthcare_facility type nodes in the graph
                 # In this test case, they got allocated 3, 1, 5, 10
-                # Therefore the amount of vaccination they should get is 3 + 1 + 5 + 4 = 13
+                # Therefore the amount of vaccination they should get is 3 + 1
+                # + 5 + 4 = 13
                 vaccinated_last = next_step["V"]
-                assert vaccinated_last == 13, f"Every former susceptible person should be vaccinated at timestep {next_step['timestep']}: got {vaccinated_last}, expected 14"
+                assert vaccinated_last == 13, f"Every former susceptible person should be vaccinated at timestep {
+                    next_step['timestep']}: got {vaccinated_last}, expected 14"
 
     def test_quarantine_and_dead_address_stable(self):
-        # All agents start as spreaders, delta=1 so all go to quarantine after 1 day, no deaths or births
+        # All agents start as spreaders, delta=1 so all go to quarantine after
+        # 1 day, no deaths or births
         model_params = SEIQRDVModelParameters(
-            max_energy=10, lam_cap=0, beta=0, alpha=0, gamma=4, delta=1, lam=7, rho=2, kappa=1, mu=0, hospital_capacity=5
-        )
+            max_energy=10,
+            lam_cap=0,
+            beta=0,
+            alpha=0,
+            gamma=4,
+            delta=1,
+            lam=7,
+            rho=2,
+            kappa=1,
+            mu=0,
+            hospital_capacity=5)
         town_params = TownParameters(num_pop=10, num_init_spreader=10)
         town = Town.from_files(
             config_path=self.town_config_path,
@@ -242,7 +328,8 @@ class TestSEIQRDVModel:
             sim.run(hdf5_path=h5_path, silent=True)
             with h5py.File(h5_path, "r") as h5file:
                 log = h5file["individual_logs/log"][:]
-                # For each folk, track the address when they first become Q or D
+                # For each folk, track the address when they first become Q or
+                # D
                 first_q_address = {}
                 first_d_address = {}
                 for row in log:

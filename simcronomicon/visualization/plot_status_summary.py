@@ -13,7 +13,7 @@ def _plot_status_summary_data(
     # A helper function to plot simulation status data over time using matplotlib.
     # Selects and validates which status types to plot, then generates the line plot.
     # Validate and select keys to plot
-    
+
     if status_type is None:
         keys_to_plot = status_keys
     elif isinstance(status_type, str):
@@ -29,7 +29,8 @@ def _plot_status_summary_data(
         keys_to_plot = status_type
     else:
         raise TypeError(
-            f"status_type must be None, str, or list of str, got {type(status_type).__name__}.")
+            f"status_type must be None, str, or list of str, got {
+                type(status_type).__name__}.")
 
     # Plotting
     plt.figure(figsize=(10, 6))
@@ -87,7 +88,7 @@ def plot_status_summary_from_hdf5(output_hdf5_path, status_type=None):
 
         # Extract total population from metadata
         metadata_str = h5file["config/simulation_config"][()
-                                                              ].decode("utf-8")
+                                                          ].decode("utf-8")
         metadata = json.loads(metadata_str)
         total_population = metadata["population"]
         if total_population == 0:
