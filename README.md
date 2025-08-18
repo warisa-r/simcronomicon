@@ -150,7 +150,7 @@ We provide a comprehensive guide to modeling spatial spread!
 
 ```
 simcronomicon/
-├── infection_models/          # Disease models (SEIR, SEIQRDV)
+├── infection_models/          # Disease models (SEIR, SEIQRDV, and others)
 ├── town.py          # Geographic environment and agent management  
 ├── sim.py          # Simulation engine and event handling
 └── visualization/  # Plotting and interactive visualizations
@@ -197,6 +197,7 @@ See [AUTHORS.md](AUTHORS.md) for the full list of contributors.
 ## Acknowledgments
 
 This project was bootstrapped using the [Cookiecutter PyPackage](https://github.com/lgiordani/cookiecutter-pypackage) template by Leonardo Giordani, which is a fork of [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage).
+This project was developed as part of the course **SCE2025: Sustainable Computational Engineering** at RWTH Aachen University.
 
 ## Citation
 
