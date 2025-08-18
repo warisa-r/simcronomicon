@@ -10,7 +10,7 @@ setup(
     name='simcronomicon',
     version='0.1.0',
     description='Event-driven agent-based spread simulation framework for modeling disease spread in realistic spatial environments using geographical data from OpenStreetMap.',
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
     author='Warisa Roongaraya',
     author_email='compund555@gmail.com',
