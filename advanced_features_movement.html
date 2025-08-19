@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Step Events and Movement Patterns &mdash; simcronomicon 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced Simulation Features: SEIQRDV Model" href="advanced_features_SEIQRDV.html" />
+    <link rel="prev" title="Understanding Agent Behavior and Simulation Flow" href="basic_blocks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            simcronomicon
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with simcronomicon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_blocks.html">Understanding Agent Behavior and Simulation Flow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Step Events and Movement Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#understanding-step-events">Understanding Step Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-step-event-creation">Basic Step Event Creation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#important-automatic-end-of-day-event">Important: Automatic End-of-Day Event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event-types-explained">Event Types Explained</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#built-in-probability-functions">Built-in Probability Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-custom-probability-functions">Creating Custom Probability Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agent-dependent-probability-functions">Agent-Dependent Probability Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#complete-example-daily-routine">Complete Example: Daily Routine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tips-for-effective-step-events">Tips for Effective Step Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging-step-events">Debugging Step Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_SEIQRDV.html">Advanced Simulation Features: SEIQRDV Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="create_custom_infection.html">Creating Custom Infection Models: Building an SIR Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simcronomicon.html">simcronomicon package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">simcronomicon</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced Step Events and Movement Patterns</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/advanced_features_movement.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-step-events-and-movement-patterns">
+<h1>Advanced Step Events and Movement Patterns<a class="headerlink" href="#advanced-step-events-and-movement-patterns" title="Link to this heading"></a></h1>
+<p>This tutorial covers how to create custom step events and design realistic movement patterns for your simulations. Step events control when, where, and how agents move and interact during each simulation day.</p>
+<p><strong>We recommend that along with reading this,
+you should look at the tutorial `disease_spread_mobility.ipynb`` to see how StepEvent looks like in action</strong></p>
+<section id="understanding-step-events">
+<h2>Understanding Step Events<a class="headerlink" href="#understanding-step-events" title="Link to this heading"></a></h2>
+<p>Step events are the building blocks of agent behavior in simcronomicon. They define:</p>
+<ul class="simple">
+<li><p><strong>When</strong> agents perform activities (event sequence)</p></li>
+<li><p><strong>Where</strong> agents go (place types and distances)</p></li>
+<li><p><strong>How</strong> agents choose destinations (probability functions)</p></li>
+<li><p><strong>What</strong> agents do when they arrive (interaction functions)</p></li>
+</ul>
+</section>
+<section id="basic-step-event-creation">
+<h2>Basic Step Event Creation<a class="headerlink" href="#basic-step-event-creation" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">simcronomicon</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span><span class="p">,</span> <span class="n">Town</span><span class="p">,</span> <span class="n">TownParameters</span>
+
+ <span class="kn">from</span><span class="w"> </span><span class="nn">simcronomicon.infection_models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+     <span class="n">SEIRModel</span><span class="p">,</span> <span class="n">SEIRModelParameters</span><span class="p">,</span> <span class="n">FolkSEIR</span><span class="p">,</span>
+     <span class="n">StepEvent</span><span class="p">,</span> <span class="n">EventType</span><span class="p">,</span>
+ <span class="p">)</span>
+
+ <span class="kn">from</span><span class="w"> </span><span class="nn">simcronomicon.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+     <span class="n">plot_status_summary_from_hdf5</span><span class="p">,</span>
+     <span class="n">plot_place_types_scatter</span><span class="p">,</span>
+     <span class="n">plot_agents_scatter</span>
+ <span class="p">)</span>
+
+ <span class="kn">from</span><span class="w"> </span><span class="nn">simcronomicon.infection_models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+     <span class="n">log_normal_mobility</span><span class="p">,</span>
+     <span class="n">energy_exponential_mobility</span>
+ <span class="p">)</span>
+
+<span class="c1"># Simple end-of-day event (SEND_HOME)</span>
+<span class="c1"># This event exists by default at the end of step_events list without your input.</span>
+<span class="n">sleep_event</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;end_day&quot;</span><span class="p">,</span>
+    <span class="n">folk_action</span><span class="o">=</span><span class="n">FolkSEIR</span><span class="o">.</span><span class="n">sleep</span>
+<span class="p">)</span>
+
+<span class="c1"># Basic movement event (DISPERSE)</span>
+<span class="n">work_event</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;work_commute&quot;</span><span class="p">,</span>
+    <span class="n">folk_action</span><span class="o">=</span><span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+    <span class="n">event_type</span><span class="o">=</span><span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span>  <span class="c1"># 15km max travel</span>
+    <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;workplace&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="important-automatic-end-of-day-event">
+<h2>Important: Automatic End-of-Day Event<a class="headerlink" href="#important-automatic-end-of-day-event" title="Link to this heading"></a></h2>
+<p><strong>You never need to manually add a sleep/end-of-day event to your step events list.</strong></p>
+<p>The simcronomicon framework automatically appends an “end_day” event to your step events sequence. This event:</p>
+<ul class="simple">
+<li><p>Calls the <cite>sleep()</cite> method for all agents</p></li>
+<li><p>Sends all agents back to their home addresses</p></li>
+<li><p>Resets agent energy for the next day</p></li>
+<li><p>Handles end-of-day status transitions</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DON&#39;T do this - the end_day event is added automatically!</span>
+<span class="n">step_events</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="o">...</span><span class="p">),</span>
+    <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;shopping&quot;</span><span class="p">,</span> <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="o">...</span><span class="p">),</span>
+    <span class="c1"># StepEvent(&quot;end_day&quot;, FolkSEIR.sleep)  # ← NOT NEEDED!</span>
+<span class="p">]</span>
+
+<span class="c1"># DO this - just define your activity events</span>
+<span class="n">step_events</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="o">...</span><span class="p">),</span>
+    <span class="n">StepEvent</span><span class="p">(</span><span class="s2">&quot;shopping&quot;</span><span class="p">,</span> <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+    <span class="c1"># End-of-day automatically added by the model</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>This automatic behavior ensures that:</p>
+<ul class="simple">
+<li><p>Agents always return home at day’s end</p></li>
+<li><p>Energy is properly reset for the next simulation day</p></li>
+<li><p>You can focus on defining meaningful daily activities</p></li>
+<li><p>The simulation maintains proper day/night cycles</p></li>
+</ul>
+</section>
+<section id="event-types-explained">
+<h2>Event Types Explained<a class="headerlink" href="#event-types-explained" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>SEND_HOME Events</strong></dt><dd><ul class="simple">
+<li><p>All agents return directly to their home addresses</p></li>
+<li><p>No distance limitations or place type filtering</p></li>
+<li><p>Used for: end-of-day, emergency evacuations, curfews</p></li>
+</ul>
+</dd>
+<dt><strong>DISPERSE Events</strong></dt><dd><ul class="simple">
+<li><p>Agents move to locations within specified constraints</p></li>
+<li><p>Enables agent interactions at destinations</p></li>
+<li><p>Used for: work, shopping, social activities</p></li>
+</ul>
+</dd>
+</dl>
+<section id="built-in-probability-functions">
+<h3>Built-in Probability Functions<a class="headerlink" href="#built-in-probability-functions" title="Link to this heading"></a></h3>
+<p>We have 2 built-in functions to simulate agent movement patterns:</p>
+<p><strong>Log-Normal Mobility</strong>
+Models realistic human travel patterns based on research literature. Best for:
+- Work commutes and regular activities
+- Shopping and errands
+- Healthcare visits
+- Any activity with preferred typical distances</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Log-normal mobility with intuitive parameters</span>
+<span class="n">shopping_event</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;shopping&quot;</span><span class="p">,</span>
+    <span class="n">folk_action</span><span class="o">=</span><span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+    <span class="n">event_type</span><span class="o">=</span><span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="o">=</span><span class="mi">8000</span><span class="p">,</span>
+    <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">],</span>
+    <span class="n">probability_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">log_normal_mobility</span><span class="p">(</span>
+        <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">median_distance</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Energy-Dependent Exponential Mobility</strong>
+Models agent movement based on current energy levels. Best for:
+- Social activities after work
+- Leisure activities
+- Any energy-dependent behavior</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Energy-dependent mobility with distance scaling</span>
+<span class="n">social_event</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;evening_social&quot;</span><span class="p">,</span>
+    <span class="n">folk_action</span><span class="o">=</span><span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+    <span class="n">event_type</span><span class="o">=</span><span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span>
+    <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;entertainment&#39;</span><span class="p">],</span>
+    <span class="n">probability_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">energy_exponential_mobility</span><span class="p">(</span>
+        <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">distance_scale</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Parameter Guidelines:</strong></p>
+<p><em>Log-Normal Mobility:</em>
+- <cite>median_distance</cite>: 400m (local), 1100m (neighborhood), 3000m (city-wide), 8000m (regional)
+- <cite>sigma</cite>: 0.8 (consistent), 1.0 (moderate), 1.5 (variable)</p>
+<p><em>Energy Exponential Mobility:</em>
+- <cite>distance_scale</cite>: 200 (very local), 1000 (moderate), 3000 (wide range)</p>
+</section>
+<section id="creating-custom-probability-functions">
+<h3>Creating Custom Probability Functions<a class="headerlink" href="#creating-custom-probability-functions" title="Link to this heading"></a></h3>
+<p>But maybe you might want to use other types of function to define the probability of an agent going somewhere that is dependent with
+the distances. You can define them yourselves!</p>
+<p>Your probability function must:</p>
+<ol class="arabic simple">
+<li><p>Accept exactly 2 non-default arguments: <cite>(distances, agent)</cite></p></li>
+<li><p>Return probabilities between 0 and 1</p></li>
+<li><p>Probabilities should sum to 1. This means you must normalize the probabilities!</p></li>
+<li><p>Handle numpy arrays for distances</p></li>
+<li><p>Be robust to edge cases (empty arrays, zero distances)</p></li>
+</ol>
+<p>Here is an example of how you can define your own simple probability function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="k">def</span><span class="w"> </span><span class="nf">distance_preference_mobility</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">preference</span><span class="o">=</span><span class="s2">&quot;nearby&quot;</span><span class="p">):</span>
+     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+     <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+
+     <span class="k">if</span> <span class="n">preference</span> <span class="o">==</span> <span class="s2">&quot;nearby&quot;</span><span class="p">:</span>
+         <span class="c1"># Exponential decay - prefer closer locations</span>
+         <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span> <span class="o">/</span> <span class="mi">2000</span><span class="p">)</span>  <span class="c1"># 2km characteristic distance</span>
+     <span class="k">elif</span> <span class="n">preference</span> <span class="o">==</span> <span class="s2">&quot;far&quot;</span><span class="p">:</span>
+         <span class="c1"># Prefer moderate to far distances</span>
+         <span class="n">probs</span> <span class="o">=</span> <span class="n">distances</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># Uniform - all distances equally likely</span>
+         <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+
+<span class="c1"># Use custom function</span>
+<span class="n">exploration_event</span> <span class="o">=</span> <span class="n">StepEvent</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;exploration&quot;</span><span class="p">,</span>
+    <span class="n">folk_action</span><span class="o">=</span><span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+    <span class="n">event_type</span><span class="o">=</span><span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>
+    <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;religious&#39;</span><span class="p">,</span> <span class="s1">&#39;education&#39;</span><span class="p">],</span>
+    <span class="n">probability_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">dists</span><span class="p">:</span> <span class="n">distance_preference</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="s2">&quot;far&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="agent-dependent-probability-functions">
+<h3>Agent-Dependent Probability Functions<a class="headerlink" href="#agent-dependent-probability-functions" title="Link to this heading"></a></h3>
+<p>The power of the 2-parameter system is enabling agent-specific behavior. For example, if you have an SEIR model,
+you can make assumption about agent’s mobility dependence with their status:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">status_based_mobility</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Movement patterns that depend on agent health status.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+
+    <span class="c1"># Quarantined agents cannot move (handled elsewhere)</span>
+    <span class="c1"># Sick agents prefer shorter distances</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;I&#39;</span><span class="p">:</span>  <span class="c1"># Infectious - stay closer to home</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span>  <span class="c1"># 1km characteristic distance</span>
+        <span class="k">elif</span> <span class="n">agent</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;R&#39;</span><span class="p">:</span>  <span class="c1"># Recovered - normal mobility</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span> <span class="o">/</span> <span class="mi">3000</span><span class="p">)</span>  <span class="c1"># 3km characteristic distance</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Susceptible - slightly more adventurous</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span> <span class="o">/</span> <span class="mi">4000</span><span class="p">)</span>  <span class="c1"># 4km characteristic distance</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Default behavior for other statuses</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span> <span class="o">/</span> <span class="mi">2000</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">probs</span> <span class="o">/</span> <span class="n">probs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">if</span> <span class="n">probs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complete-example-daily-routine">
+<h2>Complete Example: Daily Routine<a class="headerlink" href="#complete-example-daily-routine" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a realistic daily schedule with varied movement patterns</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_daily_events</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="c1"># Morning commute - log-normal for realistic work travel</span>
+        <span class="n">StepEvent</span><span class="p">(</span>
+            <span class="s2">&quot;morning_commute&quot;</span><span class="p">,</span>
+            <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+            <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+            <span class="n">max_distance</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>
+            <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;workplace&#39;</span><span class="p">,</span> <span class="s1">&#39;education&#39;</span><span class="p">],</span>
+            <span class="n">probability_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">log_normal_mobility</span><span class="p">(</span>
+                <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">median_distance</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="p">),</span>
+
+        <span class="c1"># Lunch break - energy-dependent for tired workers</span>
+        <span class="n">StepEvent</span><span class="p">(</span>
+            <span class="s2">&quot;lunch_break&quot;</span><span class="p">,</span>
+            <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+            <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+            <span class="n">max_distance</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span>
+            <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">],</span>
+            <span class="n">probability_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">energy_exponential_mobility</span><span class="p">(</span>
+                <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">distance_scale</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
+        <span class="p">),</span>
+
+        <span class="c1"># Evening activities - custom preference function</span>
+        <span class="n">StepEvent</span><span class="p">(</span>
+            <span class="s2">&quot;evening_social&quot;</span><span class="p">,</span>
+            <span class="n">FolkSEIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+            <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+            <span class="n">max_distance</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span>
+            <span class="n">place_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;religious&#39;</span><span class="p">,</span> <span class="s1">&#39;entertainment&#39;</span><span class="p">],</span>
+            <span class="n">probability_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">distance_preference_mobility</span><span class="p">(</span>
+                <span class="n">distances</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;far&quot;</span><span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="c1"># Use in simulation</span>
+<span class="n">step_events</span> <span class="o">=</span> <span class="n">create_daily_events</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">SEIRModel</span><span class="p">(</span><span class="n">model_params</span><span class="p">,</span> <span class="n">step_events</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tips-for-effective-step-events">
+<h2>Tips for Effective Step Events<a class="headerlink" href="#tips-for-effective-step-events" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Event Timing</strong></dt><dd><ul class="simple">
+<li><p>Order events logically (commute → work → lunch → home)</p></li>
+<li><p>Consider realistic time constraints for each activity</p></li>
+</ul>
+</dd>
+<dt><strong>Distance Constraints</strong></dt><dd><ul class="simple">
+<li><p>Match <cite>max_distance</cite> to activity type (nearby shopping vs. long commutes)</p></li>
+<li><p>Consider transportation modes in your model area</p></li>
+</ul>
+</dd>
+<dt><strong>Place Type Selection</strong></dt><dd><ul class="simple">
+<li><p>Be specific: <cite>[‘workplace’]</cite> vs. <cite>[‘commercial’, ‘workplace’]</cite></p></li>
+<li><p>Ensure your town has the required place types</p></li>
+</ul>
+</dd>
+<dt><strong>Probability Function Parameters</strong></dt><dd><ul class="simple">
+<li><p><strong>Log-normal median_distance</strong>: Set to typical travel distance for the activity</p></li>
+<li><p><strong>Log-normal sigma</strong>: Lower for consistent behavior, higher for varied patterns</p></li>
+<li><p><strong>Energy exponential distance_scale</strong>: Lower for local activities, higher for wide-range movement</p></li>
+<li><p>Test with sample distances before using in simulation</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Parameter Testing Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Test your probability functions with sample data</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestAgent</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_energy</span> <span class="o">=</span> <span class="n">max_energy</span>
+
+<span class="n">test_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">])</span>
+<span class="n">test_agent</span> <span class="o">=</span> <span class="n">TestAgent</span><span class="p">()</span>
+
+<span class="c1"># Test log-normal mobility</span>
+<span class="n">log_probs</span> <span class="o">=</span> <span class="n">log_normal_mobility</span><span class="p">(</span><span class="n">test_distances</span><span class="p">,</span> <span class="n">test_agent</span><span class="p">,</span>
+                                    <span class="n">median_distance</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Log-normal probabilities: </span><span class="si">{</span><span class="n">log_probs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Test energy exponential mobility</span>
+<span class="n">energy_probs</span> <span class="o">=</span> <span class="n">energy_exponential_mobility</span><span class="p">(</span><span class="n">test_distances</span><span class="p">,</span> <span class="n">test_agent</span><span class="p">,</span>
+                                               <span class="n">distance_scale</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy exponential probabilities: </span><span class="si">{</span><span class="n">energy_probs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="debugging-step-events">
+<h2>Debugging Step Events<a class="headerlink" href="#debugging-step-events" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Test your probability function</span>
+<span class="n">test_distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">]</span>
+<span class="n">test_probs</span> <span class="o">=</span> <span class="n">distance_preference</span><span class="p">(</span><span class="n">test_distances</span><span class="p">,</span> <span class="s2">&quot;nearby&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Distances: </span><span class="si">{</span><span class="n">test_distances</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Probabilities: </span><span class="si">{</span><span class="n">test_probs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sum: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">test_probs</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Should be close to 1.0</span>
+
+<span class="c1"># Validate step events before simulation</span>
+<span class="n">events</span> <span class="o">=</span> <span class="n">create_daily_events</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">event_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Max distance: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">max_distance</span><span class="si">}</span><span class="s2">m&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Place types: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">place_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Experiment with different probability functions for the same activity</p></li>
+<li><p>Create event sequences that reflect real-world daily patterns</p></li>
+<li><p>Combine step events with advanced model features (vaccination, quarantine)</p></li>
+<li><p>Consider seasonal or policy-driven changes to movement patterns</p></li>
+</ul>
+<p>For more complex scenarios, see the SEIQRDV advanced features tutorial and the full API documentation.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="basic_blocks.html" class="btn btn-neutral float-left" title="Understanding Agent Behavior and Simulation Flow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="advanced_features_SEIQRDV.html" class="btn btn-neutral float-right" title="Advanced Simulation Features: SEIQRDV Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Warisa Roongaraya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

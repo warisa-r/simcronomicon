@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Simulation Features: SEIQRDV Model &mdash; simcronomicon 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Creating Custom Infection Models: Building an SIR Model" href="create_custom_infection.html" />
+    <link rel="prev" title="Advanced Step Events and Movement Patterns" href="advanced_features_movement.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            simcronomicon
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with simcronomicon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_blocks.html">Understanding Agent Behavior and Simulation Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_movement.html">Advanced Step Events and Movement Patterns</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Simulation Features: SEIQRDV Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview-of-seiqrdv-model">Overview of SEIQRDV Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-the-model">Setting Up the Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#priority-place-system">Priority Place System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-it-works">How It Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#activation-of-priority-place-in-the-simulation-flow">Activation of Priority Place in the Simulation Flow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#vaccination-queueing-mechanism">Vaccination Queueing Mechanism</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#queue-processing">Queue Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#non-conservative-population-dynamics">Non-Conservative Population Dynamics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#natural-deaths">Natural Deaths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#population-growth">Population Growth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-population-dynamics-simulation">Example: Population Dynamics Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#putting-it-all-together-complete-example">Putting It All Together: Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#key-takeaways">Key Takeaways</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="create_custom_infection.html">Creating Custom Infection Models: Building an SIR Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simcronomicon.html">simcronomicon package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">simcronomicon</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced Simulation Features: SEIQRDV Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/advanced_features_SEIQRDV.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-simulation-features-seiqrdv-model">
+<h1>Advanced Simulation Features: SEIQRDV Model<a class="headerlink" href="#advanced-simulation-features-seiqrdv-model" title="Link to this heading"></a></h1>
+<p>This tutorial covers the advanced features that are used by our most advanced model <cite>SEIQRDV_model</cite>,
+including agent priority behaviors, population dynamics, and the vaccination queueing system.
+These features make the SEIQRDV model particularly suitable for modeling complex epidemic scenarios with healthcare interventions.</p>
+<section id="overview-of-seiqrdv-model">
+<h2>Overview of SEIQRDV Model<a class="headerlink" href="#overview-of-seiqrdv-model" title="Link to this heading"></a></h2>
+<p>The SEIQRDV model extends the basic SEIR framework with:</p>
+<ul class="simple">
+<li><p><strong>Quarantine (Q)</strong>: Symptomatic agents movement restriction</p></li>
+<li><p><strong>Death (D)</strong>: Disease-related mortality</p></li>
+<li><p><strong>Vaccination (V)</strong>: Protective immunity through vaccination</p></li>
+</ul>
+<p>Key advanced features:</p>
+<ol class="arabic simple">
+<li><p><strong>Priority Place System</strong>: Agents can prioritize visiting specific place types</p></li>
+<li><p><strong>Non-Conservative Population</strong>: Birth/migration and natural death dynamics</p></li>
+<li><p><strong>Vaccination Queueing</strong>: Realistic healthcare capacity constraints</p></li>
+</ol>
+</section>
+<section id="setting-up-the-model">
+<h2>Setting Up the Model<a class="headerlink" href="#setting-up-the-model" title="Link to this heading"></a></h2>
+<p>Like what we did with SEIR model before, we start with setting up the town and our simulation initial condition.
+Then we define the model parameters.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">simcronomicon</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">scon</span>
+
+<span class="c1"># Load a town with healthcare facilities</span>
+<span class="n">town_params</span> <span class="o">=</span> <span class="n">TownParameters</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">town</span> <span class="o">=</span> <span class="n">Town</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span>
+    <span class="n">config_path</span><span class="o">=</span><span class="s2">&quot;town_config.json&quot;</span><span class="p">,</span>
+    <span class="n">town_graph_path</span><span class="o">=</span><span class="s2">&quot;town_graph.graphmlz&quot;</span><span class="p">,</span>
+    <span class="n">town_params</span><span class="o">=</span><span class="n">town_params</span>
+<span class="p">)</span>
+
+<span class="c1"># SEIQRDV model with vaccination and population dynamics</span>
+<span class="n">model_params</span> <span class="o">=</span> <span class="n">SEIQRDVModelParameters</span><span class="p">(</span>
+    <span class="n">max_energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">lam_cap</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>      <span class="c1"># 1% population growth rate</span>
+    <span class="n">beta</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>          <span class="c1"># Transmission probability</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>         <span class="c1"># Vaccination desire rate</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>           <span class="c1"># Incubation period</span>
+    <span class="n">delta</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>           <span class="c1"># Days until quarantine</span>
+    <span class="n">lam</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>             <span class="c1"># Recovery time in quarantine</span>
+    <span class="n">rho</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>             <span class="c1"># Time to death in quarantine</span>
+    <span class="n">kappa</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>         <span class="c1"># Disease mortality rate</span>
+    <span class="n">mu</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>          <span class="c1"># Natural death rate</span>
+    <span class="n">hospital_capacity</span><span class="o">=</span><span class="mi">50</span>  <span class="c1"># Vaccines per event per facility</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="priority-place-system">
+<h2>Priority Place System<a class="headerlink" href="#priority-place-system" title="Link to this heading"></a></h2>
+<p>The priority place system allows agents to seek out specific types of locations based on their needs.</p>
+<section id="how-it-works">
+<h3>How It Works<a class="headerlink" href="#how-it-works" title="Link to this heading"></a></h3>
+<p>When an agent wants to get vaccinated:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In the sleep() method, susceptible agents may decide to seek vaccination</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span> <span class="ow">and</span> <span class="n">model_params</span><span class="o">.</span><span class="n">alpha</span> <span class="o">&gt;</span> <span class="n">dice</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">want_vaccine</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">want_vaccine</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">priority_place_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;healthcare_facility&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key Features:</strong></p>
+<ul class="simple">
+<li><p><strong>Dynamic Priority</strong>: Agents add place types to their priority list based on needs</p></li>
+<li><p><strong>Movement Influence</strong>: The movement system preferentially moves agents to priority places</p></li>
+<li><p><strong>Multiple Priorities</strong>: Agents can have multiple place types in their priority list</p></li>
+<li><p><strong>Most Convenient Movement</strong>: Agents will move to the priority place type that is closest to them</p></li>
+</ul>
+</section>
+<section id="activation-of-priority-place-in-the-simulation-flow">
+<h3>Activation of Priority Place in the Simulation Flow<a class="headerlink" href="#activation-of-priority-place-in-the-simulation-flow" title="Link to this heading"></a></h3>
+<p>This is how priority place feature is implemented in <cite>sim.py</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># If the agent has prioritized place types to go to</span>
+<span class="c1"># Find the closest node with one of those place types,</span>
+<span class="c1"># regardless of max_distance</span>
+<span class="n">min_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+<span class="n">chosen_node</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">chosen_place_type</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">town</span><span class="o">.</span><span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+    <span class="n">node_place_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">town</span><span class="o">.</span><span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;place_type&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">node_place_type</span> <span class="ow">in</span> <span class="n">person</span><span class="o">.</span><span class="n">priority_place_type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">town</span><span class="o">.</span><span class="n">town_graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">person</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">town</span><span class="o">.</span><span class="n">town_graph</span><span class="p">[</span><span class="n">person</span><span class="o">.</span><span class="n">address</span><span class="p">][</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">min_dist</span><span class="p">:</span>
+            <span class="n">min_dist</span> <span class="o">=</span> <span class="n">dist</span>
+            <span class="n">chosen_node</span> <span class="o">=</span> <span class="n">node</span>
+            <span class="n">chosen_place_type</span> <span class="o">=</span> <span class="n">node_place_type</span>
+</pre></div>
+</div>
+<p>After they are located at the place they prioritized to go, that place will no longer be their priority.
+In this model, even if the place is full and the agent cannot get vaccinated, they will no longer have
+<cite>healthcare_facility</cite> as their priority place of the day anymore and will leave the healthcare facilities to do other things
+and return to get vaccine later if they still want the vaccine.</p>
+</section>
+</section>
+<section id="vaccination-queueing-mechanism">
+<h2>Vaccination Queueing Mechanism<a class="headerlink" href="#vaccination-queueing-mechanism" title="Link to this heading"></a></h2>
+<p>The vaccination system implements realistic capacity constraints at healthcare facilities.
+In the method <cite>interact</cite> of the class <cite>FolkSEIQRDV</cite>, the vaccination mechanism is implemented:</p>
+<section id="queue-processing">
+<h3>Queue Processing<a class="headerlink" href="#queue-processing" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In the interact() method at healthcare facilities</span>
+<span class="k">if</span> <span class="n">current_place_type</span> <span class="o">==</span> <span class="s1">&#39;healthcare_facility&#39;</span><span class="p">:</span>
+    <span class="n">want_vaccine_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">folk</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks_here</span> <span class="k">if</span> <span class="n">folk</span><span class="o">.</span><span class="n">want_vaccine</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span> <span class="ow">in</span> <span class="n">want_vaccine_list</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">want_vaccine_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">model_params</span><span class="o">.</span><span class="n">hospital_capacity</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>How the Queue Works:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Gather Agents</strong>: All agents wanting vaccines at the facility are collected</p></li>
+<li><p><strong>First-Come-First-Served</strong>: Agents are processed in order of arrival</p></li>
+<li><p><strong>Capacity Limit</strong>: Only up to <cite>hospital_capacity</cite> agents are vaccinated per event</p></li>
+<li><p><strong>Status Check</strong>: Only susceptible agents can receive effective vaccination</p></li>
+</ol>
+<p><strong>Important Queue Behavior:</strong></p>
+<ul class="simple">
+<li><p><strong>Deferred Reset</strong>: <cite>want_vaccine</cite> is reset to <cite>False</cite> in <cite>sleep()</cite>, not immediately after vaccination, to maintain queue integrity during the event</p></li>
+<li><p><strong>Cross-Event Persistence</strong>: Agents maintain their vaccination desire across multiple days until successfully vaccinated or get confirmed infectious</p></li>
+</ul>
+</section>
+</section>
+<section id="non-conservative-population-dynamics">
+<h2>Non-Conservative Population Dynamics<a class="headerlink" href="#non-conservative-population-dynamics" title="Link to this heading"></a></h2>
+<p>Unlike basic epidemic models, SEIQRDV includes population changes through births, migration, and natural deaths.</p>
+<section id="natural-deaths">
+<h3>Natural Deaths<a class="headerlink" href="#natural-deaths" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In update_population() - natural mortality</span>
+<span class="n">folks_alive</span> <span class="o">=</span> <span class="p">[</span><span class="n">folk</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks</span> <span class="k">if</span> <span class="n">folk</span><span class="o">.</span><span class="n">alive</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks_alive</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">rd</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">model_params</span><span class="o">.</span><span class="n">mu</span><span class="p">:</span>
+        <span class="n">folk</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>
+        <span class="n">folk</span><span class="o">.</span><span class="n">alive</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</section>
+<section id="population-growth">
+<h3>Population Growth<a class="headerlink" href="#population-growth" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In update_population() - births and migration</span>
+<span class="n">num_current_folks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">folks</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">alive</span><span class="p">])</span>
+<span class="n">num_possible_new_folks</span> <span class="o">=</span> <span class="n">num_current_folks</span> <span class="o">*</span> <span class="n">model_params</span><span class="o">.</span><span class="n">lam_cap</span>
+
+<span class="k">if</span> <span class="n">num_possible_new_folks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">num_possible_new_folks</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">num_possible_new_folks</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_possible_new_folks</span><span class="p">):</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">town</span><span class="o">.</span><span class="n">accommodation_node_ids</span><span class="p">)</span>
+        <span class="c1"># New agents can start in any status except Dead or Quarantine</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">all_statuses</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">)])</span>
+        <span class="n">folk</span> <span class="o">=</span> <span class="n">create_folk</span><span class="p">(</span><span class="n">new_id</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+        <span class="n">folks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Population Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>mu (μ)</strong>: Natural death rate (probability per agent per day)</p></li>
+<li><p><strong>lam_cap (λ)</strong>: Birth/migration rate (fraction of population per day)</p></li>
+</ul>
+</section>
+<section id="example-population-dynamics-simulation">
+<h3>Example: Population Dynamics Simulation<a class="headerlink" href="#example-population-dynamics-simulation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate population changes over time</span>
+<span class="n">step_events</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">StepEvent</span><span class="p">(</span>
+        <span class="s2">&quot;daily_life&quot;</span><span class="p">,</span>
+        <span class="n">FolkSEIQRDV</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+        <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+        <span class="mi">10000</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;workplace&#39;</span><span class="p">,</span> <span class="s1">&#39;education&#39;</span><span class="p">,</span> <span class="s1">&#39;healthcare_facility&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+
+<span class="n">model_params</span> <span class="o">=</span> <span class="n">SEIQRDVModelParameters</span><span class="p">(</span>
+    <span class="n">max_energy</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">lam_cap</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>    <span class="c1"># 2% growth rate</span>
+    <span class="n">beta</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>      <span class="c1"># 15% seek vaccination</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+    <span class="n">kappa</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>       <span class="c1"># 10% disease mortality</span>
+    <span class="n">mu</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>        <span class="c1"># 0.5% natural mortality</span>
+    <span class="n">hospital_capacity</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">SEIQRDVModel</span><span class="p">(</span><span class="n">model_params</span><span class="p">,</span> <span class="n">step_events</span><span class="p">)</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">town</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="putting-it-all-together-complete-example">
+<h2>Putting It All Together: Complete Example<a class="headerlink" href="#putting-it-all-together-complete-example" title="Link to this heading"></a></h2>
+<p>Here’s a complete simulation showcasing all advanced SEIQRDV features:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">simcronomicon</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">scon</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># Setup town and model</span>
+<span class="n">town_params</span> <span class="o">=</span> <span class="n">TownParameters</span><span class="p">(</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">town</span> <span class="o">=</span> <span class="n">Town</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span>
+    <span class="n">config_path</span><span class="o">=</span><span class="s2">&quot;town_config.json&quot;</span><span class="p">,</span>
+    <span class="n">town_graph_path</span><span class="o">=</span><span class="s2">&quot;town_graph.graphmlz&quot;</span><span class="p">,</span>
+    <span class="n">town_params</span><span class="o">=</span><span class="n">town_params</span>
+<span class="p">)</span>
+
+<span class="c1"># Complex step events including healthcare visits</span>
+<span class="n">step_events</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">StepEvent</span><span class="p">(</span>
+        <span class="s2">&quot;morning_routine&quot;</span><span class="p">,</span>
+        <span class="n">FolkSEIQRDV</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+        <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+        <span class="mi">6000</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;accommodation&#39;</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="n">StepEvent</span><span class="p">(</span>
+        <span class="s2">&quot;daily_activities&quot;</span><span class="p">,</span>
+        <span class="n">FolkSEIQRDV</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+        <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+        <span class="mi">18000</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;workplace&#39;</span><span class="p">,</span> <span class="s1">&#39;education&#39;</span><span class="p">,</span> <span class="s1">&#39;healthcare_facility&#39;</span><span class="p">],</span>
+        <span class="n">log_normal_mobility</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Model with realistic parameters</span>
+<span class="n">model_params</span> <span class="o">=</span> <span class="n">SEIQRDVModelParameters</span><span class="p">(</span>
+    <span class="n">max_energy</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">lam_cap</span><span class="o">=</span><span class="mf">0.015</span><span class="p">,</span>        <span class="c1"># 1.5% population growth</span>
+    <span class="n">beta</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>            <span class="c1"># Moderate transmission</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>            <span class="c1"># 20% vaccination seeking</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="n">kappa</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>           <span class="c1"># 15% disease mortality</span>
+    <span class="n">mu</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>             <span class="c1"># 0.2% natural mortality</span>
+    <span class="n">hospital_capacity</span><span class="o">=</span><span class="mi">40</span>   <span class="c1"># Realistic vaccine capacity</span>
+<span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">SEIQRDVModel</span><span class="p">(</span><span class="n">model_params</span><span class="p">,</span> <span class="n">step_events</span><span class="p">)</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">town</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="mi">365</span><span class="p">)</span>  <span class="c1"># One year simulation</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="c1"># Analyze results</span>
+<span class="n">plot_status_summary_from_hdf5</span><span class="p">(</span><span class="s2">&quot;simulation_output.h5&quot;</span><span class="p">)</span>
+<span class="n">plot_agents_scatter</span><span class="p">(</span><span class="s2">&quot;simulation_output.h5&quot;</span><span class="p">,</span> <span class="n">town_graph_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="key-takeaways">
+<h2>Key Takeaways<a class="headerlink" href="#key-takeaways" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Priority Places</strong>: Enable realistic agent behavior where needs drive movement patterns</p></li>
+<li><p><strong>Vaccination Queues</strong>: Model healthcare capacity constraints and fair distribution</p></li>
+<li><p><strong>Population Dynamics</strong>: Capture long-term demographic changes alongside epidemic spread</p></li>
+<li><p><strong>Integrated System</strong>: All features work together to create realistic epidemic scenarios</p></li>
+</ol>
+<p>These advanced features make the SEIQRDV model particularly powerful for:</p>
+<ul class="simple">
+<li><p><strong>Policy Analysis</strong>: Testing vaccination strategies under capacity constraints</p></li>
+<li><p><strong>Long-term Studies</strong>: Understanding epidemic evolution with population changes</p></li>
+<li><p><strong>Healthcare Planning</strong>: Optimizing facility placement and capacity</p></li>
+<li><p><strong>Behavioral Modeling</strong>: Capturing how individual needs affect disease spread</p></li>
+</ul>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Experiment with different <cite>alpha</cite> values to see vaccination seeking behavior</p></li>
+<li><p>Try varying <cite>hospital_capacity</cite> to model different healthcare scenarios</p></li>
+<li><p>Combine with custom step events for specialized vaccination campaigns</p></li>
+<li><p>Use the population dynamics to study endemic disease patterns</p></li>
+</ul>
+<p>For more advanced scenarios, see the API documentation for customizing agent behaviors and creating specialized step events.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advanced_features_movement.html" class="btn btn-neutral float-left" title="Advanced Step Events and Movement Patterns" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="create_custom_infection.html" class="btn btn-neutral float-right" title="Creating Custom Infection Models: Building an SIR Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Warisa Roongaraya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

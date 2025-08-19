@@ -1,0 +1,613 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creating Custom Infection Models: Building an SIR Model &mdash; simcronomicon 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="simcronomicon package" href="simcronomicon.html" />
+    <link rel="prev" title="Advanced Simulation Features: SEIQRDV Model" href="advanced_features_SEIQRDV.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            simcronomicon
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with simcronomicon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_blocks.html">Understanding Agent Behavior and Simulation Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_movement.html">Advanced Step Events and Movement Patterns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_SEIQRDV.html">Advanced Simulation Features: SEIQRDV Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Creating Custom Infection Models: Building an SIR Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#understanding-the-sir-model">Understanding the SIR Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#why-build-sir-when-seir-exists">Why Build SIR When SEIR Exists?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-define-model-parameters">Step 1: Define Model Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-create-the-agent-class">Step 2: Create the Agent Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-implement-the-sir-model">Step 3: Implement the SIR Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-test-your-sir-model">Step 4: Test Your SIR Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-5-compare-with-mathematical-sir">Step 5: Compare with Mathematical SIR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-movement-patterns">Custom Movement Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#behavioral-interventions">Behavioral Interventions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-and-testing">Validation and Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-pitfalls">Common Pitfalls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="simcronomicon.html">simcronomicon package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">simcronomicon</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Creating Custom Infection Models: Building an SIR Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/create_custom_infection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="creating-custom-infection-models-building-an-sir-model">
+<h1>Creating Custom Infection Models: Building an SIR Model<a class="headerlink" href="#creating-custom-infection-models-building-an-sir-model" title="Link to this heading"></a></h1>
+<p>This tutorial demonstrates how to create custom infection models in simcronomicon by implementing the classic
+<strong>SIR (Susceptible-Infectious-Recovered)</strong> model from scratch. You’ll learn the essential components needed to
+build any infection model and understand the inheritance structure that makes simcronomicon extensible.</p>
+<section id="understanding-the-sir-model">
+<h2>Understanding the SIR Model<a class="headerlink" href="#understanding-the-sir-model" title="Link to this heading"></a></h2>
+<p>The SIR model is the simplest epidemic model, dividing the population into three compartments:</p>
+<dl class="simple">
+<dt><strong>S - Susceptible</strong></dt><dd><p>Healthy individuals who can become infected.</p>
+</dd>
+<dt><strong>I - Infectious</strong></dt><dd><p>Individuals who can transmit the disease to susceptible people.</p>
+</dd>
+<dt><strong>R - Recovered</strong></dt><dd><p>Individuals who have recovered and gained immunity.</p>
+</dd>
+</dl>
+<p><strong>Disease Flow</strong>: S → I → R (unidirectional)</p>
+<section id="why-build-sir-when-seir-exists">
+<h3>Why Build SIR When SEIR Exists?<a class="headerlink" href="#why-build-sir-when-seir-exists" title="Link to this heading"></a></h3>
+<p>While simcronomicon includes a more complex SEIR model, building SIR teaches you:</p>
+<ul class="simple">
+<li><p><strong>Model Architecture</strong>: Understanding the inheritance hierarchy</p></li>
+<li><p><strong>Parameter Design</strong>: How to define model-specific parameters</p></li>
+<li><p><strong>Agent Behavior</strong>: Implementing custom disease progression logic</p></li>
+<li><p><strong>Validation</strong>: Ensuring your model works correctly</p></li>
+</ul>
+<p>This knowledge enables you to create any infection model (SIRD, SEIQR, etc.) for your specific research needs.</p>
+</section>
+</section>
+<section id="step-1-define-model-parameters">
+<h2>Step 1: Define Model Parameters<a class="headerlink" href="#step-1-define-model-parameters" title="Link to this heading"></a></h2>
+<p>Every infection model needs a parameters class that inherits from <code class="docutils literal notranslate"><span class="pre">AbstractModelParameters</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># File: sir_model.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simcronomicon.infection_models.abstract_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractModelParameters</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SIRModelParameters</span><span class="p">(</span><span class="n">AbstractModelParameters</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters for the SIR infection model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    max_energy : int</span>
+<span class="sd">        Maximum daily energy for agents (affects movement patterns)</span>
+<span class="sd">    beta : float</span>
+<span class="sd">        Transmission rate - probability of infection per contact</span>
+<span class="sd">    gamma : float</span>
+<span class="sd">        Recovery rate - days until recovery from infectious status</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">max_energy</span><span class="p">)</span>
+
+        <span class="c1"># Validate parameters</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">beta</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> \
+            <span class="s2">&quot;beta must be a number between 0 and 1&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">and</span> <span class="n">gamma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> \
+            <span class="s2">&quot;gamma must be a positive number&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_config_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert parameters to dictionary for saving/loading simulations.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;max_energy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_energy</span><span class="p">,</span>
+            <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span>
+            <span class="s1">&#39;gamma&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">,</span>
+            <span class="s1">&#39;model_type&#39;</span><span class="p">:</span> <span class="s1">&#39;SIR&#39;</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Key Design Principles:</strong></p>
+<ul class="simple">
+<li><p><strong>Validation</strong>: Always validate parameter types and ranges</p></li>
+<li><p><strong>Documentation</strong>: Clear docstrings explain each parameter’s meaning</p></li>
+<li><p><strong>Metadata</strong>: The <code class="docutils literal notranslate"><span class="pre">to_config_dict()</span></code> method enables simulation persistence</p></li>
+</ul>
+</section>
+<section id="step-2-create-the-agent-class">
+<h2>Step 2: Create the Agent Class<a class="headerlink" href="#step-2-create-the-agent-class" title="Link to this heading"></a></h2>
+<p>The agent class defines how individuals behave and transition between disease states:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">simcronomicon.infection_models.abstract_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFolk</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FolkSIR</span><span class="p">(</span><span class="n">AbstractFolk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SIR agent with disease-specific behaviors.</span>
+
+<span class="sd">    Inherits all basic agent functionality from AbstractFolk and adds</span>
+<span class="sd">    SIR-specific interaction and status transition logic.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">interact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folks_here</span><span class="p">,</span> <span class="n">current_place_type</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">,</span> <span class="n">model_params</span><span class="p">,</span> <span class="n">dice</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle agent interactions at a location, including disease transmission.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        folks_here : list of FolkSIR</span>
+<span class="sd">            All agents at this location</span>
+<span class="sd">        current_place_type : str</span>
+<span class="sd">            Type of location (e.g., &#39;commercial&#39;, &#39;accommodation&#39;)</span>
+<span class="sd">        status_dict_t : dict</span>
+<span class="sd">            Current status counts for the simulation</span>
+<span class="sd">        model_params : SIRModelParameters</span>
+<span class="sd">            Model configuration parameters</span>
+<span class="sd">        dice : float</span>
+<span class="sd">            Random number between 0 and 1 for stochastic decisions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Only susceptible agents can become infected</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+            <span class="c1"># Check if any infectious people are present</span>
+            <span class="n">num_contact</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+             <span class="p">[</span><span class="n">folk</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks_here</span> <span class="k">if</span> <span class="n">folk</span> <span class="o">!=</span> <span class="bp">self</span> <span class="ow">and</span> <span class="n">folk</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;I&#39;</span><span class="p">]])</span>
+
+             <span class="c1"># conversion_prob * I / N is the non-linear term that defines conversion</span>
+             <span class="c1"># This inverse bernoulli function is an interpretation of the term</span>
+             <span class="c1"># in agent-based modeling</span>
+             <span class="n">transmission_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse_bernoulli</span><span class="p">(</span>
+                    <span class="n">num_contact</span><span class="p">,</span> <span class="n">conversion_prob</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">folks_here</span><span class="p">))</span>
+
+             <span class="c1"># Attempt infection</span>
+             <span class="k">if</span> <span class="n">transmission_prob</span> <span class="o">&gt;</span> <span class="n">dice</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>
+
+        <span class="c1"># Reduce energy from social interaction</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">sleep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">,</span> <span class="n">model_params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        End-of-day processing: energy reset and disease progression.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        status_dict_t : dict</span>
+<span class="sd">            Current status counts for the simulation</span>
+<span class="sd">        model_params : SIRModelParameters</span>
+<span class="sd">            Model configuration parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Call parent sleep method (resets energy, increments status_step_streak)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sleep</span><span class="p">()</span>
+
+        <span class="c1"># Handle disease progression based on time in status</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;I&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">&gt;=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">gamma</span><span class="p">:</span>
+            <span class="c1"># Infectious agents recover after gamma days</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key Agent Concepts:</strong></p>
+<ul class="simple">
+<li><p><strong>Interaction Logic</strong>: Only susceptible agents can become infected</p></li>
+<li><p><strong>Inverse Bernoulli</strong>: Handles multiple infectious contacts realistically</p></li>
+<li><p><strong>Time-Based Transitions</strong>: Status changes based on <code class="docutils literal notranslate"><span class="pre">status_step_streak</span></code></p></li>
+<li><p><strong>Energy Management</strong>: Social interactions consume energy</p></li>
+</ul>
+</section>
+<section id="step-3-implement-the-sir-model">
+<h2>Step 3: Implement the SIR Model<a class="headerlink" href="#step-3-implement-the-sir-model" title="Link to this heading"></a></h2>
+<p>Custom models need to override the <code class="docutils literal notranslate"><span class="pre">initialize_sim_population</span></code> method to handle their specific status assignments and initial conditions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SIRModel</span><span class="p">(</span><span class="n">AbstractInfectionModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;SIR infection model implementation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_params</span><span class="p">,</span> <span class="n">step_events</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Define model-specific attributes BEFORE calling super().__init__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infected_statuses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;I&#39;</span><span class="p">]</span>  <span class="c1"># Only infectious status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_statuses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">]</span>  <span class="c1"># All possible statuses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folk_class</span> <span class="o">=</span> <span class="n">FolkSIR</span>  <span class="c1"># Agent class to use</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step_events</span> <span class="o">=</span> <span class="n">step_events</span>  <span class="c1"># Custom or default events</span>
+
+        <span class="c1"># Initialize parent class (validates our definitions)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_sim_population</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">town</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rd</span>
+
+        <span class="c1"># Get basic population parameters from parent</span>
+        <span class="n">num_pop</span><span class="p">,</span> <span class="n">num_init_spreader</span><span class="p">,</span> <span class="n">num_init_spreader_rd</span><span class="p">,</span> <span class="n">folks</span><span class="p">,</span> <span class="n">household_node_indices</span><span class="p">,</span> <span class="n">assignments</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_sim_population</span><span class="p">(</span><span class="n">town</span><span class="p">)</span>
+
+        <span class="c1"># Randomly assign initial spreaders (not on specified nodes)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_init_spreader_rd</span><span class="p">):</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">town</span><span class="o">.</span><span class="n">accommodation_node_ids</span><span class="p">)</span>
+            <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">))</span>  <span class="c1"># Infectious status</span>
+
+        <span class="c1"># Assign the rest as susceptible</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pop</span> <span class="o">-</span> <span class="n">num_init_spreader</span><span class="p">):</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">town</span><span class="o">.</span><span class="n">accommodation_node_ids</span><span class="p">)</span>
+            <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">))</span>  <span class="c1"># Susceptible status</span>
+
+        <span class="c1"># Assign initial spreaders to specified nodes (if any)</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">town</span><span class="o">.</span><span class="n">town_params</span><span class="o">.</span><span class="n">spreader_initial_nodes</span><span class="p">:</span>
+            <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Create folks and update graph/node info</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">assignments</span><span class="p">):</span>
+            <span class="n">folk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_folk</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_params</span><span class="o">.</span><span class="n">max_energy</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+            <span class="n">folks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folk</span><span class="p">)</span>
+            <span class="n">town</span><span class="o">.</span><span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s2">&quot;folks&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folk</span><span class="p">)</span>
+
+            <span class="c1"># Track household nodes (nodes with 2+ people)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">town</span><span class="o">.</span><span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s2">&quot;folks&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">household_node_indices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="c1"># Create initial status dictionary for timestep 0</span>
+        <span class="n">status_dict_t0</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;current_event&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="n">num_pop</span> <span class="o">-</span> <span class="n">num_init_spreader</span><span class="p">,</span>  <span class="c1"># Susceptible count</span>
+            <span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="n">num_init_spreader</span><span class="p">,</span>            <span class="c1"># Infectious count</span>
+            <span class="s1">&#39;R&#39;</span><span class="p">:</span> <span class="mi">0</span>                             <span class="c1"># Recovered count (starts at 0)</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">folks</span><span class="p">,</span> <span class="n">household_node_indices</span><span class="p">,</span> <span class="n">status_dict_t0</span>
+</pre></div>
+</div>
+<p><strong>Key Implementation Points:</strong></p>
+<ul class="simple">
+<li><p><strong>Call Parent Method</strong>: Use <code class="docutils literal notranslate"><span class="pre">super().initialize_sim_population(town)</span></code> to get base setup</p></li>
+<li><p><strong>Status Assignment</strong>: Assign initial statuses based on your model’s compartments</p></li>
+<li><p><strong>Node Assignment</strong>: Distribute agents across accommodation nodes in the town</p></li>
+<li><p><strong>Status Dictionary</strong>: Initialize counts for all possible statuses at timestep 0</p></li>
+<li><p><strong>Household Tracking</strong>: Update household indices for nodes with multiple residents</p></li>
+</ul>
+</section>
+<section id="step-4-test-your-sir-model">
+<h2>Step 4: Test Your SIR Model<a class="headerlink" href="#step-4-test-your-sir-model" title="Link to this heading"></a></h2>
+<p>Create a simple test script to validate your implementation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># File: test_sir_model.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simcronomicon</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">scon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sir_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIRModel</span><span class="p">,</span> <span class="n">SIRModelParameters</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_sir_model</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test basic SIR model functionality.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Create a simple town</span>
+    <span class="n">point</span> <span class="o">=</span> <span class="p">(</span><span class="mf">50.7753</span><span class="p">,</span> <span class="mf">6.0839</span><span class="p">)</span>  <span class="c1"># Aachen coordinates</span>
+    <span class="n">town_params</span> <span class="o">=</span> <span class="n">TownParameters</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1"># 100 people, 5 initial infected</span>
+    <span class="n">town</span> <span class="o">=</span> <span class="n">Town</span><span class="o">.</span><span class="n">from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;test_sir&quot;</span><span class="p">,</span> <span class="n">town_params</span><span class="p">)</span>
+
+    <span class="c1"># Configure SIR model</span>
+    <span class="n">sir_params</span> <span class="o">=</span> <span class="n">SIRModelParameters</span><span class="p">(</span>
+        <span class="n">max_energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">beta</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>      <span class="c1"># 30% transmission probability</span>
+        <span class="n">gamma</span><span class="o">=</span><span class="mi">7</span>        <span class="c1"># Recovery after 7 days</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create model and simulation</span>
+    <span class="n">sir_model</span> <span class="o">=</span> <span class="n">SIRModel</span><span class="p">(</span><span class="n">sir_params</span><span class="p">)</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">town</span><span class="p">,</span> <span class="n">sir_model</span><span class="p">,</span> <span class="n">timesteps</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running SIR simulation...&quot;</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="c1"># Analyze results</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SIR simulation completed successfully!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Visualize results</span>
+    <span class="n">plot_status_summary_from_hdf5</span><span class="p">(</span><span class="s2">&quot;simulation_output.h5&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">test_sir_model</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="step-5-compare-with-mathematical-sir">
+<h2>Step 5: Compare with Mathematical SIR<a class="headerlink" href="#step-5-compare-with-mathematical-sir" title="Link to this heading"></a></h2>
+<p>Validate your agent-based model against the classic SIR differential equations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_ivp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_sir_models</span><span class="p">(</span><span class="n">sir_params</span><span class="p">,</span> <span class="n">population_size</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare agent-based SIR with ODE solution.&quot;&quot;&quot;</span>
+
+    <span class="c1"># ODE system for SIR</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sir_ode</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">S</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">S</span> <span class="o">+</span> <span class="n">I</span> <span class="o">+</span> <span class="n">R</span>
+        <span class="n">dS_dt</span> <span class="o">=</span> <span class="o">-</span><span class="n">sir_params</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">I</span> <span class="o">/</span> <span class="n">N</span>
+        <span class="n">dI_dt</span> <span class="o">=</span> <span class="n">sir_params</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">I</span> <span class="o">/</span> <span class="n">N</span> <span class="o">-</span> <span class="n">I</span> <span class="o">/</span> <span class="n">sir_params</span><span class="o">.</span><span class="n">gamma</span>
+        <span class="n">dR_dt</span> <span class="o">=</span> <span class="n">I</span> <span class="o">/</span> <span class="n">sir_params</span><span class="o">.</span><span class="n">gamma</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dS_dt</span><span class="p">,</span> <span class="n">dI_dt</span><span class="p">,</span> <span class="n">dR_dt</span><span class="p">]</span>
+
+    <span class="c1"># Initial conditions (normalized)</span>
+    <span class="n">S0</span> <span class="o">=</span> <span class="mf">0.95</span>  <span class="c1"># 95% susceptible</span>
+    <span class="n">I0</span> <span class="o">=</span> <span class="mf">0.05</span>  <span class="c1"># 5% infectious</span>
+    <span class="n">R0</span> <span class="o">=</span> <span class="mf">0.00</span>  <span class="c1"># 0% recovered</span>
+
+    <span class="c1"># Solve ODE</span>
+    <span class="n">t_span</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">t_eval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">51</span><span class="p">)</span>
+    <span class="n">solution</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="n">sir_ode</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="p">[</span><span class="n">S0</span><span class="p">,</span> <span class="n">I0</span><span class="p">,</span> <span class="n">R0</span><span class="p">],</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t_eval</span><span class="p">)</span>
+
+    <span class="c1"># Plot comparison</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="c1"># ODE solution</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Susceptible&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Infectious&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;g-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Recovered&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (days)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Proportion&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;SIR ODE Model&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Agent-based results (load from your simulation)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="c1"># Add code to plot your simulation results here</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Agent-Based SIR Model&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;📊 Model comparison complete!&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Beta (transmission rate): </span><span class="si">{</span><span class="n">sir_params</span><span class="o">.</span><span class="n">beta</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Gamma (recovery time): </span><span class="si">{</span><span class="n">sir_params</span><span class="o">.</span><span class="n">gamma</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Basic reproduction number R₀: </span><span class="si">{</span><span class="n">sir_params</span><span class="o">.</span><span class="n">beta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sir_params</span><span class="o">.</span><span class="n">gamma</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-features">
+<h2>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h2>
+<p>Once your basic SIR model works, you can extend it with advanced features:</p>
+<section id="custom-movement-patterns">
+<h3>Custom Movement Patterns<a class="headerlink" href="#custom-movement-patterns" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add custom step events for different behaviors</span>
+<span class="n">sir_step_events</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">StepEvent</span><span class="p">(</span>
+        <span class="s2">&quot;morning_commute&quot;</span><span class="p">,</span>
+        <span class="n">FolkSIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+        <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+        <span class="mi">10000</span><span class="p">,</span>  <span class="c1"># Travel up to 10km</span>
+        <span class="p">[</span><span class="s1">&#39;workplace&#39;</span><span class="p">,</span> <span class="s1">&#39;education&#39;</span><span class="p">],</span>
+        <span class="n">log_normal_mobility</span>  <span class="c1"># Distance-based probability</span>
+    <span class="p">),</span>
+    <span class="n">StepEvent</span><span class="p">(</span>
+        <span class="s2">&quot;evening_social&quot;</span><span class="p">,</span>
+        <span class="n">FolkSIR</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span>
+        <span class="n">EventType</span><span class="o">.</span><span class="n">DISPERSE</span><span class="p">,</span>
+        <span class="mi">5000</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;commercial&#39;</span><span class="p">,</span> <span class="s1">&#39;religious&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+
+<span class="n">sir_model</span> <span class="o">=</span> <span class="n">SIRModel</span><span class="p">(</span><span class="n">sir_params</span><span class="p">,</span> <span class="n">step_events</span><span class="o">=</span><span class="n">sir_step_events</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="behavioral-interventions">
+<h3>Behavioral Interventions<a class="headerlink" href="#behavioral-interventions" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">FolkSIRWithMasks</span><span class="p">(</span><span class="n">FolkSIR</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;SIR agents with mask-wearing behavior.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wearing_mask</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_effectiveness</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># 50% transmission reduction</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">interact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folks_here</span><span class="p">,</span> <span class="n">current_place_type</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">,</span> <span class="n">model_params</span><span class="p">,</span> <span class="n">dice</span><span class="p">):</span>
+        <span class="c1"># Modify transmission probability based on mask wearing</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+            <span class="n">num_contact</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+             <span class="p">[</span><span class="n">folk</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks_here</span> <span class="k">if</span> <span class="n">folk</span> <span class="o">!=</span> <span class="bp">self</span> <span class="ow">and</span> <span class="n">folk</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;I&#39;</span><span class="p">]])</span>
+
+             <span class="c1"># conversion_prob * I / N is the non-linear term that defines conversion</span>
+             <span class="c1"># This inverse bernoulli function is an interpretation of the term</span>
+             <span class="c1"># in agent-based modeling</span>
+             <span class="n">base_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse_bernoulli</span><span class="p">(</span>
+                    <span class="n">num_contact</span><span class="p">,</span> <span class="n">conversion_prob</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">folks_here</span><span class="p">))</span>
+
+             <span class="c1"># Reduce transmission if either person wears a mask</span>
+             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wearing_mask</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">folk</span><span class="o">.</span><span class="n">wearing_mask</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">infectious_folks</span><span class="p">):</span>
+                <span class="n">base_prob</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_effectiveness</span><span class="p">)</span>
+
+             <span class="k">if</span> <span class="n">base_prob</span> <span class="o">&gt;</span> <span class="n">dice</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">-=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="validation-and-testing">
+<h2>Validation and Testing<a class="headerlink" href="#validation-and-testing" title="Link to this heading"></a></h2>
+<p>Always validate your custom model:</p>
+<dl class="simple">
+<dt><strong>Unit Tests</strong></dt><dd><p>Test individual components (parameter validation, agent transitions)</p>
+</dd>
+<dt><strong>Integration Tests</strong></dt><dd><p>Verify the complete model runs without errors</p>
+</dd>
+<dt><strong>Mathematical Validation</strong></dt><dd><p>Compare with known analytical solutions when possible</p>
+</dd>
+<dt><strong>Sensitivity Analysis</strong></dt><dd><p>Test how parameter changes affect outcomes</p>
+</dd>
+<dt><strong>Edge Cases</strong></dt><dd><p>Test extreme parameter values and unusual scenarios</p>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">validate_sir_model</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Comprehensive SIR model validation.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Test 1: Parameter validation</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">SIRModelParameters</span><span class="p">(</span><span class="n">max_energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>  <span class="c1"># Should fail</span>
+        <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Should have caught invalid beta&quot;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parameter validation working&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 2: Status transitions</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">FolkSIR</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">home_address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">)</span>
+    <span class="n">status_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+    <span class="n">agent</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">status_dict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">agent</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;I&#39;</span> <span class="ow">and</span> <span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status transitions working&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 3: Disease progression</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">SIRModelParameters</span><span class="p">(</span><span class="n">max_energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># At recovery threshold</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">status_dict</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">&gt;=</span> <span class="n">params</span><span class="o">.</span><span class="n">gamma</span><span class="p">:</span>
+        <span class="n">agent</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="n">status_dict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">agent</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;R&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Disease progression working&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All validation tests passed!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<p>When creating custom infection models:</p>
+<dl class="simple">
+<dt><strong>1. Start Simple</strong></dt><dd><p>Begin with basic functionality, then add complexity incrementally</p>
+</dd>
+<dt><strong>2. Validate Early</strong></dt><dd><p>Test each component before building the complete model</p>
+</dd>
+<dt><strong>3. Document Everything</strong></dt><dd><p>Clear docstrings and comments make models maintainable</p>
+</dd>
+<dt><strong>4. Follow Conventions</strong></dt><dd><p>Use consistent naming and structure with existing simcronomicon models</p>
+</dd>
+<dt><strong>5. Test Thoroughly</strong></dt><dd><p>Validate against mathematical models when possible</p>
+</dd>
+<dt><strong>6. Consider Performance</strong></dt><dd><p>Profile your model with large populations to identify bottlenecks</p>
+</dd>
+</dl>
+</section>
+<section id="common-pitfalls">
+<h2>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Incorrect Inheritance Order</strong></dt><dd><p>Always define model attributes BEFORE calling <code class="docutils literal notranslate"><span class="pre">super().__init__()</span></code></p>
+</dd>
+<dt><strong>Missing Status Validation</strong></dt><dd><p>Ensure <code class="docutils literal notranslate"><span class="pre">all_statuses</span></code> includes every possible agent status</p>
+</dd>
+<dt><strong>Energy Management</strong></dt><dd><p>Don’t forget to decrement energy during interactions</p>
+</dd>
+<dt><strong>Status Transition Logic</strong></dt><dd><p>Use <code class="docutils literal notranslate"><span class="pre">status_step_streak</span></code> correctly for time-based transitions</p>
+</dd>
+<dt><strong>Parameter Validation</strong></dt><dd><p>Always validate parameter ranges and types</p>
+</dd>
+</dl>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>Now that you can create custom infection models, explore:</p>
+<ul class="simple">
+<li><p><strong>SIRD Model</strong>: Add death compartment to your SIR model</p></li>
+<li><p><strong>Age-Structured Models</strong>: Different parameters for age groups</p></li>
+<li><p><strong>Spatial Models</strong>: Location-dependent transmission rates</p></li>
+<li><p><strong>Multi-Strain Models</strong>: Competing variants with different characteristics</p></li>
+<li><p><strong>Economic Models</strong>: Incorporate economic factors and interventions</p></li>
+</ul>
+<p>The simcronomicon framework makes it straightforward to implement any infection model structure.
+Your SIR implementation provides the foundation for understanding how to build increasingly sophisticated epidemic
+models tailored to your specific research questions.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advanced_features_SEIQRDV.html" class="btn btn-neutral float-left" title="Advanced Simulation Features: SEIQRDV Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="simcronomicon.html" class="btn btn-neutral float-right" title="simcronomicon package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Warisa Roongaraya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

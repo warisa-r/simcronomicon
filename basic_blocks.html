@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Understanding Agent Behavior and Simulation Flow &mdash; simcronomicon 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced Step Events and Movement Patterns" href="advanced_features_movement.html" />
+    <link rel="prev" title="Getting Started with simcronomicon" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            simcronomicon
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with simcronomicon</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Understanding Agent Behavior and Simulation Flow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-agent-folk-architecture">The Agent (Folk) Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#individual-agent-attributes">Individual Agent Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#energy-system-the-foundation-of-movement"><strong>Energy System</strong>: The Foundation of Movement</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#daily-agent-lifecycle">Daily Agent Lifecycle</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#morning-energy-reset">Morning: Energy Reset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#day-event-participation">Day: Event Participation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evening-status-transitions">Evening: Status Transitions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-orchestra-how-multiple-agents-coordinate">Simulation Orchestra: How Multiple Agents Coordinate</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-reset-locations">Step 1: Reset Locations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-agent-movement-disperse-events">Step 2: Agent Movement (DISPERSE Events)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-interactions-at-each-location">Step 3: Interactions at Each Location</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-return-home-send-home-events">Step 4: Return Home (SEND_HOME Events)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#key-simulation-concepts">Key Simulation Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#understanding-movement-patterns">Understanding Movement Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_movement.html">Advanced Step Events and Movement Patterns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features_SEIQRDV.html">Advanced Simulation Features: SEIQRDV Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="create_custom_infection.html">Creating Custom Infection Models: Building an SIR Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simcronomicon.html">simcronomicon package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">simcronomicon</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Understanding Agent Behavior and Simulation Flow</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/basic_blocks.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="understanding-agent-behavior-and-simulation-flow">
+<h1>Understanding Agent Behavior and Simulation Flow<a class="headerlink" href="#understanding-agent-behavior-and-simulation-flow" title="Link to this heading"></a></h1>
+<p>This section explains the fundamental building blocks of how individual agents work and how multiple agents interact in the simulation environment. Understanding these core concepts will help you grasp the advanced features covered in later tutorials.
+We will go through the code in the library so that you can understand better how this library works!
+But if you are not planning to write a custom model of your own, it might not be necessary to go through this section!</p>
+<section id="the-agent-folk-architecture">
+<h2>The Agent (Folk) Architecture<a class="headerlink" href="#the-agent-folk-architecture" title="Link to this heading"></a></h2>
+<section id="individual-agent-attributes">
+<h3>Individual Agent Attributes<a class="headerlink" href="#individual-agent-attributes" title="Link to this heading"></a></h3>
+<p>Every agent in simcronomicon has several key attributes that govern their behavior:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of a basic agent</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">FolkSEIR</span><span class="p">(</span>
+    <span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>                    <span class="c1"># Unique identifier</span>
+    <span class="n">home_address</span><span class="o">=</span><span class="mi">156</span><span class="p">,</span>         <span class="c1"># Node ID of their home</span>
+    <span class="n">max_energy</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>            <span class="c1"># Maximum daily energy</span>
+    <span class="n">status</span><span class="o">=</span><span class="s1">&#39;S&#39;</span>               <span class="c1"># Disease status (S, E, I, R, etc.)</span>
+<span class="p">)</span>
+
+<span class="c1"># Key behavioral attributes:</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current energy: </span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>              <span class="c1"># 0-5 (random daily start)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current location: </span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">address</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>           <span class="c1"># Current node ID</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Days in status: </span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Time tracking</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Movement restricted: </span><span class="si">{</span><span class="n">agent</span><span class="o">.</span><span class="n">movement_restricted</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Quarantine flag</span>
+</pre></div>
+</div>
+</section>
+<section id="energy-system-the-foundation-of-movement">
+<h3><strong>Energy System</strong>: The Foundation of Movement<a class="headerlink" href="#energy-system-the-foundation-of-movement" title="Link to this heading"></a></h3>
+<p>The most important concept is the <strong>energy system</strong>. Each agent has:</p>
+<ul class="simple">
+<li><p><strong>max_energy</strong>: Maximum energy points (e.g., 5)</p></li>
+<li><p><strong>energy</strong>: Current energy (randomly reset each morning between 0 and max_energy)</p></li>
+</ul>
+<p>Energy determines movement capability and action capability of an agent. If an agent has 0 energy,
+they cannot move or participate in any interaction with other agents.</p>
+<p>This creates realistic daily patterns where:
+- Some agents are more active (higher starting energy)
+- Agents become less active as the day progresses
+- Energy resets each night during sleep</p>
+</section>
+</section>
+<section id="daily-agent-lifecycle">
+<h2>Daily Agent Lifecycle<a class="headerlink" href="#daily-agent-lifecycle" title="Link to this heading"></a></h2>
+<p>Each simulation day follows this pattern for every agent:</p>
+<section id="morning-energy-reset">
+<h3>Morning: Energy Reset<a class="headerlink" href="#morning-energy-reset" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">sleep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># Track time in current status</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_energy</span><span class="p">)</span>  <span class="c1"># Reset energy</span>
+</pre></div>
+</div>
+</section>
+<section id="day-event-participation">
+<h3>Day: Event Participation<a class="headerlink" href="#day-event-participation" title="Link to this heading"></a></h3>
+<p>For each step event in the day:</p>
+<ol class="arabic simple">
+<li><p><strong>Movement Decision</strong>: Can the agent move?</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">movement_restricted</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">agent</span><span class="o">.</span><span class="n">alive</span> <span class="ow">and</span> <span class="n">agent</span><span class="o">.</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># Agent can participate in this event</span>
+    <span class="c1"># ...</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Location Selection</strong>: Where does the agent go?</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find valid destinations within travel distance</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span>
+              <span class="k">if</span> <span class="n">distance_to_node</span> <span class="o">&lt;=</span> <span class="n">event</span><span class="o">.</span><span class="n">max_distance</span>
+              <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">place_type</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">place_types</span><span class="p">]</span>
+
+<span class="c1"># Move to chosen location</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">chosen_location</span>
+</pre></div>
+</div>
+<p>3. <strong>Interaction</strong>: What happens at the location? The simplest answer is, the agent has a likelihood of getting infected!
+This is govern by very simple block of if else condition and a touch of randomness:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">interact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folks_here</span><span class="p">,</span> <span class="n">current_place_type</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">,</span> <span class="n">model_params</span><span class="p">,</span> <span class="n">dice</span><span class="p">):</span>
+    <span class="c1"># Disease transmission logic</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">folk</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;I&#39;</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks_here</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">transmission_probability</span> <span class="o">&gt;</span> <span class="n">dice</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>  <span class="c1"># Become exposed</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">-=</span> <span class="mi">1</span>  <span class="c1"># Lose energy from interaction</span>
+</pre></div>
+</div>
+<p><strong>Mathematical Foundation: Inverse Bernoulli Probability</strong></p>
+<p>The inverse Bernoulli function bridges the gap between continuous ODE dynamics and discrete agent interactions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">inverse_bernoulli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folks_here</span><span class="p">,</span> <span class="n">conversion_prob</span><span class="p">,</span> <span class="n">infectious_statuses</span><span class="p">):</span>
+    <span class="n">num_infectious</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">folk</span> <span class="k">for</span> <span class="n">folk</span> <span class="ow">in</span> <span class="n">folks_here</span>
+                         <span class="k">if</span> <span class="n">folk</span> <span class="o">!=</span> <span class="bp">self</span> <span class="ow">and</span> <span class="n">folk</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">infectious_statuses</span><span class="p">])</span>
+
+    <span class="c1"># Key formula: P(infection) = 1 - (1 - β/N)^k</span>
+    <span class="n">contact_prob</span> <span class="o">=</span> <span class="n">conversion_prob</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">folks_here</span><span class="p">)</span>  <span class="c1"># β/N</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">contact_prob</span><span class="p">)</span> <span class="o">**</span> <span class="n">num_infectious</span>  <span class="c1"># 1 - (1 - β/N)^k</span>
+</pre></div>
+</div>
+<p><strong>Why This Formula Works:</strong></p>
+<ul class="simple">
+<li><p><strong>β/N</strong>: Base transmission probability scaled by location density</p></li>
+<li><p><strong>k</strong>: Number of infectious people present (multiple exposure opportunities)</p></li>
+<li><p><strong>1 - (1 - β/N)^k</strong>: Probability of at least one successful transmission</p></li>
+</ul>
+<p><strong>Real-World Examples:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scenario 1: Small household (β=0.4)</span>
+<span class="c1"># 1 infectious person, 5 total people</span>
+<span class="n">P</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.4</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span><span class="o">^</span><span class="mi">1</span> <span class="o">=</span> <span class="mf">0.08</span> <span class="p">(</span><span class="mi">8</span><span class="o">%</span> <span class="n">infection</span> <span class="n">risk</span><span class="p">)</span>
+
+<span class="c1"># Scenario 2: Crowded restaurant</span>
+<span class="c1"># 3 infectious people, 30 total people</span>
+<span class="n">P</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.4</span><span class="o">/</span><span class="mi">30</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">=</span> <span class="mf">0.039</span> <span class="p">(</span><span class="mf">3.9</span><span class="o">%</span> <span class="n">infection</span> <span class="n">risk</span><span class="p">)</span>
+
+<span class="c1"># Scenario 3: Large event</span>
+<span class="c1"># 10 infectious people, 100 total people</span>
+<span class="n">P</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.4</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span><span class="o">^</span><span class="mi">10</span> <span class="o">=</span> <span class="mf">0.039</span> <span class="p">(</span><span class="mf">3.9</span><span class="o">%</span> <span class="n">infection</span> <span class="n">risk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key Insights:</strong></p>
+<ul class="simple">
+<li><p><strong>Location matters</strong>: Smaller venues (higher β/N) create higher per-contact risk</p></li>
+<li><p><strong>Multiple contacts</strong>: More infectious people increases overall risk non-linearly</p></li>
+<li><p><strong>Crowd dilution</strong>: Larger crowds can actually reduce individual infection risk</p></li>
+<li><p><strong>ODE compatibility</strong>: As population grows, results converge to traditional SEIR equations</p></li>
+</ul>
+<p>This mathematical foundation ensures that our agent-based results align with classical epidemiological
+theory while capturing the spatial heterogeneity that makes simcronomicon powerful for policy analysis.</p>
+</section>
+<section id="evening-status-transitions">
+<h3>Evening: Status Transitions<a class="headerlink" href="#evening-status-transitions" title="Link to this heading"></a></h3>
+<p>The most important concept for disease progression is <strong>status_step_streak</strong> - this tracks how many days an agent has been in their current status:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">sleep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sleep</span><span class="p">()</span>  <span class="c1"># Reset energy and increment status streak</span>
+
+    <span class="c1"># Time-based disease progression using status_step_streak</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;E&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">==</span> <span class="n">model_params</span><span class="o">.</span><span class="n">sigma</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>  <span class="c1"># Exposed → Infectious after incubation period</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;I&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">==</span> <span class="n">model_params</span><span class="o">.</span><span class="n">gamma</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span>  <span class="c1"># Infectious → Recovered after infectious period</span>
+</pre></div>
+</div>
+<p><strong>Example Disease Progression Timeline:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Day 1: Agent becomes exposed</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;E&#39;</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># Day 2-3: Still incubating (sigma = 3 days)</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">then</span> <span class="mi">2</span>
+
+<span class="c1"># Day 4: Becomes infectious</span>
+<span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># sigma = 3</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span> <span class="c1"># Convert and reset counter for new status</span>
+
+<span class="c1"># Day 5-11: Infectious period (gamma = 7 days)</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span>
+
+<span class="c1"># Day 12: Recovers</span>
+<span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">status_step_streak</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>  <span class="c1"># gamma = 7</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="n">status_dict_t</span><span class="p">)</span> <span class="c1"># Convert and reset counter for new status</span>
+</pre></div>
+</div>
+<p><strong>Key Points:</strong>
+- <cite>status_step_streak</cite> increments every night during <cite>sleep()</cite>
+- When it reaches the model parameter threshold, status changes occur
+- The counter resets to 0 when an agent changes status
+- Different statuses have different duration parameters (sigma, gamma, etc.)</p>
+<p>This creates predictable disease timelines: exposed agents become infectious after exactly <cite>sigma</cite> days,
+and infectious agents recover after exactly <cite>gamma</cite> days, mimicking real epidemiological patterns.</p>
+</section>
+</section>
+<section id="simulation-orchestra-how-multiple-agents-coordinate">
+<h2>Simulation Orchestra: How Multiple Agents Coordinate<a class="headerlink" href="#simulation-orchestra-how-multiple-agents-coordinate" title="Link to this heading"></a></h2>
+<p>The main simulation loop in <code class="docutils literal notranslate"><span class="pre">sim.py</span></code> coordinates thousands of agents:</p>
+<section id="step-1-reset-locations">
+<h3>Step 1: Reset Locations<a class="headerlink" href="#step-1-reset-locations" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clear all locations</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+    <span class="n">node</span><span class="p">[</span><span class="s2">&quot;folks&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Empty all locations</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-agent-movement-disperse-events">
+<h3>Step 2: Agent Movement (DISPERSE Events)<a class="headerlink" href="#step-2-agent-movement-disperse-events" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_disperse_for_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step_event</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">person</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">folks</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">person</span><span class="o">.</span><span class="n">movement_restricted</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">person</span><span class="o">.</span><span class="n">alive</span> <span class="ow">and</span> <span class="n">person</span><span class="o">.</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Find valid destinations</span>
+            <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">reachable_nodes</span>
+                        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">place_type</span> <span class="ow">in</span> <span class="n">step_event</span><span class="o">.</span><span class="n">place_types</span><span class="p">]</span>
+
+            <span class="c1"># Choose destination (uniform random or custom probability function)</span>
+            <span class="k">if</span> <span class="n">step_event</span><span class="o">.</span><span class="n">probability_func</span><span class="p">:</span>
+                <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="n">distance_to_node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">]</span>
+                <span class="n">probs</span> <span class="o">=</span> <span class="n">step_event</span><span class="o">.</span><span class="n">probability_func</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">person</span><span class="p">)</span>
+                <span class="n">new_location</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_location</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span>
+
+            <span class="c1"># Move agent</span>
+            <span class="n">person</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">new_location</span>
+
+        <span class="c1"># Add agent to their chosen location</span>
+        <span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">person</span><span class="o">.</span><span class="n">address</span><span class="p">][</span><span class="s2">&quot;folks&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">person</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="step-3-interactions-at-each-location">
+<h3>Step 3: Interactions at Each Location<a class="headerlink" href="#step-3-interactions-at-each-location" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process each active location</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">active_locations</span><span class="p">:</span>
+    <span class="n">folks_here</span> <span class="o">=</span> <span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s2">&quot;folks&quot;</span><span class="p">]</span>
+    <span class="n">place_type</span> <span class="o">=</span> <span class="n">town_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s2">&quot;place_type&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Each agent interacts with environment and others</span>
+    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">folks_here</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">alive</span> <span class="ow">and</span> <span class="n">agent</span><span class="o">.</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">agent</span><span class="o">.</span><span class="n">interact</span><span class="p">(</span><span class="n">folks_here</span><span class="p">,</span> <span class="n">place_type</span><span class="p">,</span> <span class="n">status_dict</span><span class="p">,</span> <span class="n">model_params</span><span class="p">,</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="step-4-return-home-send-home-events">
+<h3>Step 4: Return Home (SEND_HOME Events)<a class="headerlink" href="#step-4-return-home-send-home-events" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># End of day: everyone goes home</span>
+<span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">folks</span><span class="p">:</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">home_address</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Reset energy, handle status transitions</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="key-simulation-concepts">
+<h2>Key Simulation Concepts<a class="headerlink" href="#key-simulation-concepts" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Energy-Driven Participation</strong></dt><dd><p>Only agents with energy &gt; 0 can move and interact. This creates natural activity patterns and prevents unrealistic behavior.</p>
+</dd>
+<dt><strong>Location-Based Interactions</strong></dt><dd><p>Agents only interact with others at the same location node. Disease spreads through shared physical spaces.</p>
+</dd>
+<dt><strong>Time-Dependent Transitions</strong></dt><dd><p>Status changes happen during <code class="docutils literal notranslate"><span class="pre">sleep()</span></code> based on how long an agent has been in their current status.</p>
+</dd>
+<dt><strong>Movement Restrictions</strong></dt><dd><p>Quarantined agents (<code class="docutils literal notranslate"><span class="pre">movement_restricted</span> <span class="pre">=</span> <span class="pre">True</span></code>) stay home but can still interact with visiting agents (delivery, family).</p>
+</dd>
+<dt><strong>Stochastic Behavior</strong></dt><dd><p>Random elements (energy levels, movement choices, disease transmission) create realistic population-level patterns from simple rules.</p>
+</dd>
+</dl>
+</section>
+<section id="understanding-movement-patterns">
+<h2>Understanding Movement Patterns<a class="headerlink" href="#understanding-movement-patterns" title="Link to this heading"></a></h2>
+<p>The basic movement system uses uniform random selection:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic movement: choose randomly among valid destinations</span>
+<span class="n">valid_destinations</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">town</span> <span class="k">if</span> <span class="n">meets_criteria</span><span class="p">(</span><span class="n">node</span><span class="p">)]</span>
+<span class="n">chosen_destination</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">valid_destinations</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>But you can customize this with probability functions of your own, which is the topic of the next tutorial!</p>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>Now that you understand how individual agents work and how the simulation coordinates multiple agents, you’re ready to explore:</p>
+<ul class="simple">
+<li><p><strong>Advanced Step Events and Movement Patterns</strong>: Customize agent movement with sophisticated probability functions</p></li>
+<li><p><strong>SEIQRDV Model Features</strong>: Understand complex disease models with vaccination (priority place system) and quarantine</p></li>
+<li><p><strong>Custom Model Development</strong>: Create your own infection models and agent behaviors</p></li>
+</ul>
+<p>The key insight is that complex population-level patterns emerge from simple agent-level rules. By understanding energy,
+movement, interactions, and status transitions, you can design realistic epidemic simulations and analyze intervention strategies.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started with simcronomicon" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="advanced_features_movement.html" class="btn btn-neutral float-right" title="Advanced Step Events and Movement Patterns" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Warisa Roongaraya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
